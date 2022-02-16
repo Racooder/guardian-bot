@@ -4,7 +4,9 @@
   "description": "The official discord bot of the racoonia discord channel.",
   "main": "bot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node bot.js",
+    "remove-commands": "node remove-commands.js"
   },
   "repository": {
     "type": "git",
