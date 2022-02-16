@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node bot.js",
-    "remove-commands": "node remove-commands.js"
+    "remove-commands": "node scripts/remove-commands.js",
+    "reload-commands": "node scripts/reload-commands.js",
+    "update-commands": "node scripts/update-commands.js"
   },
   "repository": {
     "type": "git",
