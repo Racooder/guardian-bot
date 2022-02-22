@@ -4,7 +4,7 @@
 
 <div align="center">
   <p>
-    <a href="https://discord.gg/djs"><img src="https://img.shields.io/discord/651800564966883328?color=5865F2&logo=discord&logoColor=white" alt="Discord server"/></a>
+    <a href="https://discord.gg/9Y8BE2A6cj"><img src="https://img.shields.io/discord/651800564966883328?color=5865F2&logo=discord&logoColor=white" alt="Discord server"/></a>
     <img src="https://img.shields.io/badge/version-1.0.0-brightgreen" alt="version"/>
   </p>
 </div>
