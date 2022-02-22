@@ -85,6 +85,7 @@ module.exports = {
             {
                 if (quotes.length == 0){
                     interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
+                    return;
                 }
                 const quoteMessage = new MessageEmbed().setTitle(`Quotes by ${author}`);
                 let description = "";
