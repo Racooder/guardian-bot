@@ -1,9 +1,8 @@
+
+![Logo](./data/logo-wide.jpg#gh-dark-mode-only)
+![Logo Light](./data/logo-wide-light.jpg#gh-light-mode-only)
+
 <div align="center">
-  <br />
-  <p>
-    <a href="https://discord.js.org"><img src="./data/logo-wide.jpg" width="546" alt="discord.js" /></a>
-  </p>
-  <br />
   <p>
     <a href="https://discord.gg/djs"><img src="https://img.shields.io/discord/651800564966883328?color=5865F2&logo=discord&logoColor=white" alt="Discord server"/></a>
     <img src="https://img.shields.io/badge/version-1.0.0-brightgreen" alt="version"/>
