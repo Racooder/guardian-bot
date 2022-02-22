@@ -32,7 +32,6 @@ module.exports = {
     /**
      * Executes the quote command
      * @param {Object} interaction - The interaction object
-     * @returns The reply message
      */
 	async execute(interaction) {
         const subcommand = interaction.options.getSubcommand(); 
@@ -48,11 +47,12 @@ module.exports = {
                     quote: interaction.options.getString('quote')
                 });
                 profile.save();
-                return await interaction.reply({ content: "Sucessfully saved the quote!", ephemeral: true });
+                await interaction.reply({ content: "Sucessfully saved the quote!", ephemeral: true });
             } catch (error) {
                 console.error(error);
-                return await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
             }
+            return;
         }
         if (subcommand == 'random') {
             var author = interaction.options.getUser('autor');
@@ -69,21 +69,22 @@ module.exports = {
                 }
                 const result = quotes[Math.floor(Math.random()*quotes.length)];
                 if (result) {
-                    return interaction.reply({embeds: [new MessageEmbed()
+                    interaction.reply({embeds: [new MessageEmbed()
                         .setTitle(`"${result.quote}" - ${result.author == null ? 'anonymous' : result.author}`)
                     ]});
                 } else {
-                    return interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
+                    interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
                 }
             });
+            return;
         }
         if (subcommand == 'search') {
             const author = interaction.options.getUser('autor').username;
 
             profileModel.find({ author: author }, function(err, quotes) 
             {
-                if (quotes.length() == 0){
-                    return interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
+                if (quotes.length == 0){
+                    interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
                 }
                 const quoteMessage = new MessageEmbed().setTitle(`Quotes by ${author}`);
                 let description = "";
@@ -91,8 +92,9 @@ module.exports = {
                     description += `"${quote.quote}"\n\n`;
                 }
                 quoteMessage.setDescription(description);
-                return interaction.reply({embeds: [quoteMessage]});
+                interaction.reply({embeds: [quoteMessage]});
             });
+            return;
         }
         console.warn("Inexisting subcommand of the quote command!");
         return await interaction.reply({ content: "This subcommand doesn't exists!", ephemeral: true });
