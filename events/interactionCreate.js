@@ -2,6 +2,9 @@
  * The interaction event
  */
 module.exports = {
+    /**
+     * The name of the event
+     */
 	name: 'interactionCreate',
     /**
      * Handles the given interaction
