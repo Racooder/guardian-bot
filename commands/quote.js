@@ -3,7 +3,13 @@ const { MessageEmbed } = require('discord.js');
 const profileModel = require('../models/profileSchema');
 
 module.exports = {
+    /**
+     * If the command is only available for guilds
+     */
 	guildOnly: true,
+    /**
+     * The SlashCommandBuilder
+     */
 	data: new SlashCommandBuilder()
 		.setName('quote')
 		.setDescription('A quote command!')
@@ -23,6 +29,10 @@ module.exports = {
                 .setName('search')
                 .setDescription('Search quotes by criterias.')
                 .addUserOption(option => option.setName('autor').setDescription('The person who said the quote.').setRequired(true))),
+    /**
+     * Executes the quote command
+     * @param {Object} interaction - The interaction object
+     */
 	async execute(interaction) {
         const subcommand = interaction.options.getSubcommand(); 
         if (subcommand == 'new') {

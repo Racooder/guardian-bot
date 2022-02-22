@@ -1,9 +1,18 @@
+// * Imports
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const fs = require('fs');
+const { type } = require('os');
 require('dotenv').config();
 
+/**
+ * Holds functions for deploying commands
+ */
 module.exports = {
+    /**
+     * Deploys all guild-only commands in the given guilds
+     * @param {Object} guilds - A list of guilds
+     */
 	deployGuild(guilds) {
 		const commands = [];
 		const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -37,6 +46,9 @@ module.exports = {
 			}
 		})();
 	},
+    /**
+     * Deploys all not guild-only commands as application commands
+     */
     deployGlobal() {
 		const commands = [];
 		const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -68,6 +80,10 @@ module.exports = {
 			}
 		})();
 	},
+    /**
+     * Removes all guild commands from the given guilds
+     * @param {Object} guilds - A list of guilds
+     */
     removeGuild(guilds) {
         const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
@@ -83,6 +99,9 @@ module.exports = {
                 });
         }
     },
+    /**
+     * Removes all application commands
+     */
     removeGlobal() {
         const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
@@ -96,6 +115,10 @@ module.exports = {
                 return Promise.all(promises);
             });
     },
+    /**
+     * Updates all guild-only commands in the given guilds
+     * @param {Object} guilds - A list of guilds
+     */
     updateGuild(guilds) {
         const commands = [];
 		const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -150,6 +173,9 @@ module.exports = {
 			}
 		})();
     },
+    /**
+     * Updates all not guild-only commands as application commands
+     */
     updateGlobal() {
         const commands = [];
 		const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));

@@ -1,10 +1,15 @@
+// * Imports
 const fs = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 const mongoose = require('mongoose')
 require('dotenv').config();
 
+/**
+ * The discord client
+ */
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
+// * Event Setup
 const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
 
 for (const file of eventFiles) {
@@ -16,6 +21,7 @@ for (const file of eventFiles) {
 	}
 }
 
+// * Database Setup
 mongoose.connect(process.env.MONGODB_SRV, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
@@ -25,6 +31,7 @@ mongoose.connect(process.env.MONGODB_SRV, {
 	console.log(err);
 })
 
+// * Command Setup
 client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
@@ -33,4 +40,5 @@ for (const file of commandFiles) {
 	client.commands.set(command.data.name, command);
 }
 
+// * Client Login
 client.login(process.env.TOKEN);

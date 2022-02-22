@@ -1,9 +1,18 @@
+/**
+ * The interaction event
+ */
 module.exports = {
 	name: 'interactionCreate',
+    /**
+     * Handles the given interaction
+     * @param {Object} interaction - The interaction object
+     * @param {Object} client - The discord client
+     * @returns 
+     */
 	async execute(interaction, client) {
         if (!interaction.isCommand()) return;
 
-        const command = client.commands.get(interaction.commandName);
+        const command = client.commands.get(interaction.commandName); // Get the corresponding command for the command interaction
 
         if (!command) return;
 
