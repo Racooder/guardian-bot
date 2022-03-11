@@ -1,3 +1,4 @@
+// * Imports
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 const profileModel = require('../models/profileSchema');
@@ -28,75 +29,127 @@ module.exports = {
             subcommand
                 .setName('search')
                 .setDescription('Search quotes by criterias.')
-                .addUserOption(option => option.setName('autor').setDescription('The person who said the quote.').setRequired(true))),
+                .addUserOption(option => option.setName('autor').setDescription('The person who said the quote.'))),
     /**
      * Executes the quote command
      * @param {Object} interaction - The interaction object
      */
 	async execute(interaction) {
         const subcommand = interaction.options.getSubcommand(); 
-        if (subcommand == 'new') {
-            try {
-                let author = interaction.options.getUser('autor');
-                if (author) {
-                    author = author.username;
-                }
-                let profile = await profileModel.create({
-                    serverID: interaction.member.guild.id,
-                    author: author,
-                    quote: interaction.options.getString('quote')
-                });
-                profile.save();
-                await interaction.reply({ content: "Sucessfully saved the quote!", ephemeral: true });
-            } catch (error) {
-                console.error(error);
-                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-            }
-            return;
-        }
-        if (subcommand == 'random') {
-            var author = interaction.options.getUser('autor');
-            if (author) {
-                author = author.username;
-            }
 
-            profileModel.find({ serverID: interaction.member.guild.id }, function(err, quotes) 
-            {
-                if (author) {
-                    quotes = quotes.filter(function(value, index, arr){
-                        return value.author == author;
+        switch (subcommand) {
+            case 'new': {
+                try {
+                    let author = interaction.options.getUser('autor');
+                    let authorName;
+                    let authorId;
+                    if (author) {
+                        authorName = author.username;
+                        authorId = author.id;
+                    }
+                    let profile = await profileModel.create({
+                        serverID: interaction.member.guild.id,
+                        author: authorName,
+                        authorId: authorId,
+                        quote: interaction.options.getString('quote'),
+                        timestamp: parseInt(Date.now() / 1000),
+                        creator: interaction.user.username,
+                        creatorId: interaction.user.id
                     });
+                    profile.save();
+                    await interaction.reply({ content: "Sucessfully saved the quote!", ephemeral: true });
+                } catch (error) {
+                    console.error(error);
+                    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
                 }
-                const result = quotes[Math.floor(Math.random()*quotes.length)];
-                if (result) {
-                    interaction.reply({embeds: [new MessageEmbed()
-                        .setTitle(`"${result.quote}" - ${result.author == null ? 'anonymous' : result.author}`)
-                    ]});
-                } else {
-                    interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
+                return;
+            }
+            case 'random': {
+                let author = interaction.options.getUser('autor');
+                let authorName;
+                let authorId;
+                if (author) {
+                    authorName = author.username;
+                    authorId = author.id;
                 }
-            });
-            return;
-        }
-        if (subcommand == 'search') {
-            const author = interaction.options.getUser('autor').username;
 
-            profileModel.find({ author: author }, function(err, quotes) 
-            {
-                if (quotes.length == 0){
-                    interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
-                    return;
+                profileModel.find({ serverID: interaction.member.guild.id }, async function(err, quotes) 
+                {
+                    if (author) {
+                        quotes = quotes.filter(function(value, index, arr){
+                            return value.authorId == authorId;
+                        });
+                    }
+                    const result = quotes[Math.floor(Math.random()*quotes.length)];
+                    if (result) {
+                        let authorText;
+                        if (interaction.member.guild.members.cache.find(user => user.id == result.authorId))
+                        {
+                            authorText = await interaction.member.guild.members.fetch(result.authorId);
+                            authorText = authorText.displayName;
+                        }
+                        else
+                        {
+                            authorText = !result.author ? 'anonymous' : result.author;
+                        }
+
+                        const embed = new MessageEmbed()
+                            .setTitle(`"${result.quote}" - ${authorText}`)
+                        if (result.timestamp) {
+                            embed.setDescription(`Created at <t:${result.timestamp}:d>`);
+                        }
+                            
+                        interaction.reply({embeds: [embed]});
+                    } else {
+                        interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
+                    }
+                });
+                return;
+            }
+            case 'search': {
+                let author = interaction.options.getUser('autor');
+                let authorName;
+                let authorId;
+                if (author) {
+                    authorName = author.username;
+                    authorId = author.id;
                 }
-                const quoteMessage = new MessageEmbed().setTitle(`Quotes by ${author}`);
-                let description = "";
-                for (const quote of quotes) {
-                    description += `"${quote.quote}"\n\n`;
-                }
-                quoteMessage.setDescription(description);
-                interaction.reply({embeds: [quoteMessage]});
-            });
-            return;
+
+                profileModel.find({ serverID: interaction.member.guild.id }, async function(err, quotes) 
+                {
+                    if (author) {
+                        quotes = quotes.filter(function(value, index, arr){
+                            return value.authorId == authorId;
+                        });
+
+                        if (quotes.length == 0){
+                            interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
+                            return;
+                        }
+                    }
+
+                    const quoteMessage = new MessageEmbed().setTitle("Your searched quotes");
+
+                    for (const quote of quotes) {
+                        let authorText;
+                        if (interaction.member.guild.members.cache.find(user => user.id == quote.authorId))
+                        {
+                            authorText = await interaction.member.guild.members.fetch(quote.authorId);
+                            authorText = authorText.displayName;
+                        }
+                        else
+                        {
+                            authorText = !quote.author ? 'anonymous' : quote.author;
+                        }
+
+                        quoteMessage.addField(`"${quote.quote}" - ${authorText}`, `Created at <t:${quote.timestamp}:d>`);
+                    }
+                    interaction.reply({embeds: [quoteMessage]});
+                });
+                return;
+            }
         }
+        
         console.warn("Inexisting subcommand of the quote command!");
         return await interaction.reply({ content: "This subcommand doesn't exists!", ephemeral: true });
 	},
