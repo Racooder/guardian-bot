@@ -7,7 +7,11 @@ const mongoose = require('mongoose');
 const guildSchema = new mongoose.Schema({
     serverID: { type: String, required: true },
     author: { type: String },
-    quote: { type: String }
+    authorId: { type: String },
+    quote: { type: String },
+    timestamp: { type: Number },
+    creator: { type: String },
+    creatorId: { type: String }
 });
 
 /**
