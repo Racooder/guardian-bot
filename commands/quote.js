@@ -19,17 +19,20 @@ module.exports = {
                 .setName('new')
                 .setDescription('Create a new quote')
                 .addStringOption(option => option.setName('quote').setDescription('The quote text.').setRequired(true))
-                .addUserOption(option => option.setName('autor').setDescription('The person who said the quote.')))
+                .addUserOption(option => option.setName('autor').setDescription('The discord user who said the quote.'))
+                .addStringOption(option => option.setName('non-discord-autor').setDescription('The person who said the quote.')))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('random')
                 .setDescription('Get a random quote.')
-                .addUserOption(option => option.setName('autor').setDescription('The person who said the quote.')))
+                .addUserOption(option => option.setName('autor').setDescription('The person who said the quote.'))
+                .addStringOption(option => option.setName('non-discord-autor').setDescription('The person who said the quote.')))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('search')
                 .setDescription('Search quotes by criterias.')
-                .addUserOption(option => option.setName('autor').setDescription('The person who said the quote.'))),
+                .addUserOption(option => option.setName('autor').setDescription('The discord user who said the quote.'))
+                .addStringOption(option => option.setName('non-discord-autor').setDescription('The person who said the quote.'))),
     /**
      * Executes the quote command
      * @param {Object} interaction - The interaction object
@@ -39,14 +42,19 @@ module.exports = {
 
         switch (subcommand) {
             case 'new': {
+                let author = interaction.options.getUser('autor');
+                let nonDiscordAuthor = interaction.options.getString('non-discord-autor');
+                let authorName;
+                let authorId;
+                if (author) {
+                    authorName = author.username;
+                    authorId = author.id;
+                }
+                else if (nonDiscordAuthor) {
+                    authorName = nonDiscordAuthor;
+                }
+
                 try {
-                    let author = interaction.options.getUser('autor');
-                    let authorName;
-                    let authorId;
-                    if (author) {
-                        authorName = author.username;
-                        authorId = author.id;
-                    }
                     let profile = await profileModel.create({
                         serverID: interaction.member.guild.id,
                         author: authorName,
@@ -72,6 +80,9 @@ module.exports = {
                     authorName = author.username;
                     authorId = author.id;
                 }
+                else {
+                    authorName = interaction.options.getString('non-discord-autor');
+                }
 
                 profileModel.find({ serverID: interaction.member.guild.id }, async function(err, quotes) 
                 {
@@ -79,30 +90,52 @@ module.exports = {
                         quotes = quotes.filter(function(value, index, arr){
                             return value.authorId == authorId;
                         });
+
+                        if (quotes.length == 0){
+                            interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
+                            return;
+                        }
+                    }
+                    else if (authorName){
+                        quotes = quotes.filter(function(value, index, arr){
+                            if (value.author == authorName) {
+                                return true;
+                            }
+                            if (authorName.toLowerCase() == 'anonymous' && !value.author) {
+                                return true;
+                            }
+                            return false;
+                        });
+                        
+                        if (quotes.length == 0){
+                            interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
+                            return;
+                        }
+                    }
+
+                    if (quotes.length == 0){
+                        interaction.reply({ content: "There is no quote on this server!", ephemeral: true });
+                        return;
                     }
                     const result = quotes[Math.floor(Math.random()*quotes.length)];
-                    if (result) {
-                        let authorText;
-                        if (interaction.member.guild.members.cache.find(user => user.id == result.authorId))
-                        {
-                            authorText = await interaction.member.guild.members.fetch(result.authorId);
-                            authorText = authorText.displayName;
-                        }
-                        else
-                        {
-                            authorText = !result.author ? 'anonymous' : result.author;
-                        }
-
-                        const embed = new MessageEmbed()
-                            .setTitle(`"${result.quote}" - ${authorText}`)
-                        if (result.timestamp) {
-                            embed.setDescription(`Created at <t:${result.timestamp}:d>`);
-                        }
-                            
-                        interaction.reply({embeds: [embed]});
-                    } else {
-                        interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
+                    let authorText;
+                    if (interaction.member.guild.members.cache.find(user => user.id == result.authorId))
+                    {
+                        authorText = await interaction.member.guild.members.fetch(result.authorId);
+                        authorText = authorText.displayName;
                     }
+                    else
+                    {
+                        authorText = !result.author ? 'anonymous' : result.author;
+                    }
+
+                    const embed = new MessageEmbed()
+                        .setTitle(`"${result.quote}" - ${authorText}`)
+                    if (result.timestamp) {
+                        embed.setDescription(`Created at <t:${result.timestamp}:d>`);
+                    }
+                        
+                    interaction.reply({embeds: [embed]});
                 });
                 return;
             }
@@ -114,6 +147,9 @@ module.exports = {
                     authorName = author.username;
                     authorId = author.id;
                 }
+                else {
+                    authorName = interaction.options.getString('non-discord-autor');
+                }
 
                 profileModel.find({ serverID: interaction.member.guild.id }, async function(err, quotes) 
                 {
@@ -122,6 +158,22 @@ module.exports = {
                             return value.authorId == authorId;
                         });
 
+                        if (quotes.length == 0){
+                            interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
+                            return;
+                        }
+                    }
+                    else if (authorName){
+                        quotes = quotes.filter(function(value, index, arr){
+                            if (value.author == authorName) {
+                                return true;
+                            }
+                            if (authorName.toLowerCase() == 'anonymous' && !value.author) {
+                                return true;
+                            }
+                            return false;
+                        });
+                        
                         if (quotes.length == 0){
                             interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
                             return;
