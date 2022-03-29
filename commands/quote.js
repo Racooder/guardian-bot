@@ -1,7 +1,8 @@
 // * Imports
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder, quote } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 const profileModel = require('../models/profileSchema');
+const textSimilarity = require('../textSimilarity');
 
 module.exports = {
     /**
@@ -26,13 +27,15 @@ module.exports = {
                 .setName('random')
                 .setDescription('Get a random quote.')
                 .addUserOption(option => option.setName('autor').setDescription('The person who said the quote.'))
-                .addStringOption(option => option.setName('non-discord-autor').setDescription('The person who said the quote.')))
+                .addStringOption(option => option.setName('non-discord-autor').setDescription('The person who said the quote.'))
+                .addStringOption(option => option.setName('text').setDescription('A part of the searched quotes text.')))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('search')
                 .setDescription('Search quotes by criterias.')
                 .addUserOption(option => option.setName('autor').setDescription('The discord user who said the quote.'))
-                .addStringOption(option => option.setName('non-discord-autor').setDescription('The person who said the quote.'))),
+                .addStringOption(option => option.setName('non-discord-autor').setDescription('The person who said the quote.'))
+                .addStringOption(option => option.setName('text').setDescription('A part of the searched quotes text.'))),
     /**
      * Executes the quote command
      * @param {Object} interaction - The interaction object
@@ -42,8 +45,8 @@ module.exports = {
 
         switch (subcommand) {
             case 'new': {
-                let author = interaction.options.getUser('autor');
-                let nonDiscordAuthor = interaction.options.getString('non-discord-autor');
+                const author = interaction.options.getUser('autor');
+                const nonDiscordAuthor = interaction.options.getString('non-discord-autor');
                 let authorName;
                 let authorId;
                 if (author) {
@@ -73,7 +76,7 @@ module.exports = {
                 return;
             }
             case 'random': {
-                let author = interaction.options.getUser('autor');
+                const author = interaction.options.getUser('autor');
                 let authorName;
                 let authorId;
                 if (author) {
@@ -83,6 +86,7 @@ module.exports = {
                 else {
                     authorName = interaction.options.getString('non-discord-autor');
                 }
+                const searchText = interaction.options.getString('text');
 
                 profileModel.find({ serverID: interaction.member.guild.id }, async function(err, quotes) 
                 {
@@ -110,6 +114,32 @@ module.exports = {
                         if (quotes.length == 0){
                             interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
                             return;
+                        }
+                    }
+
+                    if (searchText) {
+                        let quoteSimilarities = [];
+
+                        for (const quote of quotes) {
+                            let similarity = textSimilarity(searchText.toLowerCase(), quote.quote.toLowerCase());
+                            if (similarity > 0.5) {
+                                let inserted = false;
+                                for (let i = 0; i < quoteSimilarities.length; i++) {
+                                    const quote = quoteSimilarities[i];
+                                    if (similarity > quote.similarity) {
+                                        quoteSimilarities.splice(i, 0, {quote: quote, similarity: similarity});
+                                        inserted = true;
+                                    }
+                                }
+                                if (!inserted) {
+                                    quoteSimilarities.push({quote: quote, similarity: similarity});
+                                }
+                            }
+                        }
+
+                        quotes = [];
+                        for (const quoteSimilarity of quoteSimilarities) {
+                            quotes.push(quoteSimilarity.quote);
                         }
                     }
 
@@ -140,7 +170,7 @@ module.exports = {
                 return;
             }
             case 'search': {
-                let author = interaction.options.getUser('autor');
+                const author = interaction.options.getUser('autor');
                 let authorName;
                 let authorId;
                 if (author) {
@@ -150,6 +180,7 @@ module.exports = {
                 else {
                     authorName = interaction.options.getString('non-discord-autor');
                 }
+                const searchText = interaction.options.getString('text');
 
                 profileModel.find({ serverID: interaction.member.guild.id }, async function(err, quotes) 
                 {
@@ -177,6 +208,32 @@ module.exports = {
                         if (quotes.length == 0){
                             interaction.reply({ content: "There is no quote from this author!", ephemeral: true });
                             return;
+                        }
+                    }
+
+                    if (searchText) {
+                        let quoteSimilarities = [];
+
+                        for (const quote of quotes) {
+                            let similarity = textSimilarity(searchText.toLowerCase(), quote.quote.toLowerCase());
+                            if (true) {
+                                let inserted = false;
+                                for (let i = 0; i < quoteSimilarities.length; i++) {
+                                    if (similarity > quoteSimilarities[i].similarity) {
+                                        quoteSimilarities.splice(i, 0, {quote: quote, similarity: similarity});
+                                        inserted = true;
+                                        break;
+                                    }
+                                }
+                                if (!inserted) {
+                                    quoteSimilarities.push({quote: quote, similarity: similarity});
+                                }
+                            }
+                        }
+
+                        quotes = [];
+                        for (const quoteSimilarity of quoteSimilarities) {
+                            quotes.push(quoteSimilarity.quote);
                         }
                     }
 
