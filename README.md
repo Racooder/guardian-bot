@@ -5,7 +5,7 @@
 <div align="center">
   <p>
     <a href="https://discord.gg/9Y8BE2A6cj"><img src="https://img.shields.io/discord/651800564966883328?label=Chat&logo=discord&logoColor=white" alt="Discord server"/></a>
-    <a href="https://github.com/Racooder/Racoonia-Guardian"><img src="https://img.shields.io/badge/Version-1.0.2-orange" alt="version"/></a>
+    <a href="https://github.com/Racooder/Racoonia-Guardian"><img src="https://img.shields.io/badge/Version-1.0.3-orange" alt="version"/></a>
     <a href="https://discord.com/api/oauth2/authorize?client_id=821713905692573708&permissions=2048&scope=applications.commands%20bot"><img src="https://img.shields.io/badge/Invite-Guardian-blue" alt="Discord server"/></a>
 </div>
 
@@ -24,23 +24,29 @@ Just [invite](https://discord.com/api/oauth2/authorize?client_id=821713905692573
 
 The bot doesn't asks you for more permissions than he needs and will work in every text channel even if he is not visible in the member list.
 
+## License
+
+The license applies only to the code in this repository. 
+Images and other assets are explicitly excluded.
+The license for the code is the GNU General Public License Version 3.
+You can find more informations [here](./LICENSE)
+
 ## Credits
 
 Thanks to **gotura** for the logo
 
 ---
 
-## DiamondFire Informations
+### DiamondFire Informations
 
 Get informations about Racoonia's DiamondFire games
 
 - Games list with join commands
 
-## Quote System
+### Quote System
 
 A system for saving server exclusive quotes
 
 - Create quotes that are only accessable for your server members
 - Get a random out of your saved quotes
 - Search for quotes by one of your server members
-
