@@ -216,7 +216,7 @@ module.exports = {
 
                         for (const quote of quotes) {
                             let similarity = textSimilarity(searchText.toLowerCase(), quote.quote.toLowerCase());
-                            if (true) {
+                            if (similarity > 0.5) {
                                 let inserted = false;
                                 for (let i = 0; i < quoteSimilarities.length; i++) {
                                     if (similarity > quoteSimilarities[i].similarity) {
