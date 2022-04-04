@@ -7,7 +7,7 @@ module.exports = {
     /**
      * If the command is only available for guilds
      */
-	guildOnly: true,
+	guildOnly: false,
     /**
      * The SlashCommandBuilder
      */

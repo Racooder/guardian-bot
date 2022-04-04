@@ -1,3 +1,3 @@
-Features:
-- It is now possible to search for quotes by their text.
-- Found bugs can now be reported to the developers with the command /bug.
+Fixes:
+- /bug is no longer only available on servers.
+- /quote search shows only quotes with at least a similarity of 50%
