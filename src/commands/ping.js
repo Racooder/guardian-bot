@@ -1,6 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, Interaction } = require('discord.js');
 
+/**
+ * Replies with informations about the user and bot latency
+ */
 module.exports = {
     /**
      * If the command is only available for guilds
@@ -14,10 +17,9 @@ module.exports = {
 		.setDescription('Replies with Pong!'),
     /**
      * Replies with informations about the user and bot latency
-     * @param {Object} interaction - The interaction object
-     * @param {Object} client - The discord client
+     * @param {Interaction} interaction - The interaction object
      */
-	async execute(interaction, client) {
+	async execute(interaction) {
 		await interaction.deferReply()
         const pong = await interaction.fetchReply();
 		const latency = pong.createdTimestamp - interaction.createdTimestamp;
@@ -30,7 +32,7 @@ module.exports = {
                 },
                 {
                     name: ':hourglass: API Latency',
-                    value: `${Math.round(client.ws.ping)}ms`
+                    value: `${Math.round(interaction.client.ws.ping)}ms`
                 }
             );
 

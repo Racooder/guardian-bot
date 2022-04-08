@@ -1,8 +1,8 @@
-// * Imports
 const { updateGuild } = require("../deploy-commands");
+const { Guild } = require("discord.js");
 
 /**
- * The ready event
+ * The event when the bot is added to a guild.
  */
 module.exports = {
 	/**
@@ -15,9 +15,9 @@ module.exports = {
 	once: false,
 	/**
 	 * Handles the guildCreate event
-	 * @param {Object} guild - The joined guild
+	 * @param {Guild} guild - The joined guild
 	 */
-	execute(guild) {
+	async execute(guild) {
 		updateGuild([guild.id]);
 	},
 };

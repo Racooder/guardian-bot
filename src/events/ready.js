@@ -1,8 +1,8 @@
-// * Imports
 const { updateGuild, updateGlobal } = require("../deploy-commands");
+const { Client } = require("discord.js");
 
 /**
- * The ready event
+ * The event when the bot has completed his login.
  */
 module.exports = {
 	/**
@@ -15,7 +15,7 @@ module.exports = {
 	once: true,
 	/**
 	 * Handles the ready event
-	 * @param {Object} client - The discord client
+	 * @param {Client} client - The discord client
 	 */
 	execute(client) {
 		console.log(`Ready! Logged in as ${client.user.tag}`);

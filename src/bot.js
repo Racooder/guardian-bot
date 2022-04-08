@@ -1,5 +1,4 @@
-// * Imports
-const fs = require('fs');
+const { readdirSync } = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 const mongoose = require('mongoose')
 require('dotenv').config();
@@ -10,7 +9,7 @@ require('dotenv').config();
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 // * Event Setup
-const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
+const eventFiles = readdirSync('./src/events').filter(file => file.endsWith('.js'));
 
 for (const file of eventFiles) {
 	const event = require(`./events/${file}`);
@@ -33,7 +32,7 @@ mongoose.connect(process.env.MONGODB_SRV, {
 
 // * Command Setup
 client.commands = new Collection();
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFiles = readdirSync('./src/commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);

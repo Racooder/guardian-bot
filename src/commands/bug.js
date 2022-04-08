@@ -1,8 +1,11 @@
-// * Imports
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed, Client } = require('discord.js');
+const { Interaction } = require('discord.js');
+const { report, reportFlags } = require('../report');
 require('dotenv').config();
 
+/**
+ * - bug `<description>` - Sends a bug report to the developers
+ */
 module.exports = {
     /**
      * If the command is only available for guilds
@@ -17,16 +20,15 @@ module.exports = {
         .addStringOption(option => option.setName('description').setDescription('A description of the bug.').setRequired(true)),
     /**
      * Sends a message to the bug report channel
-     * @param {Object} interaction - The interaction object
+     * @param {Interaction} interaction - The interaction object
      */
-	async execute(interaction, client) {
-		const embed = new MessageEmbed()
-            .setTitle("Bug Report")
-            .setColor("#942725")
-            .setAuthor({name: interaction.user.username, iconURL: interaction.user.displayAvatarURL()})
-            .setDescription(interaction.options.getString('description'));
-
-        client.channels.cache.get(process.env.REPORT_CHANNEL_ID).send({embeds: [embed]});
+	async execute(interaction) {
+        const client = interaction.client;
+        const username = interaction.user.username;
+        const avatar = interaction.user.displayAvatarURL();
+        const description = interaction.options.getString('description');
+        const flags = reportFlags.bug;
+        report(client, username, avatar, description, flags);
         await interaction.reply({content: "Successfully send the bug report!", ephemeral: true});
 	},
 };

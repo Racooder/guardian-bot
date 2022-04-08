@@ -2,13 +2,13 @@
  * Compares two strings with each other
  * @param {String} s1 - The first string
  * @param {String} s2 - The second string
- * @returns The similarity between the two strings
+ * @returns {Number} The similarity between the two strings
  */
 module.exports = (s1, s2) => {
     /**
      * Converts a string into trigrams
      * @param {String} s - The string to convert
-     * @returns The trigrams of the string
+     * @returns {String[]} The trigrams of the string
      */
     function toTrigrams (s) {
         if (s.length <= 3) {

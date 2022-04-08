@@ -1,8 +1,6 @@
-// * Imports
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const fs = require('fs');
-const { type } = require('os');
+const { readdirSync } = require('fs');
 require('dotenv').config();
 
 /**
@@ -11,11 +9,11 @@ require('dotenv').config();
 module.exports = {
     /**
      * Deploys all guild-only commands in the given guilds
-     * @param {Object} guilds - A list of guilds
+     * @param {String[]} guilds - A list of guilds
      */
 	deployGuild(guilds) {
 		const commands = [];
-		const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+		const commandFiles = readdirSync('./src/commands').filter(file => file.endsWith('.js'));
 
 		for (const file of commandFiles) {
 			const command = require(`./commands/${file}`);
@@ -51,7 +49,7 @@ module.exports = {
      */
     deployGlobal() {
 		const commands = [];
-		const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+		const commandFiles = readdirSync('./src/commands').filter(file => file.endsWith('.js'));
 
 		for (const file of commandFiles) {
 			const command = require(`./commands/${file}`);
@@ -82,7 +80,7 @@ module.exports = {
 	},
     /**
      * Removes all guild commands from the given guilds
-     * @param {Object} guilds - A list of guilds
+     * @param {String[]} guilds - A list of guilds
      */
     removeGuild(guilds) {
         const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
@@ -117,11 +115,11 @@ module.exports = {
     },
     /**
      * Updates all guild-only commands in the given guilds
-     * @param {Object} guilds - A list of guilds
+     * @param {String[]} guilds - A list of guilds
      */
     updateGuild(guilds) {
         const commands = [];
-		const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+		const commandFiles = readdirSync('./src/commands').filter(file => file.endsWith('.js'));
 
 		for (const file of commandFiles) {
 			const command = require(`./commands/${file}`);
@@ -170,6 +168,7 @@ module.exports = {
 				console.log('Successfully reloaded application (/) commands.');
 			} catch (error) {
 				console.error(error);
+
 			}
 		})();
     },
@@ -178,7 +177,7 @@ module.exports = {
      */
     updateGlobal() {
         const commands = [];
-		const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+		const commandFiles = readdirSync('./src/commands').filter(file => file.endsWith('.js'));
 
 		for (const file of commandFiles) {
 			const command = require(`./commands/${file}`);

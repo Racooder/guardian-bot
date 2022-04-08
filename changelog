@@ -1,3 +1,7 @@
+1.0.4 Patch
+Fixed some stuff.
+
+1.0.3.1 Patch
 Fixes:
 - /bug is no longer only available on servers.
 - /quote search shows only quotes with at least a similarity of 50%
