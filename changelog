@@ -1,3 +1,14 @@
+1.1.0 Changelog Update
+Features:
+- /changelog command
+- Shows the current version in the discord activity
+
+File Structure:
+- Moved the data folder out of src
+
+Logging:
+- Added timestamps and logging identifiers to all log messages
+
 1.0.4.1 Patch
 Features:
 - Added a /suggest command to suggest new features.

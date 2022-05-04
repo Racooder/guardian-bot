@@ -1,14 +1,14 @@
 const { MessageEmbed, Client } = require('discord.js');
 require('dotenv').config();
 
-/**
- * Reports a bug to the developers
- * @param {Client} client - The discord client
- * @param {String} username - The username of the user
- * @param {String} avatar - The avatar of the user
- * @param {String} description - The description of the bug
- */
 module.exports = {
+    /**
+     * Reports a bug to the developers
+     * @param {Client} client - The discord client
+     * @param {String} username - The username of the user
+     * @param {String} avatar - The avatar of the user
+     * @param {String} description - The description of the bug
+     */
     report: (client, username, avatar, description, reportFlag = module.exports.reportFlags.error) => {
         const embed = new MessageEmbed()
                 .setAuthor({name: username, iconURL: avatar})
@@ -30,14 +30,19 @@ module.exports = {
                 embed.setColor(0x00A2FF);
                 break;
             }
+            default : {
+                embed.setTitle("Unknown Report");
+                embed.setColor(0xE2CCF2);
+                break;
+            }
         }
     
         client.channels.cache.get(process.env.REPORT_CHANNEL_ID).send({embeds: [embed]});
     },
     reportFlags: {
-        bug: 'BUG',
-        error: 'ERROR',
-        suggestion: 'SUGGESTION',
+        error: 0,
+        bug: 1,
+        suggestion: 2,
     }
 }
 

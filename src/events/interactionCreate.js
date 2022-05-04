@@ -1,6 +1,7 @@
 const { readdirSync } = require('fs');
 const { Interaction } = require('discord.js');
 const { report, reportFlags } = require('../report');
+const log = require('../log.js');
 
 /**
  * The event when the bot recieves a interaction.
@@ -44,7 +45,7 @@ module.exports = {
                 const description = `${username} tried to use a command with the id ${command.id} but an error occured!`;
                 const flags = reportFlags.error;
                 report(client, username, avatar, description, flags);
-                console.error(error);
+                log.error(error);
                 await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
             }
         }

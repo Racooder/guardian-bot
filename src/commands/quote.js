@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, Interaction, GuildMember } = require('discord.js');
 const profileModel = require('../models/guild');
 const textSimilarity = require('../textSimilarity');
+const log = require('../log.js');
 
 /**
  * Executes a quote command
@@ -215,7 +216,7 @@ async function getQuotes(guildId, authorName, authorId, searchText)
     let quotes = await profileModel.find({ serverID: guildId }, async function(err, quotes) 
     {
         return quotes;
-    }).clone().catch(function(err){ console.log(err)});
+    }).clone().catch(function(err){ log.error(err)});
 
     if (authorName || authorId) {
         quotes = filterByAuthor(quotes, authorName, authorId);

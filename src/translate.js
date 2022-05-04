@@ -1,3 +1,4 @@
+const log = require('./log.js');
 const { existsSync } = require('fs');
 
 /**
@@ -25,6 +26,6 @@ module.exports = (key, dictionary) => {
             return null;
         }
     } catch(err) {
-        console.error(err)
+        log.error(err)
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "racoonia-guardian",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "The official discord bot of the racoonia discord channel.",
   "main": "src/bot.js",
   "scripts": {

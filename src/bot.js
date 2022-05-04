@@ -1,6 +1,7 @@
 const { readdirSync } = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 const mongoose = require('mongoose')
+const log = require('./log.js');
 require('dotenv').config();
 
 /**
@@ -25,9 +26,9 @@ mongoose.connect(process.env.MONGODB_SRV, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
 }).then(()=>{
-	console.log('Connected to the database!');
+	log.success('Connected to the database!');
 }).catch((err)=>{
-	console.log(err);
+	log.error(err);
 })
 
 // * Command Setup

@@ -1,6 +1,7 @@
 // * Imports
 const { Client, Intents } = require('discord.js');
 const { removeGuild, removeGlobal, deployGuild, deployGlobal } = require('../deploy-commands');
+const log = require('../src/log.js');
 require('dotenv').config();
 
 /**
@@ -13,7 +14,7 @@ client.once('ready', () => {
     const guilds = client.guilds.cache.map(guild => guild.id);
     removeGuild(guilds);
     removeGlobal();
-    console.log("Removed all registered commands!");
+    log.log("Removed all registered commands!");
     deployGuild(guilds);
     deployGlobal();
 });

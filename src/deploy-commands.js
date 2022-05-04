@@ -1,6 +1,7 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { readdirSync } = require('fs');
+const log = require('./log.js');
 require('dotenv').config();
 
 /**
@@ -29,7 +30,7 @@ module.exports = {
         
 		(async () => {
 			try {
-				console.log('Started refreshing application (/) commands.');
+				log.log('Started refreshing application (/) commands.');
 
                 for (const guild of guilds) {
                     await rest.put(
@@ -38,9 +39,9 @@ module.exports = {
                     );
                 }
 
-				console.log('Successfully reloaded application (/) commands.');
+				log.success('Successfully reloaded application (/) commands.');
 			} catch (error) {
-				console.error(error);
+				log.error(error);
 			}
 		})();
 	},
@@ -65,16 +66,16 @@ module.exports = {
         
 		(async () => {
 			try {
-				console.log('Started refreshing application (/) commands.');
+				log.log('Started refreshing application (/) commands.');
 
                 await rest.put(
                     Routes.applicationCommands(process.env.CLIENT_ID),
                     { body: commands },
                 );
 
-				console.log('Successfully reloaded application (/) commands.');
+				log.success('Successfully reloaded application (/) commands.');
 			} catch (error) {
-				console.error(error);
+				log.error(error);
 			}
 		})();
 	},
@@ -156,7 +157,7 @@ module.exports = {
 
         (async () => {
 			try {
-				console.log('Started refreshing application (/) commands.');
+				log.log('Started refreshing application (/) commands.');
 
                 for (const guild of guilds) {
                     await rest.put(
@@ -165,9 +166,9 @@ module.exports = {
                     );
                 }
 
-				console.log('Successfully reloaded application (/) commands.');
+				log.success('Successfully reloaded application (/) commands.');
 			} catch (error) {
-				console.error(error);
+				log.error(error);
 
 			}
 		})();
@@ -212,16 +213,16 @@ module.exports = {
 
         (async () => {
             try {
-                console.log('Started refreshing application (/) commands.');
+                log.log('Started refreshing application (/) commands.');
 
                 await rest.put(
                     Routes.applicationCommands(process.env.CLIENT_ID),
                     { body: commands },
                 );
 
-                console.log('Successfully reloaded application (/) commands.');
+                log.success('Successfully reloaded application (/) commands.');
             } catch (error) {
-                console.error(error);
+                log.error(error);
             }
         })();
     }

@@ -1,6 +1,6 @@
 
-![Logo](./src/data/logo-wide.jpg#gh-dark-mode-only)
-![Logo Light](./src/data/logo-wide-light.jpg#gh-light-mode-only)
+![Logo](./data/images/logo-wide.jpg#gh-dark-mode-only)
+![Logo Light](./data/images/logo-wide-light.jpg#gh-light-mode-only)
 
 <div align="center">
   <p>
