@@ -9,23 +9,23 @@ require('dotenv').config();
  * @param {String} description - The description of the bug
  */
 module.exports = {
-    report: (client, username, avatar, description, reportFlag = module.exports.reportFlags.error) => {
+    report: (client, username, avatar, description, reportFlag = this.reportFlags.error) => {
         const embed = new MessageEmbed()
                 .setAuthor({name: username, iconURL: avatar})
                 .setDescription(description);
 
         switch (reportFlag) {
-            case (module.exports.reportFlags.bug): {
+            case (this.reportFlags.bug): {
                 embed.setTitle("Bug Report");
                 embed.setColor(0xDD2725);
                 break;
             }
-            case (module.exports.reportFlags.error): {
+            case (this.reportFlags.error): {
                 embed.setTitle("Runtime Error");
                 embed.setColor(0x401110);
                 break;
             }
-            case (module.exports.reportFlags.suggestion): {
+            case (this.reportFlags.suggestion): {
                 embed.setTitle("Suggestion");
                 embed.setColor(0x00A2FF);
                 break;
