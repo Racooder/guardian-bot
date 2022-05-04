@@ -25,13 +25,19 @@ module.exports = {
                 embed.setColor(0x401110);
                 break;
             }
+            case (this.reportFlags.suggestion): {
+                embed.setTitle("Suggestion");
+                embed.setColor(0x00A2FF);
+                break;
+            }
         }
     
         client.channels.cache.get(process.env.REPORT_CHANNEL_ID).send({embeds: [embed]});
     },
     reportFlags: {
-        bug: Symbol('Bug'),
-        error: Symbol('Error')
+        bug: 'BUG',
+        error: 'ERROR',
+        suggestion: 'SUGGESTION',
     }
 }
 

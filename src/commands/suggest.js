@@ -14,9 +14,9 @@ module.exports = {
      * The SlashCommandBuilder
      */
 	data: new SlashCommandBuilder()
-		.setName('bug')
-		.setDescription('Report a bug!')
-        .addStringOption(option => option.setName('description').setDescription('A description of the bug.').setRequired(true)),
+		.setName('suggest')
+		.setDescription('Suggest a feature or improvement for the bot!')
+        .addStringOption(option => option.setName('description').setDescription('A description of your idea.').setRequired(true)),
     /**
      * Sends a message to the bug report channel
      * @param {Interaction} interaction - The interaction object
@@ -26,8 +26,8 @@ module.exports = {
         const username = interaction.user.username;
         const avatar = interaction.user.displayAvatarURL();
         const description = interaction.options.getString('description');
-        const flag = reportFlags.bug;
+        const flag = reportFlags.suggestion;
         report(client, username, avatar, description, flag);
-        await interaction.reply({content: "Successfully send the bug report!", ephemeral: true});
+        await interaction.reply({content: "Successfully send the suggestion!", ephemeral: true});
 	},
 };

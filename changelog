@@ -1,3 +1,10 @@
+1.0.4.1 Patch
+Features:
+- Added a /suggest command to suggest new features.
+
+Fixes:
+- Fixed the /bug command.
+
 1.0.4 Patch
 Fixed some stuff.
 
