@@ -1,0 +1,13 @@
+{
+    "color": "878787",
+    "title": "mining_title",
+    "description": "mining_desc",
+    "fields": [],
+    "buttons": [
+        {
+            "id": "menu_main",
+            "label": "main_menu",
+            "style": "SUCCESS"
+        }
+    ]
+}

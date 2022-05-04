@@ -1,0 +1,44 @@
+{
+    "color": "878787",
+    "title": "hut_title",
+    "description": "hut_description",
+    "fields": [
+        {
+            "name": "farming",
+            "value": "farming_button_desc",
+            "inline": false
+        },
+        {
+            "name": "crafting",
+            "value": "crafting_button_desc",
+            "inline": false
+        },
+        {
+            "name": "magic",
+            "value": "magic_button_desc",
+            "inline": false
+        }
+    ],
+    "buttons": [
+        {
+            "id": "menu_main",
+            "label": "main_menu",
+            "style": "SUCCESS"
+        },
+        {
+            "id": "menu_farming",
+            "label": "farming",
+            "style": "PRIMARY"
+        },
+        {
+            "id": "menu_crafting",
+            "label": "crafting",
+            "style": "PRIMARY"
+        },
+        {
+            "id": "menu_magic",
+            "label": "magic",
+            "style": "PRIMARY"
+        }
+    ]
+}

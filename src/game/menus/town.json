@@ -1,0 +1,34 @@
+{
+    "color": "878787",
+    "title": "town_title",
+    "description": "town_desc",
+    "fields": [
+        {
+            "name": "market",
+            "value": "market_button_desc",
+            "inline": false
+        },
+        {
+            "name": "main_square",
+            "value": "main_square_button_desc",
+            "inline": false
+        }
+    ],
+    "buttons": [
+        {
+            "id": "menu_main",
+            "label": "main_menu",
+            "style": "SUCCESS"
+        },
+        {
+            "id": "menu_market",
+            "label": "market",
+            "style": "PRIMARY"
+        },
+        {
+            "id": "menu_mainSquare",
+            "label": "main_square",
+            "style": "PRIMARY"
+        }
+    ]
+}

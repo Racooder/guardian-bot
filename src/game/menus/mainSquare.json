@@ -1,0 +1,39 @@
+{
+    "color": "878787",
+    "title": "main_square_title",
+    "description": "main_square_desc",
+    "fields": [
+        {
+            "name": "town_hall",
+            "value": "town_hall_button_desc",
+            "inline": false
+        },
+        {
+            "name": "temple",
+            "value": "temple_button_desc",
+            "inline": false
+        }
+    ],
+    "buttons": [
+        {
+            "id": "menu_main",
+            "label": "main_menu",
+            "style": "SUCCESS"
+        },
+        {
+            "id": "menu_town",
+            "label": "town",
+            "style": "PRIMARY"
+        },
+        {
+            "id": "menu_townHall",
+            "label": "town_hall",
+            "style": "PRIMARY"
+        },
+        {
+            "id": "menu_temple",
+            "label": "temple",
+            "style": "PRIMARY"
+        }
+    ]
+}

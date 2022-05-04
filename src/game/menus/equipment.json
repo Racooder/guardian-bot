@@ -1,0 +1,13 @@
+{
+    "color": "878787",
+    "title": "equipment_title",
+    "description": "equipment_desc",
+    "fields": [],
+    "buttons": [
+        {
+            "id": "menu_main",
+            "label": "main_menu",
+            "style": "SUCCESS"
+        }
+    ]
+}

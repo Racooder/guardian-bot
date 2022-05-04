@@ -1,0 +1,54 @@
+{
+    "color": "878787",
+    "title": "traveling_title",
+    "description": "traveling_desc",
+    "fields": [
+        {
+            "name": "adventure",
+            "value": "adventure_button_desc",
+            "inline": false
+        },
+        {
+            "name": "woodcutting",
+            "value": "woodcutting_button_desc",
+            "inline": false
+        },
+        {
+            "name": "fishing",
+            "value": "fishing_button_desc",
+            "inline": false
+        },
+        {
+            "name": "mining",
+            "value": "mining_button_desc",
+            "inline": false
+        }
+    ],
+    "buttons": [
+        {
+            "id": "menu_main",
+            "label": "main_menu",
+            "style": "SUCCESS"
+        },
+        {
+            "id": "menu_adventure",
+            "label": "adventure",
+            "style": "PRIMARY"
+        },
+        {
+            "id": "menu_woodcutting",
+            "label": "woodcutting",
+            "style": "PRIMARY"
+        },
+        {
+            "id": "menu_fishing",
+            "label": "fishing",
+            "style": "PRIMARY"
+        },
+        {
+            "id": "menu_mining",
+            "label": "mining",
+            "style": "PRIMARY"
+        }
+    ]
+}

@@ -1,3 +1,4 @@
+const { readdirSync } = require('fs');
 const { Interaction } = require('discord.js');
 const { report, reportFlags } = require('../report');
 
@@ -14,6 +15,20 @@ module.exports = {
      * @param {Interaction} interaction - The interaction object
      */
 	async execute(interaction) {
+        // * Button Handling
+        if (interaction.isButton()) {
+            const buttonFiles = readdirSync('./src/buttons').filter(file => file.endsWith('.js'));
+            let args = interaction.customId.split('_');
+            const id = args.shift();
+    
+            for (const file of buttonFiles) {
+                const button = require(`../buttons/${file}`);
+                if (id == button.id) {
+                    button.execute(interaction, args);
+                }
+            }
+        }
+
         // * Command Handling
         if (interaction.isCommand()) {
             const command = interaction.client.commands.get(interaction.commandName); // Get the corresponding command for the command interaction

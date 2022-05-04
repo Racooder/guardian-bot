@@ -1,0 +1,13 @@
+{
+    "color": "878787",
+    "title": "fishing_title",
+    "description": "fishing_description",
+    "fields": [],
+    "buttons": [
+        {
+            "id": "menu_main",
+            "label": "main_menu",
+            "style": "SUCCESS"
+        }
+    ]
+}

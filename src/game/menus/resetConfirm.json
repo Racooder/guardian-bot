@@ -1,0 +1,18 @@
+{
+    "color": "878787",
+    "title": "warning_caps",
+    "description": "sure_question",
+    "fields": [],
+    "buttons": [
+        {
+            "id": "menu_settings",
+            "label": "cancel",
+            "style": "SECONDARY"
+        },
+        {
+            "id": "setting_deletePlayer",
+            "label": "reset_character",
+            "style": "DANGER"
+        }
+    ]
+}

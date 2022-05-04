@@ -1,0 +1,44 @@
+{
+    "color": "6B4A38",
+    "title": "crafting_title",
+    "description": "crafting_desc",
+    "fields": [
+        {
+            "name": "smithing",
+            "value": "smithing_button_desc",
+            "inline": false
+        },
+        {
+            "name": "fletching",
+            "value": "fletching_button_desc",
+            "inline": false
+        },
+        {
+            "name": "cooking",
+            "value": "cooking_button_desc",
+            "inline": false
+        }
+    ],
+    "buttons": [
+        {
+            "id": "menu_main",
+            "label": "main_menu",
+            "style": "SUCCESS"
+        },
+        {
+            "id": "menu_smithing",
+            "label": "smithing",
+            "style": "PRIMARY"
+        },
+        {
+            "id": "menu_fletching",
+            "label": "fletching",
+            "style": "PRIMARY"
+        },
+        {
+            "id": "menu_cooking",
+            "label": "cooking",
+            "style": "PRIMARY"
+        }
+    ]
+}

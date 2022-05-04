@@ -1,0 +1,34 @@
+{
+    "color": "878787",
+    "title": "inventory_title",
+    "description": "inventory_desc",
+    "fields": [
+        {
+            "name": "items",
+            "value": "items_button_desc",
+            "inline": false
+        },
+        {
+            "name": "equipment",
+            "value": "equipment_button_desc",
+            "inline": false
+        }
+    ],
+    "buttons": [
+        {
+            "id": "menu_main",
+            "label": "main_menu",
+            "style": "SUCCESS"
+        },
+        {
+            "id": "menu_items",
+            "label": "items",
+            "style": "PRIMARY"
+        },
+        {
+            "id": "menu_equipment",
+            "label": "equipment",
+            "style": "PRIMARY"
+        }
+    ]
+}

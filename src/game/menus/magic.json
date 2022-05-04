@@ -1,0 +1,13 @@
+{
+    "color": "878787",
+    "title": "magic_title",
+    "description": "magic_description",
+    "fields": [],
+    "buttons": [
+        {
+            "id": "menu_main",
+            "label": "main_menu",
+            "style": "SUCCESS"
+        }
+    ]
+}
