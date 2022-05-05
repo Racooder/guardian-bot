@@ -1,7 +1,7 @@
 const { updateGuild, updateGlobal } = require("../deploy-commands");
 const { Client } = require("discord.js");
-const { readFileSync } = require('fs');
-const log = require('../log.js');
+const { readFirstLine } = require("../fileReader");
+const log = require("../log.js");
 
 /**
  * The event when the bot has completed his login.
@@ -25,18 +25,8 @@ module.exports = {
 		updateGuild(guilds);
 		updateGlobal();
 
-		getFirstLine('./changelog').then((updateName) => {
-			console.log(`Update: ${updateName}`);
+		readFirstLine('./changelog').then((updateName) => {
 			client.user.setActivity(`${updateName} - Use /changelog for more info.`, { type: "PLAYING" })
 		});
 	},
 };
-
-async function getFirstLine(filePath) {
-    try {
-		const fileContent = readFileSync(filePath, 'utf8');
-		return (fileContent.match(/(^.*)/) || [])[1] || '';
-	} catch (err) {
-		log.error(err);
-	}
-}

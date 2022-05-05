@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, Interaction, GuildMember } = require('discord.js');
-const profileModel = require('../models/guild');
+const quoteModel = require('../models/quote');
 const textSimilarity = require('../textSimilarity');
 const log = require('../log.js');
 
@@ -104,7 +104,7 @@ module.exports = {
  */
 async function createQuote(guildId, authorName, authorId, quote, creator, creatorId) 
 {
-    let profile = await profileModel.create({
+    let profile = await quoteModel.create({
         serverID: guildId,
         author: authorName,
         authorId: authorId,
@@ -213,7 +213,7 @@ async function searchQuote(guildMembers, guildId, authorName, authorId, searchTe
  */
 async function getQuotes(guildId, authorName, authorId, searchText)
 {
-    let quotes = await profileModel.find({ serverID: guildId }, async function(err, quotes) 
+    let quotes = await quoteModel.find({ serverID: guildId }, async function(err, quotes) 
     {
         return quotes;
     }).clone().catch(function(err){ log.error(err)});
