@@ -24,5 +24,14 @@ const handleSlashCommand = async (client: Client, interaction: CommandInteractio
 };
 
 const handleButton = async (client: Client, interaction: ButtonInteraction): Promise<void> => {
-    const button = Buttons.find(b => b.name === interaction.customId);
+    let data = interaction.customId.split(":");
+    const name = data.shift();
+
+    const button = Buttons.find(b => b.name === name);
+    if (!button) {
+        interaction.reply({ content: "An error has occurred" });
+        return;
+    }
+
+    button.run(client, interaction, data);
 }

@@ -3,9 +3,9 @@ import { Command } from "../InteractionInterface";
 import quoteSchema, { IQuote } from "../models/quoteSchema";
 import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
 import quoteListSchema from "../models/quoteListSchema";
-import { isGuildCommand } from "../Essentials";
+import { isGuildCommand, usernameString } from "../Essentials";
 import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builders";
-
+import settings from "../settings.json";
 export const Quote: Command = {
     name: "quote",
     description: "Create, view, edit and delete quotes",
@@ -60,9 +60,19 @@ export const Quote: Command = {
                     description: "The author of the quote if they are not a discord user or left the server"
                 },
                 {
+                    type: ApplicationCommandOptionType.User,
+                    name: "creator",
+                    description: "The creator of the quote"
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "creator-name",
+                    description: "The creator of the quote if they are not a discord user or left the server"
+                },
+                {
                     type: ApplicationCommandOptionType.String,
                     name: "date",
-                    description: "The approximate date the quote was created"
+                    description: "The approximate date the quote was created. Format: YYYY-MM-DD"
                 }
             ]
         },
@@ -96,7 +106,7 @@ export const Quote: Command = {
 };
 
 // Subcommand handlers
-const handleNewQuote = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleNewQuote = async (_: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
         await noGuildError(interaction);
         return;
@@ -145,34 +155,30 @@ const handleNewQuote = async (client: Client, interaction: ChatInputCommandInter
     });
 };
 
-const handleListQuotes = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleListQuotes = async (_: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
         await noGuildError(interaction);
         return;
     }
 
-    const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, 2);
+    const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, settings.defaultGuildSettings.quoteListPageSize);
+
+    if (quoteChunks.length === 0) {
+        await interaction.reply({
+            content: "There are no quotes on this server!",
+            ephemeral: true
+        });
+        return;
+    }
     
     const quoteListDocument = await quoteListSchema.create({
         page: 0,
     })
 
     const messageEmbed = quoteListEmbed(quoteChunks, quoteListDocument.page);
-    
-    const previousPageButton = new ButtonBuilder()
-        .setCustomId(`quotePage;previous;${quoteListDocument._id}`)
-        .setLabel("Previous Page")
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(true);
-
-    const nextPageButton = new ButtonBuilder()
-        .setCustomId(`quotePage;next;${quoteListDocument._id}`)
-        .setLabel("Next Page")
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(quoteChunks.length === 1);
 
     const row = new ActionRowBuilder()
-        .addComponents(previousPageButton, nextPageButton);
+        .addComponents(previousPageButton(quoteListDocument._id, quoteListDocument.page > 0), nextPageButton(quoteListDocument._id, quoteListDocument.page < quoteChunks.length - 1));
 
     await interaction.reply({
         embeds: [messageEmbed],
@@ -180,8 +186,77 @@ const handleListQuotes = async (client: Client, interaction: ChatInputCommandInt
     } as InteractionReplyOptions);
 };
 
-const handleSearchQuotes = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleSearchQuotes = async (_: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+    if (!isGuildCommand(interaction)) {
+        await noGuildError(interaction);
+        return;
+    }
 
+    const content = interaction.options.getString("content");
+    const author = interaction.options.getUser("author");
+    const authorName = interaction.options.getString("author-name");
+    const creator = interaction.options.getUser("creator");
+    const creatorName = interaction.options.getString("creator-name");
+    const dateString = interaction.options.getString("date");
+
+    if (content === null && author === null && authorName === null && creator === null && creatorName === null && dateString === null) {
+        await interaction.reply({
+            content: "You must specify at least one search parameter!",
+            ephemeral: true
+        });
+        return;
+    }
+
+    let date: Date | undefined = undefined;
+    if (dateString !== null) {
+        if (new RegExp(/^\d{4}-\d\d?-\d\d?$/).test(dateString)) {
+            date = new Date(dateString);
+        } else {
+            await interaction.reply({
+                content: "Invalid date format! Format: YYYY-MM-DD",
+                ephemeral: true
+            });
+            return;
+        }
+    }
+
+    const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, settings.defaultGuildSettings.quoteListPageSize, 
+        content ?? undefined, 
+        author?.id, 
+        authorName ?? undefined,
+        creator?.id,
+        creatorName ?? undefined,
+        date);
+
+    if (quoteChunks.length === 0) {
+        await interaction.reply({
+            content: "There are no quotes matching your search criteria on this server!",
+            ephemeral: true
+        });
+        return;
+    }
+    
+    const quoteListDocument = await quoteListSchema.create({
+        page: 0,
+        content: content,
+        authorId: author?.id,
+        authorName: authorName,
+        creatorId: creator?.id,
+        creatorName: creatorName,
+        date: date
+    })
+
+    const queryDescription = `Quotes matching the following criteria:\n${content ? `Content: ${content}\n` : ""}${author ? `Author: ${usernameString(author)}\n` : ""}${authorName ? `Author Name: ${authorName}\n` : ""}${creator ? `Creator: ${usernameString(creator)}\n` : ""}${creatorName ? `Creator Name: ${creatorName}\n` : ""}${date ? `Date: ${date.toISOString().split("T")[0]}\n` : ""}`;
+
+    const messageEmbed = quoteListEmbed(quoteChunks, quoteListDocument.page, queryDescription);
+
+    const row = new ActionRowBuilder()
+        .addComponents(previousPageButton(quoteListDocument._id, quoteListDocument.page > 0), nextPageButton(quoteListDocument._id, quoteListDocument.page < quoteChunks.length - 1));
+
+    await interaction.reply({
+        embeds: [messageEmbed],
+        components: [row]
+    } as InteractionReplyOptions);
 };
 
 const handleEditQuote = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
@@ -189,16 +264,34 @@ const handleEditQuote = async (client: Client, interaction: ChatInputCommandInte
 };
 
 // Embed builders
-export const quoteListEmbed = (pages: IQuote[][], page: number): EmbedBuilder => {
+export const quoteListEmbed = (pages: IQuote[][], page: number, description?: string): EmbedBuilder => {
     return new EmbedBuilder()
     .setTitle(`Quotes (Page ${page + 1}/${pages.length})`)
+    .setDescription(description ?? null)
     .setColor(parseInt("4DA4AD", 16))
-    .addFields(pages[0].map((quote: IQuote) => {
+    .addFields(pages[page].map((quote: IQuote) => {
         return {
             name: `"${quote.quote}" - ${quote.author?._id ? `${quote.author.displayName}#${quote.author.discriminator}` : quote.nonDiscordAuthor}`,
             value: `Created by ${quote.creator.displayName}#${quote.creator.discriminator} on <t:${quote.timestamp}:d>`
         }
     }));
+}
+
+// Button builders
+const previousPageButton = (quoteListId: string, enabled: boolean): ButtonBuilder => {
+    return new ButtonBuilder()
+        .setCustomId(`quotePage:previous:${quoteListId}`)
+        .setLabel("Previous Page")
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(!enabled);
+}
+
+const nextPageButton = (quoteListId: string, enabled: boolean): ButtonBuilder => {
+    return new ButtonBuilder()
+        .setCustomId(`quotePage:next:${quoteListId}`)
+        .setLabel("Next Page")
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(!enabled);
 }
 
 // Error handlers

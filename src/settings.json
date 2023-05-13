@@ -1,0 +1,8 @@
+{
+    "quoteListLifetime": 7,
+    "defaultGuildSettings": {
+        "quoteListPageSize": 10,
+        "quoteSearchDateTolerance": 30,
+        "quoteLinkedGuilds": []
+    }
+}

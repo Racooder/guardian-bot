@@ -1,12 +1,11 @@
 {
   "dependencies": {
-    "@discordjs/builders": "^1.6.3",
     "@types/mongoose": "^5.11.97",
     "discord.js": "^14.11.0",
     "dotenv": "^16.0.3",
     "mongoose": "^7.1.1"
   },
-  "name": "secretary",
+  "name": "guardian-bot",
   "version": "0.1.0",
   "description": "A typescript discord bot.",
   "main": "bot.js",

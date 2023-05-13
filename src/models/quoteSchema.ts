@@ -1,6 +1,7 @@
 import mongoose, { Model, Schema, Document } from "mongoose";
 import { IGuildMember } from "./guildMemberSchema";
-import { splitArrayIntoChunks } from "../Essentials";
+import { approximateEqual, splitArrayIntoChunks } from "../Essentials";
+import settings from "../settings.json";
 
 export interface IQuote extends Document {
     guildId: string;
@@ -12,7 +13,7 @@ export interface IQuote extends Document {
 }
 
 interface QuoteModel extends Model<IQuote> {
-    listQuotes: (guildId: string, pageSize: number) => Promise<IQuote[][]>;
+    listQuotes: (guildId: string, pageSize: number, content?: string, author?: string, authorName?: string, creator?: string, creatorName?: string, date?: Date) => Promise<IQuote[][]>;
 }
 
 const quoteSchema = new Schema<IQuote, QuoteModel>({
@@ -42,8 +43,26 @@ const quoteSchema = new Schema<IQuote, QuoteModel>({
     }
 });
 
-quoteSchema.static("listQuotes", async function (guildId: string, pageSize: number): Promise<IQuote[][]> {
-    const quoteDocuments = await this.find({ guildId: guildId }).populate("author").populate("creator");
+quoteSchema.static("listQuotes", async function (guildId: string, pageSize: number, content?: string, author?: string, authorName?: string, creator?: string, creatorName?: string, date?: Date): Promise<IQuote[][]> {
+    let quoteDocuments = await this.find({
+        guildId: guildId,
+    }).populate("author").populate("creator");
+
+    content = content?.toLowerCase();
+    authorName = authorName?.toLowerCase();
+    creatorName = creatorName?.toLowerCase();
+    let timestamp = date?.getTime() ?? 0;
+    timestamp = Math.round(timestamp / 1000);
+
+    quoteDocuments = quoteDocuments.filter((quoteDocument) => {
+        return (content === undefined || quoteDocument.quote.toLowerCase().includes(content)) &&
+        (author === undefined || quoteDocument.author?.userId === author) &&
+        (authorName === undefined || quoteDocument.author?.username.toLowerCase() === authorName || quoteDocument.author?.displayName.toLowerCase() === authorName || quoteDocument.nonDiscordAuthor?.toLowerCase() === authorName) &&
+        (creator === undefined || quoteDocument.creator.userId === creator) &&
+        (creatorName === undefined || quoteDocument.creator.username.toLowerCase() === creatorName || quoteDocument.creator.displayName.toLowerCase() === creatorName) &&
+        (timestamp === 0 || approximateEqual(quoteDocument.timestamp, timestamp, 60 * 60 * 24 * settings.defaultGuildSettings.quoteSearchDateTolerance));
+    });
+
     return splitArrayIntoChunks(quoteDocuments, pageSize);
 });
 
