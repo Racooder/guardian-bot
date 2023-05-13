@@ -2,7 +2,7 @@ import { ButtonInteraction, CommandInteraction, GuildMember, User } from "discor
 
 export const isGuildCommand = (interaction: CommandInteraction | ButtonInteraction): boolean => {
     return interaction.guildId !== null && interaction.member !== null && interaction.member instanceof GuildMember;
-};
+}
 
 export const splitArrayIntoChunks = <T>(array: T[], chunkSize: number): T[][] => {
     const chunks: T[][] = [];

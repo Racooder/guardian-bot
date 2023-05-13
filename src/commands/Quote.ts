@@ -6,6 +6,8 @@ import quoteListSchema from "../models/quoteListSchema";
 import { isGuildCommand, usernameString } from "../Essentials";
 import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builders";
 import settings from "../settings.json";
+import { generalError, noGuildError } from "../InteractionReplies";
+import guildSchema from "../models/guildSchema";
 export const Quote: Command = {
     name: "quote",
     description: "Create, view, edit and delete quotes",
@@ -76,39 +78,39 @@ export const Quote: Command = {
                 }
             ]
         },
-        {
-            type: ApplicationCommandOptionType.Subcommand,
-            name: "edit",
-            description: "Edit or delete your quotes"
-        }
+        // {
+        //     type: ApplicationCommandOptionType.Subcommand,
+        //     name: "edit",
+        //     description: "Edit or delete your quotes"
+        // }
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
         if (!interaction.isChatInputCommand()) {
-            await interaction.reply({ content: "An error has occurred" });
+            await interaction.reply(generalError);
             return;
-        };
+        }
         if (!isGuildCommand(interaction)) {
-            await noGuildError(interaction);
+            await interaction.reply(noGuildError);
             return;
         }
 
-        const subCommand = interaction.options.getSubcommand();
-        if (subCommand === "new") {
+        const subcommand = interaction.options.getSubcommand();
+        if (subcommand === "new") {
             await handleNewQuote(client, interaction);
-        } else if (subCommand === "list") {
+        } else if (subcommand === "list") {
             await handleListQuotes(client, interaction);
-        } else if (subCommand === "search") {
+        } else if (subcommand === "search") {
             await handleSearchQuotes(client, interaction);
-        } else if (subCommand === "edit") {
+        } else if (subcommand === "edit") {
             await handleEditQuote(client, interaction);
         }
     }
-};
+}
 
 // Subcommand handlers
-const handleNewQuote = async (_: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleNewQuote = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
-        await noGuildError(interaction);
+        await interaction.reply(noGuildError);
         return;
     }
 
@@ -153,15 +155,15 @@ const handleNewQuote = async (_: Client, interaction: ChatInputCommandInteractio
     await interaction.reply({
         embeds: [messageEmbed]
     });
-};
+}
 
-const handleListQuotes = async (_: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleListQuotes = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
-        await noGuildError(interaction);
+        await interaction.reply(noGuildError);
         return;
     }
 
-    const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, settings.defaultGuildSettings.quoteListPageSize);
+    const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteListPageSize.value);
 
     if (quoteChunks.length === 0) {
         await interaction.reply({
@@ -184,11 +186,11 @@ const handleListQuotes = async (_: Client, interaction: ChatInputCommandInteract
         embeds: [messageEmbed],
         components: [row]
     } as InteractionReplyOptions);
-};
+}
 
-const handleSearchQuotes = async (_: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleSearchQuotes = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
-        await noGuildError(interaction);
+        await interaction.reply(noGuildError);
         return;
     }
 
@@ -220,7 +222,7 @@ const handleSearchQuotes = async (_: Client, interaction: ChatInputCommandIntera
         }
     }
 
-    const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, settings.defaultGuildSettings.quoteListPageSize, 
+    const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteListPageSize.value, 
         content ?? undefined, 
         author?.id, 
         authorName ?? undefined,
@@ -257,14 +259,19 @@ const handleSearchQuotes = async (_: Client, interaction: ChatInputCommandIntera
         embeds: [messageEmbed],
         components: [row]
     } as InteractionReplyOptions);
-};
+}
 
 const handleEditQuote = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
 
-};
+}
 
 // Embed builders
 export const quoteListEmbed = (pages: IQuote[][], page: number, description?: string): EmbedBuilder => {
+    if (page >= pages.length) {
+        page = pages.length - 1;
+    } else if (page < 0) {
+        page = 0;
+    }
     return new EmbedBuilder()
     .setTitle(`Quotes (Page ${page + 1}/${pages.length})`)
     .setDescription(description ?? null)
@@ -292,12 +299,4 @@ const nextPageButton = (quoteListId: string, enabled: boolean): ButtonBuilder =>
         .setLabel("Next Page")
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(!enabled);
-}
-
-// Error handlers
-const noGuildError = async (interaction: ChatInputCommandInteraction): Promise<void> => {
-    await interaction.reply({
-        content: "Quotes are only available on discord servers/guilds!",
-        ephemeral: true
-    });
 }

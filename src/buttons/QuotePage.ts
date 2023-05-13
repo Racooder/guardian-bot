@@ -4,24 +4,29 @@ import quoteSchema from '../models/quoteSchema';
 import { isGuildCommand } from '../Essentials';
 import quoteListSchema from '../models/quoteListSchema';
 import { quoteListEmbed } from '../commands/Quote';
+import guildSchema from '../models/guildSchema';
+import { noGuildError } from '../InteractionReplies';
 
 export const QuotePage: Button = {
     name: "quotePage",
     run: async (client: Client, interaction: ButtonInteraction, data: string[]) => {
-        if (!isGuildCommand(interaction)) return;
+        if (!isGuildCommand(interaction)) {
+            await interaction.update(noGuildError as InteractionUpdateOptions);
+            return;
+        };
 
         const quoteListDocument = await quoteListSchema.findById(data[1]);
 
         if (!quoteListDocument) {
             await interaction.update({
-                content: "Error: Quote list not found",
+                content: "This quote list no longer exists!\nPlease create a new one using `/quote list` or `/quote search`.",
                 components: [],
                 embeds: []
             });
             return;
         }
 
-        const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, 10,
+        const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteListPageSize.value,
             quoteListDocument.content,
             quoteListDocument.authorId,
             quoteListDocument.authorName,

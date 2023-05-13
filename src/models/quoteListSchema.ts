@@ -44,7 +44,7 @@ const quoteListSchema = new Schema<IQuoteList, QuoteListModel>({
     timestamps: true
 });
 
-quoteListSchema.static("clearOld", async function (): Promise<void> {
+quoteListSchema.statics.clearOld = async function (): Promise<void> {
     const quoteListDocuments = await this.find({});
 
     const now = new Date();
@@ -57,6 +57,6 @@ quoteListSchema.static("clearOld", async function (): Promise<void> {
     for (const oldQuoteListDocument of oldQuoteListDocuments) {
         await oldQuoteListDocument.deleteOne();
     }
-});
+};
 
 export default mongoose.model<IQuoteList, QuoteListModel>("QuoteList", quoteListSchema);

@@ -55,4 +55,4 @@ export const Ping: Command = {
             embeds: [messageEmbed]
         });
     }
-};
+}

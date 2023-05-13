@@ -2,6 +2,7 @@ import mongoose, { Model, Schema, Document } from "mongoose";
 import { IGuildMember } from "./guildMemberSchema";
 import { approximateEqual, splitArrayIntoChunks } from "../Essentials";
 import settings from "../settings.json";
+import guildSchema from "./guildSchema";
 
 export interface IQuote extends Document {
     guildId: string;
@@ -43,7 +44,7 @@ const quoteSchema = new Schema<IQuote, QuoteModel>({
     }
 });
 
-quoteSchema.static("listQuotes", async function (guildId: string, pageSize: number, content?: string, author?: string, authorName?: string, creator?: string, creatorName?: string, date?: Date): Promise<IQuote[][]> {
+quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: number, content?: string, author?: string, authorName?: string, creator?: string, creatorName?: string, date?: Date): Promise<IQuote[][]> {
     let quoteDocuments = await this.find({
         guildId: guildId,
     }).populate("author").populate("creator");
@@ -53,6 +54,7 @@ quoteSchema.static("listQuotes", async function (guildId: string, pageSize: numb
     creatorName = creatorName?.toLowerCase();
     let timestamp = date?.getTime() ?? 0;
     timestamp = Math.round(timestamp / 1000);
+    const dateTolerance = (await guildSchema.getGuildSettings(guildId)).quoteSearchDateTolerance.value
 
     quoteDocuments = quoteDocuments.filter((quoteDocument) => {
         return (content === undefined || quoteDocument.quote.toLowerCase().includes(content)) &&
@@ -60,10 +62,10 @@ quoteSchema.static("listQuotes", async function (guildId: string, pageSize: numb
         (authorName === undefined || quoteDocument.author?.username.toLowerCase() === authorName || quoteDocument.author?.displayName.toLowerCase() === authorName || quoteDocument.nonDiscordAuthor?.toLowerCase() === authorName) &&
         (creator === undefined || quoteDocument.creator.userId === creator) &&
         (creatorName === undefined || quoteDocument.creator.username.toLowerCase() === creatorName || quoteDocument.creator.displayName.toLowerCase() === creatorName) &&
-        (timestamp === 0 || approximateEqual(quoteDocument.timestamp, timestamp, 60 * 60 * 24 * settings.defaultGuildSettings.quoteSearchDateTolerance));
+        (timestamp === 0 || approximateEqual(quoteDocument.timestamp, timestamp, 60 * 60 * 24 * dateTolerance));
     });
 
     return splitArrayIntoChunks(quoteDocuments, pageSize);
-});
+};
 
 export default mongoose.model<IQuote, QuoteModel>("Quote", quoteSchema);

@@ -33,13 +33,13 @@ const guildMemberSchema = new Schema<IGuildMember, GuildMemberModel>({
     }
 });
 
-guildMemberSchema.static("updateNames", function (guildId: string, userId: string, username: string, displayName?: string, discriminator?: string): Promise<IGuildMember> {
+guildMemberSchema.statics.updateNames = function (guildId: string, userId: string, username: string, displayName?: string, discriminator?: string): Promise<IGuildMember> {
     if (!displayName) displayName = username;
     return this.findOneAndUpdate(
         { guildId, userId },
         { username, displayName, discriminator },
         { upsert: true, new: true }
     );
-});
+};
 
 export default mongoose.model<IGuildMember, GuildMemberModel>("GuildMember", guildMemberSchema);

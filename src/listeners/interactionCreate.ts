@@ -1,5 +1,6 @@
 import { CommandInteraction, Client, Interaction, ButtonInteraction } from "discord.js";
 import { Commands, Buttons } from "../Interactions";
+import { generalError } from "../InteractionReplies";
 
 export default (client: Client): void => {
     client.on("interactionCreate", async (interaction: Interaction) => {
@@ -11,17 +12,17 @@ export default (client: Client): void => {
             // handle context menu command
         }
     });
-};
+}
 
 const handleSlashCommand = async (client: Client, interaction: CommandInteraction): Promise<void> => {
     const slashCommand = Commands.find(c => c.name === interaction.commandName);
     if (!slashCommand) {
-        interaction.followUp({ content: "An error has occurred" });
+        interaction.followUp(generalError);
         return;
     }
 
     slashCommand.run(client, interaction);
-};
+}
 
 const handleButton = async (client: Client, interaction: ButtonInteraction): Promise<void> => {
     let data = interaction.customId.split(":");
@@ -29,7 +30,7 @@ const handleButton = async (client: Client, interaction: ButtonInteraction): Pro
 
     const button = Buttons.find(b => b.name === name);
     if (!button) {
-        interaction.reply({ content: "An error has occurred" });
+        interaction.reply(generalError);
         return;
     }
 
