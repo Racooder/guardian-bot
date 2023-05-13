@@ -9,14 +9,9 @@
     <a href="https://discord.com/api/oauth2/authorize?client_id=821713905692573708&permissions=2048&scope=applications.commands%20bot"><img src="https://img.shields.io/badge/Invite-Guardian-blue" alt="Discord server"/></a>
 </div>
 
-# Racoonia-Guardian
+# Guardian
 
 The official discord bot of the Racoonia discord server.
-
-## Features
-
-- [DiamondFire Informations](#diamondfire-informations)
-- [Quote System](#quote-system)
 
 ## Installation
 
@@ -34,19 +29,3 @@ You can find more informations [here](./LICENSE)
 ## Credits
 
 Thanks to **gotura** for the logo
-
----
-
-### DiamondFire Informations
-
-Get informations about Racoonia's DiamondFire games
-
-- Games list with join commands
-
-### Quote System
-
-A system for saving server exclusive quotes
-
-- Create quotes that are only accessable for your server members
-- Get a random out of your saved quotes
-- Search for quotes by one of your server members
