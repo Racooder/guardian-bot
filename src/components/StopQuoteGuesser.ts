@@ -1,8 +1,9 @@
 import { ButtonInteraction, Client, EmbedBuilder, InteractionUpdateOptions } from 'discord.js';
 import { Button } from '../InteractionInterface';
-import quoteGuesserSchema from '../models/quoteGuesserSchema';
+import quoteGuesserSchema, { findCurrentRound } from '../models/quoteGuesserSchema';
 import { isGuildCommand } from '../Essentials';
 import { noGuildError } from '../InteractionReplies';
+import guildSchema from '../models/guildSchema';
 
 export const StopQuoteGuesser: Button = {
     name: "stopQuoteGuesser",
@@ -34,7 +35,7 @@ export const StopQuoteGuesser: Button = {
         let ranking = [...leaderboard.entries()].sort((a, b) => b[1] - a[1]);
 
         const rankingEmbed = new EmbedBuilder()
-            .setTitle(`Game Leaderboard (Token: ${token})`);
+            .setTitle("Game Leaderboard");
 
         for (const [user, points] of ranking) {
             rankingEmbed.addFields({ name: user, value: points.toString() });
@@ -47,7 +48,8 @@ export const StopQuoteGuesser: Button = {
 }
 
 export const stopRound = async (interaction: ButtonInteraction, token: string) => {
-    const quoteGuesserDocument = await quoteGuesserSchema.findOne({ guildId: interaction.guildId, token: token });
+    const round = await findCurrentRound(quoteGuesserSchema, interaction.guildId!, token);
+    const quoteGuesserDocument = await quoteGuesserSchema.findOne({ guildId: interaction.guildId, token: token, round: round });
 
     if (!quoteGuesserDocument) {
         await interaction.update({ content: "This game doesn't exist anymore", embeds: [], components: [] });
@@ -68,7 +70,10 @@ export const stopRound = async (interaction: ButtonInteraction, token: string) =
     }
 
     await interaction.update({ 
-        embeds: [messageEmbed],
-        components: []
-    } as InteractionUpdateOptions);
+        embeds: [messageEmbed]
+    });
+
+    setTimeout(async () => {
+        interaction.deleteReply();
+    }, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteGuesserSolutionTimeout.value * 1000);
 }

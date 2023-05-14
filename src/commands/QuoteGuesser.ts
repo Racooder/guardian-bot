@@ -98,7 +98,7 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
     })
 
     const embed = new EmbedBuilder()
-        .setTitle(`Who said this quote? (Token: \`${token}\`)`)
+        .setTitle("Who said this quote?")
         .setDescription(`"${quote.quote}" - Unknown`)
         .setFooter({ text: "No one answered yet" })
         .setAuthor({ name: `Round ${round}` });

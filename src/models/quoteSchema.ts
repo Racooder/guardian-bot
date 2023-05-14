@@ -97,20 +97,20 @@ quoteSchema.statics.allAuthors = async function (guildId: string): Promise<IBase
     const quoteDocuments = await this.find({
         guildId: guildId,
     }).populate("author");
-    let authors: IBaseUser[] = [];
+    let authorMap: Map<string, IBaseUser> = new Map();
     for (const quoteDocument of quoteDocuments) {
         if (quoteDocument.author) {
-            authors.push({
+            authorMap.set(quoteDocument.author.userId, {
                 id: quoteDocument.author.userId,
                 name: quoteDocument.author.displayName ?? quoteDocument.author.username
             });
         } else if (quoteDocument.nonDiscordAuthor) {
-            authors.push({
+            authorMap.set(quoteDocument.nonDiscordAuthor, {
                 name: quoteDocument.nonDiscordAuthor
             });
         }
     }
-    return authors;
+    return Array.from(authorMap.values());
 };
 
 export default mongoose.model<IQuote, QuoteModel>("Quote", quoteSchema);

@@ -5,6 +5,7 @@
     "defaultGuildSettings": {
         "quoteListPageSize": 10,
         "quoteSearchDateTolerance": 15,
-        "quoteLinkedGuilds": []
+        "quoteLinkedGuilds": [],
+        "quoteGuesserSolutionTimeout": 60
     }
 }

@@ -6,6 +6,7 @@ export interface IGuild extends Document {
     quoteListPageSize: number;
     quoteSearchDateTolerance: number;
     quoteLinkedGuilds: string[];
+    quoteGuesserSolutionTimeout: number;
 }
 
 export interface IGuildSetting<T> {
@@ -18,6 +19,7 @@ export interface IGuildSettings {
     quoteListPageSize: IGuildSetting<number>;
     quoteSearchDateTolerance: IGuildSetting<number>;
     quoteLinkedGuilds: IGuildSetting<string[]>;
+    quoteGuesserSolutionTimeout: IGuildSetting<number>;
 }
 
 interface GuildModel extends Model<IGuild> {
@@ -46,6 +48,11 @@ const guildSchema = new Schema<IGuild, GuildModel>({
         type: [String],
         required: true,
         default: settings.defaultGuildSettings.quoteLinkedGuilds
+    },
+    quoteGuesserSolutionTimeout: {
+        type: Number,
+        required: true,
+        default: settings.defaultGuildSettings.quoteGuesserSolutionTimeout
     }
 });
 
@@ -55,17 +62,22 @@ guildSchema.statics.getGuildSettings = async function (guildId: string): Promise
         return {
             quoteListPageSize: {
                 name: "Quote List Page Size (number)",
-                value: guild.quoteListPageSize,
+                value: guild.quoteListPageSize || settings.defaultGuildSettings.quoteListPageSize,
                 unit: "pages"
             },
             quoteSearchDateTolerance: {
                 name: "Quote Search Date Tolerance (number)",
-                value: guild.quoteSearchDateTolerance,
+                value: guild.quoteSearchDateTolerance || settings.defaultGuildSettings.quoteSearchDateTolerance,
                 unit: "days"
             },
             quoteLinkedGuilds: {
                 name: "Quote Linked Guilds (array of guild IDs)",
-                value: guild.quoteLinkedGuilds
+                value: guild.quoteLinkedGuilds || settings.defaultGuildSettings.quoteLinkedGuilds
+            },
+            quoteGuesserSolutionTimeout: {
+                name: "Quote Guesser Solution Timeout (number)",
+                value: guild.quoteGuesserSolutionTimeout || settings.defaultGuildSettings.quoteGuesserSolutionTimeout,
+                unit: "seconds"
             }
         }
     } else {
@@ -83,6 +95,11 @@ guildSchema.statics.getGuildSettings = async function (guildId: string): Promise
             quoteLinkedGuilds: {
                 name: "Quote Linked Guilds (array of guild IDs)",
                 value: settings.defaultGuildSettings.quoteLinkedGuilds
+            },
+            quoteGuesserSolutionTimeout: {
+                name: "Quote Guesser Solution Timeout (number)",
+                value: settings.defaultGuildSettings.quoteGuesserSolutionTimeout,
+                unit: "seconds"
             }
         }
     }
