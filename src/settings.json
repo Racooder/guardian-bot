@@ -1,6 +1,7 @@
 {
     "quoteListLifetime": 7,
     "quoteGuesserLifetime": 3,
+    "maxTokenAttempts": 20,
     "defaultGuildSettings": {
         "quoteListPageSize": 10,
         "quoteSearchDateTolerance": 15,

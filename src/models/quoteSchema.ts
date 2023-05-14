@@ -13,9 +13,15 @@ export interface IQuote extends Document {
     authorName: Promise<string>;
 }
 
+export interface IBaseUser {
+    id?: string;
+    name?: string;
+}
+
 interface QuoteModel extends Model<IQuote> {
     listQuotes: (guildId: string, pageSize: number, content?: string, author?: string, authorName?: string, creator?: string, creatorName?: string, date?: Date) => Promise<IQuote[][]>;
     randomQuote: (guildId: string) => Promise<IQuote>;
+    allAuthors: (guildId: string) => Promise<IBaseUser[]>;
 }
 
 const quoteSchema = new Schema<IQuote, QuoteModel>({
@@ -85,6 +91,26 @@ quoteSchema.statics.randomQuote = async function (guildId: string): Promise<IQuo
         guildId: guildId,
     }).populate("author").populate("creator");
     return quoteDocuments[Math.floor(Math.random() * quoteDocuments.length)];
+};
+
+quoteSchema.statics.allAuthors = async function (guildId: string): Promise<IBaseUser[]> {
+    const quoteDocuments = await this.find({
+        guildId: guildId,
+    }).populate("author");
+    let authors: IBaseUser[] = [];
+    for (const quoteDocument of quoteDocuments) {
+        if (quoteDocument.author) {
+            authors.push({
+                id: quoteDocument.author.userId,
+                name: quoteDocument.author.displayName ?? quoteDocument.author.username
+            });
+        } else if (quoteDocument.nonDiscordAuthor) {
+            authors.push({
+                name: quoteDocument.nonDiscordAuthor
+            });
+        }
+    }
+    return authors;
 };
 
 export default mongoose.model<IQuote, QuoteModel>("Quote", quoteSchema);

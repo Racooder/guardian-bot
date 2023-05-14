@@ -144,7 +144,7 @@ const handleNewQuote = async (client: Client, interaction: ChatInputCommandInter
 
     const messageEmbed = new EmbedBuilder()
         .setTitle(`"${quoteDocument.quote}" - ${authorDocument?._id ? `${authorDocument.displayName}#${authorDocument.discriminator}` : quoteDocument.nonDiscordAuthor}`)
-        .setTimestamp(quoteDocument.timestamp)
+        .setTimestamp(quoteDocument.timestamp * 1000)
         .setAuthor({
             name: creatorMember.displayName,
             iconURL: interaction.user.displayAvatarURL()
@@ -277,7 +277,7 @@ export const quoteListEmbed = (pages: IQuote[][], page: number, description?: st
     .setColor(parseInt("4DA4AD", 16))
     .addFields(pages[page].map((quote: IQuote) => {
         return {
-            name: `"${quote.quote}" - ${quote.author?._id ? `${quote.author.displayName}#${quote.author.discriminator}` : quote.nonDiscordAuthor}`,
+            name: `"${quote.quote}" - ${quote.author?._id ? `${quote.author.displayName ?? quote.author.username}` : quote.nonDiscordAuthor}`,
             value: `Created by ${quote.creator.displayName}#${quote.creator.discriminator} on <t:${quote.timestamp}:d>`
         }
     }));

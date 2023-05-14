@@ -1,10 +1,12 @@
-import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionReplyOptions, GuildMember } from "discord.js";
+import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionReplyOptions, GuildMember, StringSelectMenuBuilder, SelectMenuComponentOptionData, ButtonInteraction } from "discord.js";
 import { Command } from "../InteractionInterface";
 import { generalError, noGuildError } from "../InteractionReplies";
 import { isGuildCommand } from "../Essentials";
 import quoteSchema from "../models/quoteSchema";
 import quoteGuesserSchema from "../models/quoteGuesserSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
+import settings from "../settings.json";
+import { findCurrentRound } from '../models/quoteGuesserSchema';
 
 export const QuoteGuesser: Command = {
     name: "quote-guesser",
@@ -15,29 +17,6 @@ export const QuoteGuesser: Command = {
             type: ApplicationCommandOptionType.Subcommand,
             name: "play",
             description: "Start a game of quote guesser"
-        },
-        {
-            type: ApplicationCommandOptionType.Subcommand,
-            name: "answer",
-            description: "Guess who said the quote",
-            options: [
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "token",
-                    description: "The token of the game you want to answer",
-                    required: true
-                },
-                {
-                    type: ApplicationCommandOptionType.User,
-                    name: "author",
-                    description: "The user you think said the quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "author-name",
-                    description: "The name of the user you think said the quote",
-                }
-            ]
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
@@ -60,9 +39,6 @@ export const QuoteGuesser: Command = {
             case "play":
                 handlePlay(interaction);
                 break;
-            case "answer":
-                handleAnswer(interaction);
-                break;
             case "leaderboard":
                 handleLeaderboard(interaction);
                 break;
@@ -76,70 +52,15 @@ const handlePlay = async (interaction: ChatInputCommandInteraction) => {
         return;
     }
 
-    do {
-        var token = newToken();
-    } while (await quoteGuesserSchema.exists({ token: token }));
-
-    const quote = await quoteSchema.randomQuote(interaction.guildId!);
-
-    if (quote === undefined) {
-        await interaction.reply({ content: "There are no quotes on this server", ephemeral: true });
+    const token = await newToken();
+    if (token === undefined) {
+        await interaction.reply({ content: "Failed to create a new game", ephemeral: true });
         return;
     }
 
-    const document = await quoteGuesserSchema.create({
-        guildId: interaction.guildId,
-        token: token,
-        quote: quote.quote,
-        authorId: quote.author?.userId,
-        authorName: await quote.authorName,
-        authorAlias: quote.author?.username
-    })
+    const reply = await newGame(interaction, token, 1);
 
-    const embed = new EmbedBuilder()
-        .setTitle(`Who said this quote? (Token \`${token}\`)`)
-        .setDescription(`"${quote.quote}" - Unknown`)
-        .setFooter({ text: `To answer, use \`/quote-guesser answer ${token} <user>\` or \`/quote-guesser answer ${token} <name>\`` })
-
-    const stopButton = new ButtonBuilder()
-        .setCustomId(`stopQuoteGuesser:${token}`)
-        .setLabel("Stop")
-        .setStyle(ButtonStyle.Danger);
-
-    const row = new ActionRowBuilder()
-        .addComponents(stopButton);
-
-    await interaction.reply({ 
-        embeds: [embed], 
-        components: [row] 
-    } as InteractionReplyOptions);
-}
-
-const handleAnswer = async (interaction: ChatInputCommandInteraction) => {
-    if (!isGuildCommand(interaction)) {
-        await interaction.reply(noGuildError);
-        return;
-    }
-
-    const token = interaction.options.getString("token", true);
-    const user = interaction.options.getUser("author");
-    const name = interaction.options.getString("author-name");
-
-    if (user === null && name === null) {
-        await interaction.reply({ content: "You must provide either a author or a author-name", ephemeral: true });
-        return;
-    }
-
-    if (!(interaction.member instanceof GuildMember)) {
-        await interaction.reply({ content: "You are not a member of this server", ephemeral: true });
-        return;
-    }
-    const result = await quoteGuesserSchema.addAnswer(interaction.guildId!, token, interaction.member, {
-        authorId: user?.id,
-        authorName: name ?? undefined
-    })
-
-    interaction.reply({ content: result, ephemeral: true });
+    await interaction.reply(reply);
 }
 
 const handleLeaderboard = async (interaction: ChatInputCommandInteraction) => {
@@ -159,12 +80,78 @@ const handleLeaderboard = async (interaction: ChatInputCommandInteraction) => {
     await interaction.reply({ embeds: [embed] });
 }
 
-const newToken = () => {
+export const newGame = async (interaction: ChatInputCommandInteraction | ButtonInteraction, token: string, round: number): Promise<InteractionReplyOptions> => {
+    const quote = await quoteSchema.randomQuote(interaction.guildId!);
+
+    if (quote === undefined) {
+        return { content: "There are no quotes on this server", ephemeral: true }
+    }
+    
+    const document = await quoteGuesserSchema.create({
+        guildId: interaction.guildId,
+        token: token,
+        quote: quote.quote,
+        authorId: quote.author?.userId,
+        authorName: await quote.authorName,
+        authorAlias: quote.author?.username,
+        round: round
+    })
+
+    const embed = new EmbedBuilder()
+        .setTitle(`Who said this quote? (Token: \`${token}\`)`)
+        .setDescription(`"${quote.quote}" - Unknown`)
+        .setFooter({ text: "No one answered yet" })
+        .setAuthor({ name: `Round ${round}` });
+
+    const selectionMenu = new StringSelectMenuBuilder()
+        .setCustomId(`answerQuoteGuesser:${token}`)
+        .setPlaceholder("Select your guess")
+
+    const nextButton = new ButtonBuilder()
+        .setCustomId(`nextQuoteGuesser:${token}`)
+        .setLabel("Next Round")
+        .setStyle(ButtonStyle.Primary);
+
+    const stopButton = new ButtonBuilder()
+        .setCustomId(`stopQuoteGuesser:${token}`)
+        .setLabel("Stop")
+        .setStyle(ButtonStyle.Danger);
+
+    const allAuthors = await quoteSchema.allAuthors(interaction.guildId!);
+    for (const author of allAuthors) {
+        selectionMenu.addOptions({
+            label: author.name ?? "Unknown",
+            value: author.id ?? author.name
+        } as SelectMenuComponentOptionData);
+    }
+
+    const buttonRow = new ActionRowBuilder()
+        .addComponents(nextButton, stopButton);
+    const selectionRow = new ActionRowBuilder()
+        .addComponents(selectionMenu);
+
+    return { 
+        embeds: [embed], 
+        components: [buttonRow, selectionRow] 
+    } as InteractionReplyOptions;
+}
+
+const newToken = async (): Promise<string | undefined> => {
     const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
     const length = characters.length;
+
     let token = "";
-    for (let i = 0; i < 6; i++) {
-        token += characters.charAt(Math.floor(Math.random() * length));
+    let i = 0;
+    do {
+        token = "";
+        for (let i = 0; i < 6; i++) {
+            token += characters.charAt(Math.floor(Math.random() * length));
+        }
+        i++;
+    } while (await quoteGuesserSchema.exists({ token: token }) && i < settings.maxTokenAttempts);
+
+    if (i >= settings.maxTokenAttempts) {
+        return undefined;
     }
     return token;
 }

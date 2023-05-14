@@ -1,6 +1,6 @@
-import { ButtonInteraction, CommandInteraction, GuildMember, User } from "discord.js";
+import { GuildMember, Interaction, User } from "discord.js";
 
-export const isGuildCommand = (interaction: CommandInteraction | ButtonInteraction): boolean => {
+export const isGuildCommand = (interaction: Interaction): boolean => {
     return interaction.guildId !== null && interaction.member !== null && interaction.member instanceof GuildMember;
 }
 

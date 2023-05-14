@@ -9,6 +9,7 @@ import { noGuildError } from '../InteractionReplies';
 
 export const QuotePage: Button = {
     name: "quotePage",
+    isButton: true,
     run: async (client: Client, interaction: ButtonInteraction, data: string[]) => {
         if (!isGuildCommand(interaction)) {
             await interaction.update(noGuildError as InteractionUpdateOptions);

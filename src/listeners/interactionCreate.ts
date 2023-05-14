@@ -1,15 +1,14 @@
-import { CommandInteraction, Client, Interaction, ButtonInteraction } from "discord.js";
-import { Commands, Buttons } from "../Interactions";
+import { CommandInteraction, Client, Interaction, ButtonInteraction, MessageComponentInteraction, StringSelectMenuInteraction } from "discord.js";
+import { Commands, Components } from "../Interactions";
 import { generalError } from "../InteractionReplies";
+import { Button, StringSelectMenu } from '../InteractionInterface';
 
 export default (client: Client): void => {
     client.on("interactionCreate", async (interaction: Interaction) => {
         if (interaction.isCommand()) {
             await handleSlashCommand(client, interaction as CommandInteraction);
-        } else if (interaction.isButton()) {
-            await handleButton(client, interaction as ButtonInteraction);
-        } else if (interaction.isContextMenuCommand()) {
-            // handle context menu command
+        } else if (interaction.isMessageComponent()) {
+            await handleComponent(client, interaction as MessageComponentInteraction);
         }
     });
 }
@@ -24,15 +23,21 @@ const handleSlashCommand = async (client: Client, interaction: CommandInteractio
     slashCommand.run(client, interaction);
 }
 
-const handleButton = async (client: Client, interaction: ButtonInteraction): Promise<void> => {
+const handleComponent = async (client: Client, interaction: MessageComponentInteraction): Promise<void> => {
     let data = interaction.customId.split(":");
     const name = data.shift();
 
-    const button = Buttons.find(b => b.name === name);
-    if (!button) {
+    const component = Components.find(b => b.name === name);
+    if (!component) {
         interaction.reply(generalError);
         return;
     }
 
-    button.run(client, interaction, data);
+    if (component.isButton) {
+        const button = component as Button;
+        button.run(client, interaction as ButtonInteraction, data);
+    } else if (component.isStringSelectMenu) {
+        const stringSelectMenu = component as StringSelectMenu;
+        stringSelectMenu.run(client, interaction as StringSelectMenuInteraction, data);
+    }
 }

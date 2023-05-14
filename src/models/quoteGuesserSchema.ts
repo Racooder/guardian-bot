@@ -3,6 +3,7 @@ import settings from "../settings.json";
 import { GuildMember } from "discord.js";
 import { usernameString } from "../Essentials";
 import guildMemberSchema from "./guildMemberSchema";
+import { IBaseUser } from "./quoteSchema";
 
 export interface IQuoteGuesser extends Document {
     guildId: string;
@@ -15,19 +16,16 @@ export interface IQuoteGuesser extends Document {
     wrongAnswerIds: string[];
     correctAnswerNames: string[];
     wrongAnswerNames: string[];
+    round: number;
     createdAt: Date;
     updatedAt: Date;
 }
 
-export interface IQuoteGuesserAnswer {
-    authorId?: string;
-    authorName?: string;
-}
-
 interface QuoteGuesserModel extends Model<IQuoteGuesser> {
-    getAnswer: (guildId: string, token: string) => Promise<IQuoteGuesserAnswer | null>;
-    addAnswer: (guildId: string, token: string, user: GuildMember, answer: IQuoteGuesserAnswer) => Promise<string>;
+    getAnswer: (guildId: string, token: string) => Promise<IBaseUser | null>;
+    addAnswer: (guildId: string, token: string, user: GuildMember, answer: string) => Promise<number>;
     clearOld: () => Promise<void>;
+    getAnswerCount: (guildId: string, token: string) => Promise<number>;
 }
 
 const quoteGuesserSchema = new Schema<IQuoteGuesser, QuoteGuesserModel>({
@@ -72,39 +70,61 @@ const quoteGuesserSchema = new Schema<IQuoteGuesser, QuoteGuesserModel>({
         type: [String],
         required: true,
         default: []
+    },
+    round: {
+        type: Number,
+        required: true,
+        default: 1
     }
 }, {
     timestamps: true
 });
 
-quoteGuesserSchema.statics.getAnswer = async function (guildId: string, token: string): Promise<IQuoteGuesserAnswer | null> {
-    const quoteGuesser = await this.findOne({ guildId, token });
+export const findCurrentRound = async function (model: QuoteGuesserModel, guildId: string, token: string): Promise<number> {
+    const quoteGuesser = await model.find({ guildId, token });
+    let round = 0;
+    if (quoteGuesser && await model.exists({ token: token })) {
+        let oldGames = await model.find({ guildId: guildId, token: token });
+        if (oldGames.length > 1) {
+            oldGames = oldGames.sort((a, b) => (b.round || 0) - (a.round || 0));
+        }
+        round = (oldGames[0].round || 1);
+    }
+    return round;
+}
+
+quoteGuesserSchema.statics.getAnswer = async function (guildId: string, token: string): Promise<IBaseUser | null> {
+    const round = await findCurrentRound(this, guildId, token);
+    const quoteGuesser = await this.findOne({ guildId, token, round });
+    
     if (!quoteGuesser) return null;
     return {
-        authorId: quoteGuesser.authorId,
-        authorName: quoteGuesser.authorName
+        id: quoteGuesser.authorId,
+        name: quoteGuesser.authorName
     }
 }
 
-quoteGuesserSchema.statics.addAnswer = async function (guildId: string, token: string, user: GuildMember, answer: IQuoteGuesserAnswer): Promise<string> {
-    const quoteGuesser = await this.findOne({ guildId, token });    
-    if (!quoteGuesser) return "No game found with that token";
-    if (quoteGuesser.correctAnswerIds.includes(user.id)) return "You have already answered correctly";
-    if (quoteGuesser.wrongAnswerIds.includes(user.id)) return "You have already answered incorrectly";
+quoteGuesserSchema.statics.addAnswer = async function (guildId: string, token: string, user: GuildMember, answer: string): Promise<number> {
+    const round = await findCurrentRound(this, guildId, token);
+    const quoteGuesser = await this.findOne({ guildId, token, round });
+
+    if (!quoteGuesser) return 3;
+    if (quoteGuesser.correctAnswerIds.includes(user.id)) return 4;
+    if (quoteGuesser.wrongAnswerIds.includes(user.id)) return 5;
     
-    if ((quoteGuesser.authorId && quoteGuesser.authorId === answer.authorId) ||
-        (quoteGuesser.authorName && quoteGuesser.authorName?.toLowerCase() === answer.authorName?.toLowerCase()) ||
-        (quoteGuesser.authorAlias && quoteGuesser.authorAlias?.toLowerCase() === answer.authorName?.toLowerCase())) {
+    if ((quoteGuesser.authorId && quoteGuesser.authorId === answer) ||
+        (quoteGuesser.authorName && quoteGuesser.authorName?.toLowerCase() === answer.toLowerCase()) ||
+        (quoteGuesser.authorAlias && quoteGuesser.authorAlias?.toLowerCase() === answer.toLowerCase())) {
             quoteGuesser.correctAnswerIds.push(user.id);
             quoteGuesser.correctAnswerNames.push(usernameString(user));
             await quoteGuesser.save();
             guildMemberSchema.findOneAndUpdate({ guildId: guildId, userId: user.id }, { $inc: { quoteGuesserScore: 1 } }).exec();
-            return "Your answer was correct!";
+            return 1;
     }
     quoteGuesser.wrongAnswerIds.push(user.id);
     quoteGuesser.wrongAnswerNames.push(usernameString(user));
     await quoteGuesser.save();
-    return "Your answer was wrong!";
+    return 2;
 }
 
 quoteGuesserSchema.statics.clearOld = async function () {
@@ -121,5 +141,13 @@ quoteGuesserSchema.statics.clearOld = async function () {
         await oldQuoteListDocument.deleteOne();
     }
 };
+
+quoteGuesserSchema.statics.getAnswerCount = async function (guildId: string, token: string): Promise<number> {
+    const round = await findCurrentRound(this, guildId, token);
+    const quoteGuesser = await this.findOne({ guildId, token, round });
+
+    if (!quoteGuesser) return 0;
+    return quoteGuesser.correctAnswerIds.length + quoteGuesser.wrongAnswerIds.length;
+}
 
 export default mongoose.model<IQuoteGuesser, QuoteGuesserModel>("QuoteGuesser", quoteGuesserSchema);

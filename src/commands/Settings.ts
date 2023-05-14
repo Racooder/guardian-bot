@@ -79,7 +79,7 @@ const handleView = async (client: Client, interaction: ChatInputCommandInteracti
     
     const messageEmbed = new EmbedBuilder()
         .setTitle("Settings")
-        .setTimestamp(Math.floor(Date.now() / 1000))
+        .setTimestamp(Date.now())
         .setColor(parseInt("D1D1D1", 16))
 
     let setting: keyof IGuildSettings;
