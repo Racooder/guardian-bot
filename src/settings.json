@@ -1,8 +1,9 @@
 {
     "quoteListLifetime": 7,
+    "quoteGuesserLifetime": 3,
     "defaultGuildSettings": {
         "quoteListPageSize": 10,
-        "quoteSearchDateTolerance": 30,
+        "quoteSearchDateTolerance": 15,
         "quoteLinkedGuilds": []
     }
 }

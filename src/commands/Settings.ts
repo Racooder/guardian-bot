@@ -1,4 +1,4 @@
-import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, PermissionsBitField } from 'discord.js';
 import { Command } from "../InteractionInterface";
 import { isGuildCommand } from "../Essentials";
 import { generalError, noGuildError } from "../InteractionReplies";
@@ -51,6 +51,14 @@ export const Settings: Command = {
         if (!isGuildCommand(interaction)) {
             await interaction.reply(noGuildError);
         }
+        const permissions = interaction.member!.permissions as PermissionsBitField;
+        if (!permissions.has(PermissionsBitField.Flags.ManageGuild | PermissionsBitField.Flags.Administrator)) {
+            await interaction.reply({
+                content: "You do not have permission to use this command",
+                ephemeral: true
+            });
+            return;
+        }
 
         const subcommand = interaction.options.getSubcommand();
         if (subcommand === "view") {
@@ -71,7 +79,7 @@ const handleView = async (client: Client, interaction: ChatInputCommandInteracti
     
     const messageEmbed = new EmbedBuilder()
         .setTitle("Settings")
-        .setTimestamp(Math.round(Date.now() / 1000))
+        .setTimestamp(Math.floor(Date.now() / 1000))
         .setColor(parseInt("D1D1D1", 16))
 
     let setting: keyof IGuildSettings;
@@ -100,7 +108,10 @@ const handleView = async (client: Client, interaction: ChatInputCommandInteracti
         }
     }
 
-    await interaction.reply({ embeds: [messageEmbed] });
+    await interaction.reply({
+        embeds: [messageEmbed],
+        ephemeral: true
+    });
 }
 
 const handleEdit = async (client: Client, interaction: ChatInputCommandInteraction) => {

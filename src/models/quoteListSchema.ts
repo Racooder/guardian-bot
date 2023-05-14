@@ -45,13 +45,13 @@ const quoteListSchema = new Schema<IQuoteList, QuoteListModel>({
 });
 
 quoteListSchema.statics.clearOld = async function (): Promise<void> {
+    const now = new Date();
+    const old = new Date(now.getTime() - 1000 * 60 * 60 * 24 * settings.quoteListLifetime);
+    
     const quoteListDocuments = await this.find({});
 
-    const now = new Date();
-    const oneDayAgo = new Date(now.getTime() - 1000 * 60 * 60 * 24 * settings.quoteListLifetime);
-
     const oldQuoteListDocuments = quoteListDocuments.filter((quoteListDocument) => {
-        return quoteListDocument.updatedAt < oneDayAgo;
+        return quoteListDocument.updatedAt < old;
     });
 
     for (const oldQuoteListDocument of oldQuoteListDocuments) {

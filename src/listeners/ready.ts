@@ -2,6 +2,7 @@ import { Client } from "discord.js";
 import { Commands } from "../Interactions";
 import mongoose, { ConnectOptions } from "mongoose";
 import quoteListSchema from "../models/quoteListSchema";
+import quoteGuesserSchema from "../models/quoteGuesserSchema";
 
 export default (client: Client): void => {
     client.on("ready", async () => {
@@ -17,6 +18,7 @@ export default (client: Client): void => {
 
         console.log("Clearing old quote lists...");
         quoteListSchema.clearOld();
+        quoteGuesserSchema.clearOld();
 
         console.log("Registering commands...");
         await client.application.commands.set(Commands);

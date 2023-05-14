@@ -4,8 +4,9 @@ export interface IGuildMember extends Document {
     guildId: string;
     userId: string;
     username: string;
-    displayName: string;
+    displayName?: string;
     discriminator?: string;
+    quoteGuesserScore?: number;
 }
 
 interface GuildMemberModel extends Model<IGuildMember> {
@@ -30,6 +31,10 @@ const guildMemberSchema = new Schema<IGuildMember, GuildMemberModel>({
     },
     discriminator: {
         type: String
+    },
+    quoteGuesserScore: {
+        type: Number,
+        default: 0
     }
 });
 

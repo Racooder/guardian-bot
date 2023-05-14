@@ -1,7 +1,6 @@
 import mongoose, { Model, Schema, Document } from "mongoose";
 import { IGuildMember } from "./guildMemberSchema";
 import { approximateEqual, splitArrayIntoChunks } from "../Essentials";
-import settings from "../settings.json";
 import guildSchema from "./guildSchema";
 
 export interface IQuote extends Document {
@@ -11,10 +10,12 @@ export interface IQuote extends Document {
     author?: IGuildMember["_id"];
     nonDiscordAuthor?: string;
     creator: IGuildMember["_id"];
+    authorName: Promise<string>;
 }
 
 interface QuoteModel extends Model<IQuote> {
     listQuotes: (guildId: string, pageSize: number, content?: string, author?: string, authorName?: string, creator?: string, creatorName?: string, date?: Date) => Promise<IQuote[][]>;
+    randomQuote: (guildId: string) => Promise<IQuote>;
 }
 
 const quoteSchema = new Schema<IQuote, QuoteModel>({
@@ -32,7 +33,8 @@ const quoteSchema = new Schema<IQuote, QuoteModel>({
     },
     author: {
         type: Schema.Types.ObjectId,
-        ref: "GuildMember"
+        ref: "GuildMember",
+        required: true
     },
     nonDiscordAuthor: {
         type: String
@@ -44,6 +46,16 @@ const quoteSchema = new Schema<IQuote, QuoteModel>({
     }
 });
 
+quoteSchema.virtual("authorName").get(async function(this: IQuote): Promise<string> {
+    await this.populate("author");
+    if (this.author) {
+        return this.author.displayName ?? this.author.username;
+    } else if (this.nonDiscordAuthor) {
+        return this.nonDiscordAuthor;
+    }
+    return "Unknown";
+})
+
 quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: number, content?: string, author?: string, authorName?: string, creator?: string, creatorName?: string, date?: Date): Promise<IQuote[][]> {
     let quoteDocuments = await this.find({
         guildId: guildId,
@@ -53,7 +65,7 @@ quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: numb
     authorName = authorName?.toLowerCase();
     creatorName = creatorName?.toLowerCase();
     let timestamp = date?.getTime() ?? 0;
-    timestamp = Math.round(timestamp / 1000);
+    timestamp = Math.floor(timestamp / 1000);
     const dateTolerance = (await guildSchema.getGuildSettings(guildId)).quoteSearchDateTolerance.value
 
     quoteDocuments = quoteDocuments.filter((quoteDocument) => {
@@ -66,6 +78,13 @@ quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: numb
     });
 
     return splitArrayIntoChunks(quoteDocuments, pageSize);
+};
+
+quoteSchema.statics.randomQuote = async function (guildId: string): Promise<IQuote> {
+    const quoteDocuments = await this.find({
+        guildId: guildId,
+    }).populate("author").populate("creator");
+    return quoteDocuments[Math.floor(Math.random() * quoteDocuments.length)];
 };
 
 export default mongoose.model<IQuote, QuoteModel>("Quote", quoteSchema);

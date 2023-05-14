@@ -16,18 +16,10 @@ export const usernameString = (user: User | GuildMember): string => {
     let baseUser = user instanceof GuildMember ? user.user : user;
     let displayName = user instanceof GuildMember ? user.displayName : undefined;
     
-    if (baseUser.discriminator === undefined) {
-        if (displayName === undefined) {
-            return baseUser.username;
-        } else {
-            return displayName;
-        }
+    if (displayName === undefined) {
+        return baseUser.username;
     } else {
-        if (displayName === undefined) {
-            return `${baseUser.username}#${baseUser.discriminator}`;
-        } else {
-            return `${displayName}#${baseUser.discriminator}`;
-        }
+        return displayName;
     }
 }
 

@@ -5,7 +5,6 @@ import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
 import quoteListSchema from "../models/quoteListSchema";
 import { isGuildCommand, usernameString } from "../Essentials";
 import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builders";
-import settings from "../settings.json";
 import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema from "../models/guildSchema";
 export const Quote: Command = {
@@ -137,7 +136,7 @@ const handleNewQuote = async (client: Client, interaction: ChatInputCommandInter
     const quoteDocument = await quoteSchema.create({
         guildId: interaction.guildId!,
         quote: quote,
-        timestamp: Math.round(Date.now() / 1000),
+        timestamp: Math.floor(Date.now() / 1000),
         author: authorDocument?._id,
         nonDiscordAuthor: nonDiscordAuthor,
         creator: creatorDocument._id
