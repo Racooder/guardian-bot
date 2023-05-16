@@ -7,6 +7,7 @@ import { isGuildCommand, usernameString } from "../Essentials";
 import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builders";
 import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema from "../models/guildSchema";
+import Colors from "src/Colors";
 export const Quote: Command = {
     name: "quote",
     description: "Create, view, edit and delete quotes",
@@ -159,7 +160,7 @@ const handleNewQuote = async (client: Client, interaction: ChatInputCommandInter
             name: creatorMember.displayName,
             iconURL: interaction.user.displayAvatarURL()
         })
-        .setColor(parseInt("4DA4AD", 16))
+        .setColor(Colors.quoteEmbed)
 
     // Send the embed
     await interaction.reply({
@@ -316,7 +317,7 @@ export const quoteListEmbed = (pages: IQuote[][], page: number, description?: st
     return new EmbedBuilder()
     .setTitle(`Quotes (Page ${page + 1}/${pages.length})`)
     .setDescription(description ?? null)
-    .setColor(parseInt("4DA4AD", 16))
+    .setColor(Colors.quoteEmbed)
     .addFields(pages[page].map((quote: IQuote) => {
         return {
             name: `"${quote.quote}" - ${quote.author?._id ? `${quote.author.displayName ?? quote.author.username}` : quote.nonDiscordAuthor}`,

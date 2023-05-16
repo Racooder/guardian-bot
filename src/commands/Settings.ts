@@ -3,6 +3,7 @@ import { Command } from "../InteractionInterface";
 import { isGuildCommand } from "../Essentials";
 import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema, { IGuildSettings } from '../models/guildSchema';
+import Colors from 'src/Colors';
 
 export const Settings: Command = {
     name: "settings",
@@ -91,7 +92,7 @@ const handleView = async (client: Client, interaction: ChatInputCommandInteracti
     const messageEmbed = new EmbedBuilder()
         .setTitle("Settings")
         .setTimestamp(Date.now())
-        .setColor(parseInt("D1D1D1", 16))
+        .setColor(Colors.settingsEmbed)
 
     // Add the settings to the embed
     let setting: keyof IGuildSettings;
