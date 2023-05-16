@@ -57,6 +57,21 @@ interface QuoteGuesserModel extends Model<IQuoteGuesser> {
     getAnswerCount: (guildId: string, token: string) => Promise<number>;
 }
 
+type ResultTranslation = {
+    [key: number]: string;
+}
+
+/**
+ * Translates the result code to a message
+ */
+export const resultTranslation: ResultTranslation = {
+    1: "Your answer was correct!",
+    2: "Your answer was wrong!",
+    3: "No game found with that token",
+    4: "You have already answered correctly!\nYou can't change your answer",
+    5: "You have already answered incorrectly!\nYou can't change your answer"
+}
+
 /**
  * The database schema for a quote guesser game.
  */
