@@ -1,4 +1,4 @@
-import { Button, Command, Component } from './InteractionInterface';
+import { Command, Component } from './InteractionInterface';
 import { QuotePage } from "./components/QuotePage";
 import { StopQuoteGuesser } from "./components/StopQuoteGuesser";
 import { Ping } from "./commands/Ping";

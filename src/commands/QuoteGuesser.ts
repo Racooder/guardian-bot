@@ -6,7 +6,6 @@ import quoteSchema from "../models/quoteSchema";
 import quoteGuesserSchema from "../models/quoteGuesserSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
 import settings from "../settings.json";
-import { findCurrentRound } from '../models/quoteGuesserSchema';
 
 export const QuoteGuesser: Command = {
     name: "quote-guesser",

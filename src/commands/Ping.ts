@@ -6,7 +6,7 @@ export const Ping: Command = {
     description: "A ping command",
     type: ApplicationCommandType.ChatInput,
     run: async (client: Client, interaction: CommandInteraction) => {
-        const latency = Date.now() - interaction.createdTimestamp; // For some reason this is positive, even though it should be negative
+        const latency = Date.now() - interaction.createdTimestamp;
         const apiLatency = client.ws.ping;
 
         let latencyMessage = "";
