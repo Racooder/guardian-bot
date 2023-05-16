@@ -9,7 +9,9 @@ const client = new Client({
     intents: []
 });
 
+// Event Handlers
 ready(client);
 interactionCreate(client);
 
+// Login
 client.login(process.env.TOKEN);

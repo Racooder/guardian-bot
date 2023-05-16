@@ -9,6 +9,7 @@ export const Ping: Command = {
         const latency = Date.now() - interaction.createdTimestamp;
         const apiLatency = client.ws.ping;
 
+        // Easter egg messages
         let latencyMessage = "";
         if (latency === 69) {
             latencyMessage = "(Nice)";
@@ -38,6 +39,7 @@ export const Ping: Command = {
             apiLatencyMessage = "(That's a lot!)";
         }
 
+        // Create the embed
         const messageEmbed = new EmbedBuilder()
             .addFields(
                 {
@@ -50,6 +52,7 @@ export const Ping: Command = {
                 }
             )
 
+        // Send the embed
         await interaction.reply({
             ephemeral: true,
             embeds: [messageEmbed]

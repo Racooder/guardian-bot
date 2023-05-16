@@ -1,6 +1,9 @@
 import mongoose, { Model, Schema, Document } from "mongoose";
 import settings from "../settings.json";
 
+/**
+ * Represents a quote list in the database.
+ */
 export interface IQuoteList extends Document {
     page: number;
     content?: string;
@@ -13,10 +16,19 @@ export interface IQuoteList extends Document {
     updatedAt: Date;
 }
 
+/**
+ * Holds the functions for the quote list schema.
+ */
 interface QuoteListModel extends Model<IQuoteList> {
+    /**
+     * Clears all quote lists that are older than the quote list lifetime.
+     */
     clearOld: () => Promise<void>;
 }
 
+/**
+ * The database schema for a quote list.
+ */
 const quoteListSchema = new Schema<IQuoteList, QuoteListModel>({
     page: {
         type: Number,
@@ -44,6 +56,9 @@ const quoteListSchema = new Schema<IQuoteList, QuoteListModel>({
     timestamps: true
 });
 
+/**
+ * Clears all quote lists that are older than the quote list lifetime.
+ */
 quoteListSchema.statics.clearOld = async function (): Promise<void> {
     const now = new Date();
     const old = new Date(now.getTime() - 1000 * 60 * 60 * 24 * settings.quoteListLifetime);
@@ -59,4 +74,7 @@ quoteListSchema.statics.clearOld = async function (): Promise<void> {
     }
 };
 
+/**
+ * The quote list model.
+ */
 export default mongoose.model<IQuoteList, QuoteListModel>("QuoteList", quoteListSchema);

@@ -51,6 +51,8 @@ export const Settings: Command = {
         if (!isGuildCommand(interaction)) {
             await interaction.reply(noGuildError);
         }
+
+        // Check if the user has permission to use this command
         const permissions = interaction.member!.permissions as PermissionsBitField;
         if (!permissions.has(PermissionsBitField.Flags.ManageGuild | PermissionsBitField.Flags.Administrator)) {
             await interaction.reply({
@@ -60,6 +62,7 @@ export const Settings: Command = {
             return;
         }
 
+        // Handle subcommands
         const subcommand = interaction.options.getSubcommand();
         if (subcommand === "view") {
             handleView(client, interaction);
@@ -69,66 +72,85 @@ export const Settings: Command = {
     }
 }
 
-const handleView = async (client: Client, interaction: ChatInputCommandInteraction) => {
+// Subcommand handlers
+/**
+ * Display the settings for this guild
+ * @param client
+ * @param interaction
+ */
+const handleView = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
         await interaction.reply(noGuildError);
         return;
     }
 
+    // Get the settings for this guild
     const guildSettings = await guildSchema.getGuildSettings(interaction.guildId!);
     
+    // Create the embed
     const messageEmbed = new EmbedBuilder()
         .setTitle("Settings")
         .setTimestamp(Date.now())
         .setColor(parseInt("D1D1D1", 16))
 
+    // Add the settings to the embed
     let setting: keyof IGuildSettings;
     for (setting in guildSettings) {
-        const type = typeof guildSettings[setting].value;
+        const type = typeof guildSettings[setting]!.value;
         if (type === "number" || type === "string") {
             messageEmbed.addFields({
-                name: guildSettings[setting].name,
-                value: `${guildSettings[setting].value.toString()} ${guildSettings[setting].unit ?? ""}`
+                name: guildSettings[setting]!.name,
+                value: `${guildSettings[setting]!.value.toString()} ${guildSettings[setting]!.unit ?? ""}`
             });
         } else if (type === "boolean") {
             messageEmbed.addFields({
-                name: guildSettings[setting].name,
-                value: guildSettings[setting].value ? "true" : "false"
+                name: guildSettings[setting]!.name,
+                value: guildSettings[setting]!.value ? "true" : "false"
             });
         } else if (setting === "quoteLinkedGuilds") {
             messageEmbed.addFields({
-                name: guildSettings[setting].name,
+                name: guildSettings[setting]!.name,
                 value: "Use `/quoteLink list` to view linked guilds (WIP)"
             });
         } else {
             messageEmbed.addFields({
-                name: guildSettings[setting].name,
+                name: guildSettings[setting]!.name,
                 value: "Unknown type"
             });
         }
     }
 
+    // Send the embed
     await interaction.reply({
         embeds: [messageEmbed],
         ephemeral: true
     });
 }
 
-const handleEdit = async (client: Client, interaction: ChatInputCommandInteraction) => {
+/**
+ * Edit a setting for this guild
+ * @param client 
+ * @param interaction
+ */
+const handleEdit = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
         await interaction.reply(noGuildError);
         return;
     }
 
+    // Get the option values
     const setting = interaction.options.getString("setting", true);
     const numberValue = interaction.options.getNumber("number-value");
 
+    // Get the settings for this guild
     const guildSettings = await guildSchema.getGuildSettings(interaction.guildId!);
 
+    // Change the setting if it exists
     let s: keyof IGuildSettings;
     for (s in guildSettings) {
         if (s == setting) {
-            if (typeof guildSettings[s].value === "number") {
+            if (typeof guildSettings[s]!.value === "number") {
+                // Check if a valid new value was provided
                 if (numberValue === null) {
                     await interaction.reply({
                         content: "Please provide a number value",
@@ -136,7 +158,8 @@ const handleEdit = async (client: Client, interaction: ChatInputCommandInteracti
                     });
                     return;
                 } else {
-                    guildSettings[s].value = numberValue;
+                    // Update the setting
+                    guildSettings[s]!.value = numberValue;
                     await guildSchema.updateGuildSettings(interaction.guildId!, guildSettings);
                     await interaction.reply({
                         content: "Updated setting " + s + " to " + numberValue,

@@ -45,7 +45,12 @@ export const QuoteGuesser: Command = {
     }
 }
 
-const handlePlay = async (interaction: ChatInputCommandInteraction) => {
+// Subcommand handlers
+/**
+ * Create a new game of quote guesser
+ * @param interaction
+ */
+const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
         await interaction.reply(noGuildError);
         return;
@@ -62,7 +67,11 @@ const handlePlay = async (interaction: ChatInputCommandInteraction) => {
     await interaction.reply(reply);
 }
 
-const handleLeaderboard = async (interaction: ChatInputCommandInteraction) => {
+/**
+ * Display the leaderboard for quote guesser
+ * @param interaction
+ */
+const handleLeaderboard = async (interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
         await interaction.reply(noGuildError);
         return;
@@ -79,13 +88,24 @@ const handleLeaderboard = async (interaction: ChatInputCommandInteraction) => {
     await interaction.reply({ embeds: [embed] });
 }
 
+// Game management
+/**
+ * Create a new game of quote guesser
+ * @param interaction - The interaction that started the game
+ * @param token - The token for the game
+ * @param round - The round number
+ * @returns The game message
+ */
 export const newGame = async (interaction: ChatInputCommandInteraction | ButtonInteraction, token: string, round: number): Promise<InteractionReplyOptions> => {
+    // Gets a random quote from the database
     const quote = await quoteSchema.randomQuote(interaction.guildId!);
 
+    // If there are no quotes, return an error
     if (quote === undefined) {
         return { content: "There are no quotes on this server", ephemeral: true }
     }
     
+    // Create a new quote guesser document in the database
     const document = await quoteGuesserSchema.create({
         guildId: interaction.guildId,
         token: token,
@@ -96,16 +116,19 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
         round: round
     })
 
+    // Create the game embed
     const embed = new EmbedBuilder()
         .setTitle("Who said this quote?")
-        .setDescription(`"${quote.quote}" - Unknown`)
+        .setDescription(`"${quote.quote}" - ???`)
         .setFooter({ text: "No one answered yet" })
         .setAuthor({ name: `Round ${round}` });
 
+    // Create the selection menu
     const selectionMenu = new StringSelectMenuBuilder()
         .setCustomId(`answerQuoteGuesser:${token}`)
         .setPlaceholder("Select your guess")
 
+    // Create the buttons
     const nextButton = new ButtonBuilder()
         .setCustomId(`nextQuoteGuesser:${token}`)
         .setLabel("Next Round")
@@ -116,6 +139,7 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
         .setLabel("Stop")
         .setStyle(ButtonStyle.Danger);
 
+    // Add the authors to the selection menu
     const allAuthors = await quoteSchema.allAuthors(interaction.guildId!);
     for (const author of allAuthors) {
         selectionMenu.addOptions({
@@ -124,21 +148,28 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
         } as SelectMenuComponentOptionData);
     }
 
+    // Create the component rows
     const buttonRow = new ActionRowBuilder()
         .addComponents(nextButton, stopButton);
     const selectionRow = new ActionRowBuilder()
         .addComponents(selectionMenu);
 
+    // Return the game message
     return { 
         embeds: [embed], 
         components: [buttonRow, selectionRow] 
     } as InteractionReplyOptions;
 }
 
+/**
+ * Generate a new token for a game
+ * @returns The new token or undefined if no token could be generated
+ */
 const newToken = async (): Promise<string | undefined> => {
     const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
     const length = characters.length;
 
+    // Generate a new token
     let token = "";
     let i = 0;
     do {

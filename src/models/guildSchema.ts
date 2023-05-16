@@ -1,6 +1,9 @@
 import mongoose, { Model, Schema, Document } from "mongoose";
 import settings from "../settings.json";
 
+/**
+ * Represents a guild in the database.
+ */
 export interface IGuild extends Document {
     guildId: string;
     quoteListPageSize: number;
@@ -9,24 +12,46 @@ export interface IGuild extends Document {
     quoteGuesserSolutionTimeout: number;
 }
 
+/**
+ * Represents a guild setting value.
+ */
 export interface IGuildSetting<T> {
     name: string;
     value: T;
     unit?: string;
 }
 
+/**
+ * Represents the settings of a guild.
+ */
 export interface IGuildSettings {
-    quoteListPageSize: IGuildSetting<number>;
-    quoteSearchDateTolerance: IGuildSetting<number>;
-    quoteLinkedGuilds: IGuildSetting<string[]>;
-    quoteGuesserSolutionTimeout: IGuildSetting<number>;
+    quoteListPageSize?: IGuildSetting<number>;
+    quoteSearchDateTolerance?: IGuildSetting<number>;
+    quoteLinkedGuilds?: IGuildSetting<string[]>;
+    quoteGuesserSolutionTimeout?: IGuildSetting<number>;
 }
 
+/**
+ * Holds the functions for the guild schema.
+ */
 interface GuildModel extends Model<IGuild> {
+    /**
+     * Gets the settings of a guild.
+     * @param guildId - The ID of the guild.
+     * @returns The settings of the guild or the default settings if the guild does not exist.
+     */
     getGuildSettings: (guildId: string) => Promise<IGuildSettings>;
+    /**
+     * Updates the settings of a guild.
+     * @param guildId - The ID of the guild.
+     * @param settings - The new settings of the guild.
+     */
     updateGuildSettings: (guildId: string, settings: IGuildSettings) => Promise<void>;
 }
 
+/**
+ * The database schema for a guild.
+ */
 const guildSchema = new Schema<IGuild, GuildModel>({
     guildId: {
         type: String,
@@ -56,6 +81,11 @@ const guildSchema = new Schema<IGuild, GuildModel>({
     }
 });
 
+/**
+ * Gets the settings of a guild.
+ * @param guildId - The ID of the guild.
+ * @returns The settings of the guild or the default settings if the guild does not exist.
+ */
 guildSchema.statics.getGuildSettings = async function (guildId: string): Promise<IGuildSettings> {
     const guild = await this.findOne({ guildId: guildId });
     if (guild) {
@@ -105,16 +135,24 @@ guildSchema.statics.getGuildSettings = async function (guildId: string): Promise
     }
 }
 
+/**
+ * Updates the settings of a guild.
+ * @param guildId - The ID of the guild.
+ * @param settings - The new settings of the guild.
+ */
 guildSchema.statics.updateGuildSettings = async function (guildId: string, settings: IGuildSettings): Promise<void> {
     await this.findOneAndUpdate(
         { guildId: guildId },
         {
-            quoteListPageSize: settings.quoteListPageSize.value,
-            quoteSearchDateTolerance: settings.quoteSearchDateTolerance.value,
-            quoteLinkedGuilds: settings.quoteLinkedGuilds.value
+            quoteListPageSize: settings.quoteListPageSize?.value,
+            quoteSearchDateTolerance: settings.quoteSearchDateTolerance?.value,
+            quoteLinkedGuilds: settings.quoteLinkedGuilds?.value
         },
         { upsert: true }
     );
 }
 
+/**
+ * The guild model.
+ */
 export default mongoose.model<IGuild, GuildModel>("Guild", guildSchema);

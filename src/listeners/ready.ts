@@ -4,8 +4,12 @@ import mongoose, { ConnectOptions } from "mongoose";
 import quoteListSchema from "../models/quoteListSchema";
 import quoteGuesserSchema from "../models/quoteGuesserSchema";
 
+/**
+ * A listener for the ready event.
+ */
 export default (client: Client): void => {
     client.on("ready", async () => {
+        // Make sure the client is ready
         if (!client.user || !client.application) {
             return;
         }
@@ -16,7 +20,7 @@ export default (client: Client): void => {
             useUnifiedTopology: true
         } as ConnectOptions);
 
-        console.log("Clearing old quote lists...");
+        console.log("Clearing old database elements...");
         quoteListSchema.clearOld();
         quoteGuesserSchema.clearOld();
 

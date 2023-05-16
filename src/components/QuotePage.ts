@@ -16,8 +16,10 @@ export const QuotePage: Button = {
             return;
         };
 
+        // Get the quote list
         const quoteListDocument = await quoteListSchema.findById(data[1]);
 
+        // Check if the quote list exists
         if (!quoteListDocument) {
             await interaction.update({
                 content: "This quote list no longer exists!\nPlease create a new one using `/quote list` or `/quote search`.",
@@ -27,7 +29,8 @@ export const QuotePage: Button = {
             return;
         }
 
-        const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteListPageSize.value,
+        // Get the quote chunks by listing all quotes matching the filters stored in the quote list
+        const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteListPageSize!.value,
             quoteListDocument.content,
             quoteListDocument.authorId,
             quoteListDocument.authorName,
@@ -35,6 +38,7 @@ export const QuotePage: Button = {
             quoteListDocument.creatorName,
             quoteListDocument.date);
 
+        // Check if there are any quotes
         if (quoteChunks.length === 0) {
             await interaction.update({
                 content: "Error: No quotes found",
@@ -44,16 +48,20 @@ export const QuotePage: Button = {
             return;
         }
 
+        // Change the page number
         if (data[0] === "next") {
             quoteListDocument.page++;
         } else {
             quoteListDocument.page--;
         }
 
+        // Save the quote list
         await quoteListDocument.save();
 
+        // Create the embed
         const messageEmbed = quoteListEmbed(quoteChunks, quoteListDocument.page);
 
+        // Check if there are any buttons
         if (!interaction.message.components) {
             await interaction.update({
                 content: "Error: No buttons found",
@@ -63,15 +71,17 @@ export const QuotePage: Button = {
             return;
         }
 
+        // Get the buttons
         const previousPageButton = interaction.message.components![0].components[0];
         const nextPageButton = interaction.message.components![0].components[1];
-
         const prevButtonBuilder = ButtonBuilder.from(previousPageButton as APIButtonComponent).setDisabled(quoteListDocument.page === 0);
         const nextButtonBuilder = ButtonBuilder.from(nextPageButton as APIButtonComponent).setDisabled(quoteListDocument.page === quoteChunks.length - 1);
 
+        // Create the component row
         const row = new ActionRowBuilder()
             .addComponents(prevButtonBuilder, nextButtonBuilder);
 
+        // Update the message
         await interaction.update({
             embeds: [messageEmbed],
             components: [row]

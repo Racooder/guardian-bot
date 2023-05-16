@@ -1,9 +1,16 @@
 import { InteractionReplyOptions } from "discord.js";
 
+/**
+ * A general error reply.
+ */
 export const generalError: InteractionReplyOptions = {
     content: "An error has occurred",
     ephemeral: true
 }
+
+/**
+ * A reply for when a command is not used in a guild.
+ */
 export const noGuildError: InteractionReplyOptions = {
     content: "Quotes are only available on discord servers/guilds!",
     ephemeral: true

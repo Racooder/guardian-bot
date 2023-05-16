@@ -14,66 +14,87 @@ export const StopQuoteGuesser: Button = {
             return;
         }
 
+        // Get the token from the button data
         const token = data[0];
 
+        // Stop the current round
         await stopRound(interaction, token);
 
+        // Create the leaderboard
         const rounds = await quoteGuesserSchema.find({ guildId: interaction.guildId, token: token });
         let leaderboard: Map<string, number> = new Map();
+        // Add the points of each round to the leaderboard
         for (const round of rounds) {
+            // For each correct answer, add one point
             for (const correctAnswerName of round.correctAnswerNames) {
                 const newPoints = (leaderboard.get(correctAnswerName) ?? 0) + 1;
                 leaderboard.set(correctAnswerName, newPoints);
             }
+            // Add the wrong answer names to the leaderboard if they don't exist
             for (const wrongAnswerName of round.wrongAnswerNames) {
                 if (!leaderboard.has(wrongAnswerName)) {
                     leaderboard.set(wrongAnswerName, 0);
                 }
             }
         }
-
+        // Sort the leaderboard and convert it to an array
         let ranking = [...leaderboard.entries()].sort((a, b) => b[1] - a[1]);
 
+        // Create the embed
         const rankingEmbed = new EmbedBuilder()
             .setTitle("Game Leaderboard");
 
+        // Add the ranking to the embed
         for (const [user, points] of ranking) {
             rankingEmbed.addFields({ name: user, value: points.toString() });
         }
 
+        // Send the embed
         interaction.followUp({ embeds: [rankingEmbed] });
 
+        // Delete the game from the database
         await quoteGuesserSchema.deleteMany({ guildId: interaction.guildId, token: token });
     }
 }
 
-export const stopRound = async (interaction: ButtonInteraction, token: string) => {
+/**
+ * Stops a quote guesser game
+ * @param interaction - The button interaction
+ * @param token - The token of the game
+ */
+export const stopRound = async (interaction: ButtonInteraction, token: string): Promise<void> => {
+    // Get the quote guesser document and the current round
     const round = await findCurrentRound(quoteGuesserSchema, interaction.guildId!, token);
     const quoteGuesserDocument = await quoteGuesserSchema.findOne({ guildId: interaction.guildId, token: token, round: round });
 
+    // Check if the game exists
     if (!quoteGuesserDocument) {
         await interaction.update({ content: "This game doesn't exist anymore", embeds: [], components: [] });
         return;
     }
 
+    // Update the embed
     const messageEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
     messageEmbed.setTitle("Quote Guesser");
     messageEmbed.setDescription(`"${quoteGuesserDocument.quote}" - ${quoteGuesserDocument.authorName}`);
     messageEmbed.setFooter({ text: "This game has been stopped" });
     messageEmbed.setTimestamp(Date.now());
 
+    // Add the correct and wrong answers to the embed
     for (const correctAnswerName of quoteGuesserDocument.correctAnswerNames) {
-        messageEmbed.addFields({ name: "Correct Answer", value: correctAnswerName });
+        messageEmbed.addFields({ name: correctAnswerName, value: "answered correct!" });
     }
     for (const wrongAnswerName of quoteGuesserDocument.wrongAnswerNames) {
-        messageEmbed.addFields({ name: "Wrong Answer", value: wrongAnswerName });
+        messageEmbed.addFields({ name: wrongAnswerName, value: "answered wrong!" });
     }
 
+    // Update the message
     await interaction.update({ 
         embeds: [messageEmbed]
     });
 
+    // Delete the interaction after the solution timeout
     setTimeout(async () => {
         interaction.deleteReply();
-    }, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteGuesserSolutionTimeout.value * 1000);
+    }, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteGuesserSolutionTimeout!.value * 1000);
 }
