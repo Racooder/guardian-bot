@@ -65,10 +65,16 @@ export const Settings: Command = {
 
         // Handle subcommands
         const subcommand = interaction.options.getSubcommand();
-        if (subcommand === "view") {
-            handleView(client, interaction);
-        } else if (subcommand === "edit") {
-            handleEdit(client, interaction);
+        switch (subcommand) {
+            case "view":
+                handleView(client, interaction);
+                break;
+            case "edit":
+                handleEdit(client, interaction);
+                break;
+            default:
+                await interaction.reply(generalError);
+                break;
         }
     }
 }

@@ -95,14 +95,22 @@ export const Quote: Command = {
         }
 
         const subcommand = interaction.options.getSubcommand();
-        if (subcommand === "new") {
-            await handleNewQuote(client, interaction);
-        } else if (subcommand === "list") {
-            await handleListQuotes(client, interaction);
-        } else if (subcommand === "search") {
-            await handleSearchQuotes(client, interaction);
-        } else if (subcommand === "edit") {
-            await handleEditQuote(client, interaction);
+        switch (subcommand) {
+            case "new":
+                await handleNewQuote(client, interaction);
+                break;
+            case "list":
+                await handleListQuotes(client, interaction);
+                break;
+            case "search":
+                await handleSearchQuotes(client, interaction);
+                break;
+            case "edit":
+                await handleEditQuote(client, interaction);
+                break;
+            default:
+                await interaction.reply(generalError);
+                break;
         }
     }
 }
