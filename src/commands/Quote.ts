@@ -97,16 +97,16 @@ export const Quote: Command = {
         const subcommand = interaction.options.getSubcommand();
         switch (subcommand) {
             case "new":
-                await handleNewQuote(client, interaction);
+                await handleNewQuote(interaction);
                 break;
             case "list":
-                await handleListQuotes(client, interaction);
+                await handleListQuotes(interaction);
                 break;
             case "search":
-                await handleSearchQuotes(client, interaction);
+                await handleSearchQuotes(interaction);
                 break;
             case "edit":
-                await handleEditQuote(client, interaction);
+                await handleEditQuote(interaction);
                 break;
             default:
                 await interaction.reply(generalError);
@@ -121,7 +121,7 @@ export const Quote: Command = {
  * @param client
  * @param interaction
  */
-const handleNewQuote = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
         await interaction.reply(noGuildError);
         return;
@@ -181,7 +181,7 @@ const handleNewQuote = async (client: Client, interaction: ChatInputCommandInter
  * @param client
  * @param interaction
  */
-const handleListQuotes = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
         await interaction.reply(noGuildError);
         return;
@@ -223,7 +223,7 @@ const handleListQuotes = async (client: Client, interaction: ChatInputCommandInt
  * @param client
  * @param interaction
  */
-const handleSearchQuotes = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
         await interaction.reply(noGuildError);
         return;
@@ -304,7 +304,7 @@ const handleSearchQuotes = async (client: Client, interaction: ChatInputCommandI
     } as InteractionReplyOptions);
 }
 
-const handleEditQuote = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleEditQuote = async (interaction: ChatInputCommandInteraction): Promise<void> => {
     // TODO: Implement
 }
 

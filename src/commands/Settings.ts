@@ -67,10 +67,10 @@ export const Settings: Command = {
         const subcommand = interaction.options.getSubcommand();
         switch (subcommand) {
             case "view":
-                handleView(client, interaction);
+                handleView(interaction);
                 break;
             case "edit":
-                handleEdit(client, interaction);
+                handleEdit(interaction);
                 break;
             default:
                 await interaction.reply(generalError);
@@ -85,7 +85,7 @@ export const Settings: Command = {
  * @param client
  * @param interaction
  */
-const handleView = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleView = async (interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
         await interaction.reply(noGuildError);
         return;
@@ -139,7 +139,7 @@ const handleView = async (client: Client, interaction: ChatInputCommandInteracti
  * @param client 
  * @param interaction
  */
-const handleEdit = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<void> => {
     if (!isGuildCommand(interaction)) {
         await interaction.reply(noGuildError);
         return;
