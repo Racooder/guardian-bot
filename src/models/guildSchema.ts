@@ -15,7 +15,7 @@ export interface IGuild extends Document {
 /**
  * Represents a guild setting value.
  */
-export interface IGuildSetting<T> {
+export type GuildSetting<T> = {
     name: string;
     value: T;
     unit?: string;
@@ -24,11 +24,11 @@ export interface IGuildSetting<T> {
 /**
  * Represents the settings of a guild.
  */
-export interface IGuildSettings {
-    quoteListPageSize?: IGuildSetting<number>;
-    quoteSearchDateTolerance?: IGuildSetting<number>;
-    quoteLinkedGuilds?: IGuildSetting<string[]>;
-    quoteGuesserSolutionTimeout?: IGuildSetting<number>;
+export type GuildSettings = {
+    quoteListPageSize?: GuildSetting<number>;
+    quoteSearchDateTolerance?: GuildSetting<number>;
+    quoteLinkedGuilds?: GuildSetting<string[]>;
+    quoteGuesserSolutionTimeout?: GuildSetting<number>;
 }
 
 /**
@@ -40,13 +40,13 @@ interface GuildModel extends Model<IGuild> {
      * @param guildId - The ID of the guild.
      * @returns The settings of the guild or the default settings if the guild does not exist.
      */
-    getGuildSettings: (guildId: string) => Promise<IGuildSettings>;
+    getGuildSettings: (guildId: string) => Promise<GuildSettings>;
     /**
      * Updates the settings of a guild.
      * @param guildId - The ID of the guild.
      * @param settings - The new settings of the guild.
      */
-    updateGuildSettings: (guildId: string, settings: IGuildSettings) => Promise<void>;
+    updateGuildSettings: (guildId: string, settings: GuildSettings) => Promise<void>;
 }
 
 /**
@@ -86,7 +86,7 @@ const guildSchema = new Schema<IGuild, GuildModel>({
  * @param guildId - The ID of the guild.
  * @returns The settings of the guild or the default settings if the guild does not exist.
  */
-guildSchema.statics.getGuildSettings = async function (guildId: string): Promise<IGuildSettings> {
+guildSchema.statics.getGuildSettings = async function (guildId: string): Promise<GuildSettings> {
     const guild = await this.findOne({ guildId: guildId });
     if (guild) {
         return {
@@ -140,7 +140,7 @@ guildSchema.statics.getGuildSettings = async function (guildId: string): Promise
  * @param guildId - The ID of the guild.
  * @param settings - The new settings of the guild.
  */
-guildSchema.statics.updateGuildSettings = async function (guildId: string, settings: IGuildSettings): Promise<void> {
+guildSchema.statics.updateGuildSettings = async function (guildId: string, settings: GuildSettings): Promise<void> {
     await this.findOneAndUpdate(
         { guildId: guildId },
         {

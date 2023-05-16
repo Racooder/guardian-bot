@@ -24,7 +24,7 @@ export interface IQuote extends Document {
  * Represents a very basic user.
  * This is used for function returns where only the user's ID and name are needed.
  */
-export interface IBaseUser {
+export type BaseUser = {
     id?: string;
     name?: string;
 }
@@ -57,7 +57,7 @@ interface QuoteModel extends Model<IQuote> {
      * @param guildId - The ID of the guild to get the authors from.
      * @returns The authors of the quotes.
      */
-    allAuthors: (guildId: string) => Promise<IBaseUser[]>;
+    allAuthors: (guildId: string) => Promise<BaseUser[]>;
 }
 
 /**
@@ -161,14 +161,14 @@ quoteSchema.statics.randomQuote = async function (guildId: string): Promise<IQuo
  * @param guildId - The ID of the guild to get the authors from.
  * @returns The authors of the quotes.
  */
-quoteSchema.statics.allAuthors = async function (guildId: string): Promise<IBaseUser[]> {
+quoteSchema.statics.allAuthors = async function (guildId: string): Promise<BaseUser[]> {
     // Get all quotes from the guild
     const quoteDocuments = await this.find({
         guildId: guildId,
     }).populate("author");
 
     // Get all unique authors
-    let authorMap: Map<string, IBaseUser> = new Map();
+    let authorMap: Map<string, BaseUser> = new Map();
     for (const quoteDocument of quoteDocuments) {
         if (quoteDocument.author) {
             authorMap.set(quoteDocument.author.userId, {

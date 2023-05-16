@@ -3,7 +3,7 @@ import settings from "../settings.json";
 import { GuildMember } from "discord.js";
 import { usernameString } from "../Essentials";
 import guildMemberSchema from "./guildMemberSchema";
-import { IBaseUser } from "./quoteSchema";
+import { BaseUser } from "./quoteSchema";
 
 /**
  * Represents a quote guesser game in the database.
@@ -34,7 +34,7 @@ interface QuoteGuesserModel extends Model<IQuoteGuesser> {
      * @param token - The token of the quote guesser game.
      * @returns The correct answer or null if the game doesn't exist.
      */
-    getAnswer: (guildId: string, token: string) => Promise<IBaseUser | null>;
+    getAnswer: (guildId: string, token: string) => Promise<BaseUser | null>;
     /**
      * Adds an player answer to the current round of a quote guesser game.
      * @param guildId - The ID of the guild.
@@ -153,7 +153,7 @@ export const findCurrentRound = async function (model: QuoteGuesserModel, guildI
  * @param token - The token of the quote guesser game.
  * @returns The correct answer or null if the game doesn't exist.
  */
-quoteGuesserSchema.statics.getAnswer = async function (guildId: string, token: string): Promise<IBaseUser | null> {
+quoteGuesserSchema.statics.getAnswer = async function (guildId: string, token: string): Promise<BaseUser | null> {
     const round = await findCurrentRound(this, guildId, token);
     const quoteGuesser = await this.findOne({ guildId, token, round });
     
