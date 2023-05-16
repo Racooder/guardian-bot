@@ -1,7 +1,7 @@
 import mongoose, { Model, Schema, Document } from "mongoose";
 import { IGuildMember } from "./guildMemberSchema";
 import { approximateEqual, splitArrayIntoChunks } from "../Essentials";
-import guildSchema from "./guildSchema";
+import guildSchema, { guildSettings } from "./guildSchema";
 
 /**
  * Represents a quote in the database.
@@ -129,7 +129,7 @@ quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: numb
     creatorName = creatorName?.toLowerCase();
     let timestamp = date?.getTime() ?? 0;
     timestamp = Math.floor(timestamp / 1000);
-    const dateTolerance = (await guildSchema.getGuildSettings(guildId)).quoteSearchDateTolerance!.value
+    const dateTolerance = await guildSettings.quoteSearchDateTolerance(guildSchema, guildId)
 
     // Filter the quotes
     quoteDocuments = quoteDocuments.filter((quoteDocument) => {

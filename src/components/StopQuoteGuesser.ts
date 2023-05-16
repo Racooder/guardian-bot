@@ -3,7 +3,7 @@ import { Button } from '../InteractionInterface';
 import quoteGuesserSchema, { findCurrentRound } from '../models/quoteGuesserSchema';
 import { isGuildCommand } from '../Essentials';
 import { noGuildError } from '../InteractionReplies';
-import guildSchema from '../models/guildSchema';
+import guildSchema, { guildSettings } from '../models/guildSchema';
 
 export const StopQuoteGuesser: Button = {
     name: "stopQuoteGuesser",
@@ -96,5 +96,5 @@ export const stopRound = async (interaction: ButtonInteraction, token: string): 
     // Delete the interaction after the solution timeout
     setTimeout(async () => {
         interaction.deleteReply();
-    }, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteGuesserSolutionTimeout!.value * 1000);
+    }, await guildSettings.quoteGuesserSolutionTimeout(guildSchema, interaction.guildId!) * 1000);
 }

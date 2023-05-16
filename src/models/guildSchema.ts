@@ -81,6 +81,21 @@ const guildSchema = new Schema<IGuild, GuildModel>({
     }
 });
 
+export const guildSettings = {
+    quoteListPageSize: async (schema: GuildModel, guildId: string): Promise<number> => {
+        return (await schema.getGuildSettings(guildId)).quoteListPageSize!.value
+    },
+    quoteSearchDateTolerance: async (schema: GuildModel, guildId: string): Promise<number> => {
+        return (await schema.getGuildSettings(guildId)).quoteSearchDateTolerance!.value
+    },
+    quoteLinkedGuilds: async (schema: GuildModel, guildId: string): Promise<string[]> => {
+        return (await schema.getGuildSettings(guildId)).quoteLinkedGuilds!.value
+    },
+    quoteGuesserSolutionTimeout: async (schema: GuildModel, guildId: string): Promise<number> => {
+        return (await schema.getGuildSettings(guildId)).quoteGuesserSolutionTimeout!.value
+    }
+}
+
 /**
  * Gets the settings of a guild.
  * @param guildId - The ID of the guild.

@@ -4,7 +4,7 @@ import quoteSchema from '../models/quoteSchema';
 import { isGuildCommand } from '../Essentials';
 import quoteListSchema from '../models/quoteListSchema';
 import { quoteListEmbed } from '../commands/Quote';
-import guildSchema from '../models/guildSchema';
+import guildSchema, { guildSettings } from '../models/guildSchema';
 import { noGuildError } from '../InteractionReplies';
 
 export const QuotePage: Button = {
@@ -30,7 +30,7 @@ export const QuotePage: Button = {
         }
 
         // Get the quote chunks by listing all quotes matching the filters stored in the quote list
-        const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteListPageSize!.value,
+        const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, await guildSettings.quoteListPageSize(guildSchema, interaction.guildId!),
             quoteListDocument.content,
             quoteListDocument.authorId,
             quoteListDocument.authorName,

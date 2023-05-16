@@ -6,7 +6,7 @@ import quoteListSchema from "../models/quoteListSchema";
 import { isGuildCommand, usernameString } from "../Essentials";
 import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builders";
 import { generalError, noGuildError, notImplementedError } from "../InteractionReplies";
-import guildSchema from "../models/guildSchema";
+import guildSchema, { guildSettings } from "../models/guildSchema";
 import Colors from "src/Colors";
 export const Quote: Command = {
     name: "quote",
@@ -188,7 +188,7 @@ const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promi
     }
 
     // Get the quotes
-    const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteListPageSize!.value);
+    const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, await guildSettings.quoteListPageSize(guildSchema, interaction.guildId!));
 
     // Check if there are any quotes
     if (quoteChunks.length === 0) {
@@ -257,7 +257,7 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
     }
 
     // Get the quotes
-    const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, (await guildSchema.getGuildSettings(interaction.guildId!)).quoteListPageSize!.value, 
+    const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, await guildSettings.quoteListPageSize(guildSchema, interaction.guildId!), 
         content ?? undefined, 
         author?.id, 
         authorName ?? undefined,

@@ -2,7 +2,7 @@ import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandO
 import { Command } from "../InteractionInterface";
 import { isGuildCommand } from "../Essentials";
 import { generalError, noGuildError } from "../InteractionReplies";
-import guildSchema, { IGuildSettings } from '../models/guildSchema';
+import guildSchema, { GuildSettings } from '../models/guildSchema';
 import Colors from 'src/Colors';
 
 export const Settings: Command = {
@@ -94,7 +94,7 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
     }
 
     // Get the settings for this guild
-    const guildSettings = await guildSchema.getGuildSettings(interaction.guildId!);
+    const gSettings = await guildSchema.getGuildSettings(interaction.guildId!);
     
     // Create the embed
     const messageEmbed = new EmbedBuilder()
@@ -103,27 +103,27 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
         .setColor(Colors.settingsEmbed)
 
     // Add the settings to the embed
-    let setting: keyof IGuildSettings;
-    for (setting in guildSettings) {
-        const type = typeof guildSettings[setting]!.value;
+    let setting: keyof GuildSettings;
+    for (setting in gSettings) {
+        const type = typeof gSettings[setting]!.value;
         if (type === "number" || type === "string") {
             messageEmbed.addFields({
-                name: guildSettings[setting]!.name,
-                value: `${guildSettings[setting]!.value.toString()} ${guildSettings[setting]!.unit ?? ""}`
+                name: gSettings[setting]!.name,
+                value: `${gSettings[setting]!.value.toString()} ${gSettings[setting]!.unit ?? ""}`
             });
         } else if (type === "boolean") {
             messageEmbed.addFields({
-                name: guildSettings[setting]!.name,
-                value: guildSettings[setting]!.value ? "true" : "false"
+                name: gSettings[setting]!.name,
+                value: gSettings[setting]!.value ? "true" : "false"
             });
         } else if (setting === "quoteLinkedGuilds") {
             messageEmbed.addFields({
-                name: guildSettings[setting]!.name,
+                name: gSettings[setting]!.name,
                 value: "Use `/quoteLink list` to view linked guilds (WIP)"
             });
         } else {
             messageEmbed.addFields({
-                name: guildSettings[setting]!.name,
+                name: gSettings[setting]!.name,
                 value: "Unknown type"
             });
         }
@@ -151,13 +151,13 @@ const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<Int
     const numberValue = interaction.options.getNumber("number-value");
 
     // Get the settings for this guild
-    const guildSettings = await guildSchema.getGuildSettings(interaction.guildId!);
+    const gSettings = await guildSchema.getGuildSettings(interaction.guildId!);
 
     // Change the setting if it exists
-    let s: keyof IGuildSettings;
-    for (s in guildSettings) {
+    let s: keyof GuildSettings;
+    for (s in gSettings) {
         if (s == setting) {
-            if (typeof guildSettings[s]!.value === "number") {
+            if (typeof gSettings[s]!.value === "number") {
                 // Check if a valid new value was provided
                 if (numberValue === null) {
                     return {
@@ -166,8 +166,8 @@ const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<Int
                     };
                 } else {
                     // Update the setting
-                    guildSettings[s]!.value = numberValue;
-                    await guildSchema.updateGuildSettings(interaction.guildId!, guildSettings);
+                    gSettings[s]!.value = numberValue;
+                    await guildSchema.updateGuildSettings(interaction.guildId!, gSettings);
                     return {
                         content: "Updated setting " + s + " to " + numberValue,
                         ephemeral: true
