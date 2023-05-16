@@ -34,14 +34,20 @@ export const QuoteGuesser: Command = {
         }
 
         const subcommand = interaction.options.getSubcommand();
+        let reply: InteractionReplyOptions;
         switch (subcommand) {
             case "play":
-                handlePlay(interaction);
+                reply = await handlePlay(interaction);
                 break;
             case "leaderboard":
-                handleLeaderboard(interaction);
+                reply = await handleLeaderboard(interaction);
+                break;
+            default:
+                reply = generalError;
                 break;
         }
+
+        await interaction.reply(reply);
     }
 }
 
@@ -50,31 +56,26 @@ export const QuoteGuesser: Command = {
  * Create a new game of quote guesser
  * @param interaction
  */
-const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<void> => {
+const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     if (!isGuildCommand(interaction)) {
-        await interaction.reply(noGuildError);
-        return;
+        return noGuildError;
     }
 
     const token = await newToken();
     if (token === undefined) {
-        await interaction.reply({ content: "Failed to create a new game", ephemeral: true });
-        return;
+        return { content: "Failed to create a new game", ephemeral: true };
     }
 
-    const reply = await newGame(interaction, token, 1);
-
-    await interaction.reply(reply);
+    return await newGame(interaction, token, 1);
 }
 
 /**
  * Display the leaderboard for quote guesser
  * @param interaction
  */
-const handleLeaderboard = async (interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleLeaderboard = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     if (!isGuildCommand(interaction)) {
-        await interaction.reply(noGuildError);
-        return;
+        return noGuildError;
     }
 
     const guildMembers = await guildMemberSchema.find({ guildId: interaction.guildId });
@@ -85,7 +86,7 @@ const handleLeaderboard = async (interaction: ChatInputCommandInteraction): Prom
         .setTitle("Quote Guesser Leaderboard")
         .setDescription(ranking.map((member, index) => `${index + 1}. ${member.displayName ?? member.username} - ${member.quoteGuesserScore ?? 0}`).join("\n"));
 
-    await interaction.reply({ embeds: [embed] });
+    return { embeds: [embed] };
 }
 
 // Game management

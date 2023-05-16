@@ -1,4 +1,4 @@
-import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, PermissionsBitField } from 'discord.js';
+import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, PermissionsBitField, InteractionReplyOptions } from 'discord.js';
 import { Command } from "../InteractionInterface";
 import { isGuildCommand } from "../Essentials";
 import { generalError, noGuildError } from "../InteractionReplies";
@@ -65,17 +65,20 @@ export const Settings: Command = {
 
         // Handle subcommands
         const subcommand = interaction.options.getSubcommand();
+        let reply: InteractionReplyOptions;
         switch (subcommand) {
             case "view":
-                handleView(interaction);
+                reply = await handleView(interaction);
                 break;
             case "edit":
-                handleEdit(interaction);
+                reply = await handleEdit(interaction);
                 break;
             default:
-                await interaction.reply(generalError);
+                reply = generalError;
                 break;
         }
+
+        await interaction.reply(reply);
     }
 }
 
@@ -85,10 +88,9 @@ export const Settings: Command = {
  * @param client
  * @param interaction
  */
-const handleView = async (interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleView = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     if (!isGuildCommand(interaction)) {
-        await interaction.reply(noGuildError);
-        return;
+        return noGuildError;
     }
 
     // Get the settings for this guild
@@ -128,10 +130,10 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<voi
     }
 
     // Send the embed
-    await interaction.reply({
+    return {
         embeds: [messageEmbed],
         ephemeral: true
-    });
+    };
 }
 
 /**
@@ -139,10 +141,9 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<voi
  * @param client 
  * @param interaction
  */
-const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     if (!isGuildCommand(interaction)) {
-        await interaction.reply(noGuildError);
-        return;
+        return noGuildError;
     }
 
     // Get the option values
@@ -159,21 +160,25 @@ const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<voi
             if (typeof guildSettings[s]!.value === "number") {
                 // Check if a valid new value was provided
                 if (numberValue === null) {
-                    await interaction.reply({
+                    return {
                         content: "Please provide a number value",
                         ephemeral: true
-                    });
-                    return;
+                    };
                 } else {
                     // Update the setting
                     guildSettings[s]!.value = numberValue;
                     await guildSchema.updateGuildSettings(interaction.guildId!, guildSettings);
-                    await interaction.reply({
+                    return {
                         content: "Updated setting " + s + " to " + numberValue,
                         ephemeral: true
-                    });
+                    };
                 }
             }
         }
+    }
+
+    return {
+        content: "Setting " + setting + " not found",
+        ephemeral: true
     }
 }

@@ -15,3 +15,11 @@ export const noGuildError: InteractionReplyOptions = {
     content: "Quotes are only available on discord servers/guilds!",
     ephemeral: true
 }
+
+/**
+ * A reply for when a command is not implemented yet.
+ */
+export const notImplementedError: InteractionReplyOptions = {
+    content: "This command is not implemented yet!",
+    ephemeral: true
+}

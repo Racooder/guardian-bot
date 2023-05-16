@@ -5,7 +5,7 @@ import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
 import quoteListSchema from "../models/quoteListSchema";
 import { isGuildCommand, usernameString } from "../Essentials";
 import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builders";
-import { generalError, noGuildError } from "../InteractionReplies";
+import { generalError, noGuildError, notImplementedError } from "../InteractionReplies";
 import guildSchema from "../models/guildSchema";
 import Colors from "src/Colors";
 export const Quote: Command = {
@@ -95,23 +95,26 @@ export const Quote: Command = {
         }
 
         const subcommand = interaction.options.getSubcommand();
+        let reply: InteractionReplyOptions;
         switch (subcommand) {
             case "new":
-                await handleNewQuote(interaction);
+                reply = await handleNewQuote(interaction);
                 break;
             case "list":
-                await handleListQuotes(interaction);
+                reply = await handleListQuotes(interaction);
                 break;
             case "search":
-                await handleSearchQuotes(interaction);
+                reply = await handleSearchQuotes(interaction);
                 break;
             case "edit":
-                await handleEditQuote(interaction);
+                reply = await handleEditQuote(interaction);
                 break;
             default:
-                await interaction.reply(generalError);
+                reply = generalError;
                 break;
         }
+
+        await interaction.reply(reply);
     }
 }
 
@@ -121,10 +124,9 @@ export const Quote: Command = {
  * @param client
  * @param interaction
  */
-const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     if (!isGuildCommand(interaction)) {
-        await interaction.reply(noGuildError);
-        return;
+        return noGuildError;
     }
 
     // Get the option values
@@ -134,11 +136,10 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
 
     // Check if any type of author was specified
     if (author === null && nonDiscordAuthor === null) {
-        await interaction.reply({
+        return {
             content: "You must specify a author or non-discord author!",
             ephemeral: true
-        });
-        return;
+        };
     }
 
     const creatorMember = interaction.member as GuildMember;
@@ -170,10 +171,10 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
         })
         .setColor(Colors.quoteEmbed)
 
-    // Send the embed
-    await interaction.reply({
+    // Return the embed
+    return {
         embeds: [messageEmbed]
-    });
+    };
 }
 
 /**
@@ -181,10 +182,9 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
  * @param client
  * @param interaction
  */
-const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     if (!isGuildCommand(interaction)) {
-        await interaction.reply(noGuildError);
-        return;
+        return noGuildError;
     }
 
     // Get the quotes
@@ -192,11 +192,10 @@ const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promi
 
     // Check if there are any quotes
     if (quoteChunks.length === 0) {
-        await interaction.reply({
+        return {
             content: "There are no quotes on this server!",
             ephemeral: true
-        });
-        return;
+        };
     }
     
     // Create the quote list document in the database
@@ -212,10 +211,10 @@ const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promi
         .addComponents(previousPageButton(quoteListDocument._id, quoteListDocument.page > 0), nextPageButton(quoteListDocument._id, quoteListDocument.page < quoteChunks.length - 1));
 
     // Send the embed and action row
-    await interaction.reply({
+    return {
         embeds: [messageEmbed],
         components: [row]
-    } as InteractionReplyOptions);
+    } as InteractionReplyOptions;
 }
 
 /**
@@ -223,10 +222,9 @@ const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promi
  * @param client
  * @param interaction
  */
-const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     if (!isGuildCommand(interaction)) {
-        await interaction.reply(noGuildError);
-        return;
+        return noGuildError;
     }
 
     // Get the option values
@@ -239,11 +237,10 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
 
     // Check if any search parameters were specified
     if (content === null && author === null && authorName === null && creator === null && creatorName === null && dateString === null) {
-        await interaction.reply({
+        return {
             content: "You must specify at least one search parameter!",
             ephemeral: true
-        });
-        return;
+        };
     }
 
     // Parse the date
@@ -252,11 +249,10 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
         if (new RegExp(/^\d{4}-\d\d?-\d\d?$/).test(dateString)) {
             date = new Date(dateString);
         } else {
-            await interaction.reply({
+            return {
                 content: "Invalid date format! Format: YYYY-MM-DD",
                 ephemeral: true
-            });
-            return;
+            };
         }
     }
 
@@ -271,11 +267,10 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
 
     // Check if there are any quotes
     if (quoteChunks.length === 0) {
-        await interaction.reply({
+        return {
             content: "There are no quotes matching your search criteria on this server!",
             ephemeral: true
-        });
-        return;
+        };
     }
     
     // Create the quote list document in the database
@@ -298,13 +293,14 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
         .addComponents(previousPageButton(quoteListDocument._id, quoteListDocument.page > 0), nextPageButton(quoteListDocument._id, quoteListDocument.page < quoteChunks.length - 1));
 
     // Send the embed and action row
-    await interaction.reply({
+    return {
         embeds: [messageEmbed],
         components: [row]
-    } as InteractionReplyOptions);
+    } as InteractionReplyOptions;
 }
 
-const handleEditQuote = async (interaction: ChatInputCommandInteraction): Promise<void> => {
+const handleEditQuote = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    return notImplementedError;
     // TODO: Implement
 }
 
