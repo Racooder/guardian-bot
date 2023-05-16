@@ -10,34 +10,8 @@ export const Ping: Command = {
         const apiLatency = client.ws.ping;
 
         // Easter egg messages
-        let latencyMessage = "";
-        if (latency === 69) {
-            latencyMessage = "(Nice)";
-        } else if (latency === 420) {
-            latencyMessage = "(Blaze it)";
-        } else if (latency === 0) {
-            latencyMessage = "(Who's your ISP?)";
-        } else if (latency < 0) {
-            latencyMessage = "(How?)";
-        } else if (latency > 10000) {
-            latencyMessage = "(Wow, that's bad!)";
-        } else if (latency > 1000) {
-            latencyMessage = "(That's a lot!)";
-        }
-        let apiLatencyMessage = "";
-        if (apiLatency === 69) {
-            latencyMessage = "(Nice)";
-        } else if (apiLatency === 420) {
-            latencyMessage = "(Blaze it)";
-        } else if (apiLatency === 0) {
-            latencyMessage = "(Who's your ISP?)";
-        } else if (apiLatency < 0) {
-            latencyMessage = "(How?)";
-        } else if (apiLatency > 10000) {
-            apiLatencyMessage = "(Wow, that's bad!)";
-        } else if (apiLatency > 1000) {
-            apiLatencyMessage = "(That's a lot!)";
-        }
+        const latencyMessage = getLatencyMessage(latency);
+        const apiLatencyMessage = getLatencyMessage(apiLatency);
 
         // Create the embed
         const messageEmbed = new EmbedBuilder()
@@ -58,4 +32,26 @@ export const Ping: Command = {
             embeds: [messageEmbed]
         });
     }
+}
+
+const getLatencyMessage = (latency: number): String => {
+    if (latency === 69) {
+        return "(Nice)";
+    }
+    if (latency === 420) {
+        return "(Blaze it)";
+    }
+    if (latency === 0) {
+        return "(Who's your ISP?)";
+    }
+    if (latency < 0) {
+        return "(How?)";
+    }
+    if (latency > 10000) {
+        return "(Wow, that's bad!)";
+    }
+    if (latency > 1000) {
+        return "(That's a lot!)";
+    }
+    return "";
 }
