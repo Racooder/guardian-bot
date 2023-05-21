@@ -1,7 +1,7 @@
 import mongoose, { Model, Schema, Document } from "mongoose";
 import settings from "../settings.json";
 import { GuildMember } from "discord.js";
-import { usernameString } from "../Essentials";
+import { clearOld, usernameString } from "../Essentials";
 import guildMemberSchema from "./guildMemberSchema";
 import { BaseUser } from "./quoteSchema";
 
@@ -165,6 +165,31 @@ quoteGuesserSchema.statics.getAnswer = async function (guildId: string, token: s
 }
 
 /**
+ * Checks if the answer is correct.
+ * @param document - The quote guesser game.
+ * @param answer - The answer of the user.
+ * @returns If the answer is correct.
+ */
+export const checkAnswer = function (document: IQuoteGuesser, answer: string): boolean {
+    return (
+        (document.authorId && document.authorId === answer) ||
+        (document.authorName && document.authorName?.toLowerCase() === answer.toLowerCase()) ||
+        (document.authorAlias && document.authorAlias?.toLowerCase() === answer.toLowerCase())
+    ) as boolean;
+}
+
+export const saveAnswer = async function (document: IQuoteGuesser, correct: boolean, user: GuildMember): Promise<void> {
+    if (correct) {
+        document.correctAnswerIds.push(user.id);
+        document.correctAnswerNames.push(usernameString(user));
+    } else {
+        document.wrongAnswerIds.push(user.id);
+        document.wrongAnswerNames.push(usernameString(user));
+    }
+    await document.save();
+}
+
+/**
  * Adds an player answer to the current round of a quote guesser game.
  * @param guildId - The ID of the guild.
  * @param token - The token of the quote guesser game.
@@ -182,22 +207,16 @@ quoteGuesserSchema.statics.addAnswer = async function (guildId: string, token: s
     if (quoteGuesser.wrongAnswerIds.includes(user.id)) return 5; // The user already answered wrong
     
     // Check if the answer is correct
-    if ((quoteGuesser.authorId && quoteGuesser.authorId === answer) ||
-        (quoteGuesser.authorName && quoteGuesser.authorName?.toLowerCase() === answer.toLowerCase()) ||
-        (quoteGuesser.authorAlias && quoteGuesser.authorAlias?.toLowerCase() === answer.toLowerCase())) {
+    if (checkAnswer(quoteGuesser, answer)) {
             // Save the user as correct answerer
-            quoteGuesser.correctAnswerIds.push(user.id);
-            quoteGuesser.correctAnswerNames.push(usernameString(user));
-            await quoteGuesser.save();
+            await saveAnswer(quoteGuesser, true, user);
             // Increment the score of the user
             guildMemberSchema.findOneAndUpdate({ guildId: guildId, userId: user.id }, { $inc: { quoteGuesserScore: 1 } }).exec();
 
             return 1; // The answer was correct
     }
     // Save the user as wrong answerer
-    quoteGuesser.wrongAnswerIds.push(user.id);
-    quoteGuesser.wrongAnswerNames.push(usernameString(user));
-    await quoteGuesser.save();
+    await saveAnswer(quoteGuesser, false, user);
 
     return 2; // The answer was wrong
 }
@@ -206,21 +225,7 @@ quoteGuesserSchema.statics.addAnswer = async function (guildId: string, token: s
  * Clears all quote guesser games that are older than the quote guesser lifetime.
  */
 quoteGuesserSchema.statics.clearOld = async function () {
-    const now = new Date();
-    const old = new Date(now.getTime() - (1000 * 60 * 60 * settings.quoteGuesserLifetime));
-    
-    // Get all quote guesser games
-    const guesserDocuments = await this.find({});
-
-    // Get all quote guesser games that are older than the lifetime
-    const oldGuesserDocuments = guesserDocuments.filter((quoteListDocument) => {
-        return quoteListDocument.updatedAt < old;
-    });
-
-    // Delete all quote guesser games that are older than the lifetime
-    for (const oldGuesserDocument of oldGuesserDocuments) {
-        await oldGuesserDocument.deleteOne();
-    }
+    clearOld(this, (1000 * 60 * 60 * settings.quoteGuesserLifetime));
 };
 
 /**

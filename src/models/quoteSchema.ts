@@ -1,6 +1,6 @@
 import mongoose, { Model, Schema, Document } from "mongoose";
 import { IGuildMember } from "./guildMemberSchema";
-import { approximateEqual, splitArrayIntoChunks } from "../Essentials";
+import { approximateEqual, randomElement, splitArrayIntoChunks } from "../Essentials";
 import guildSchema, { guildSettings } from "./guildSchema";
 
 /**
@@ -153,7 +153,7 @@ quoteSchema.statics.randomQuote = async function (guildId: string): Promise<IQuo
     const quoteDocuments = await this.find({
         guildId: guildId,
     }).populate("author").populate("creator");
-    return quoteDocuments[Math.floor(Math.random() * quoteDocuments.length)];
+    return randomElement<IQuote>(quoteDocuments);
 };
 
 /**

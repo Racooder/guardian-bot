@@ -1,9 +1,9 @@
 import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, PermissionsBitField, InteractionReplyOptions } from 'discord.js';
 import { Command } from "../InteractionInterface";
-import { isGuildCommand } from "../Essentials";
+import { ChangeSettingResult, changeSetting, isGuildCommand } from "../Essentials";
 import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema, { GuildSettings } from '../models/guildSchema';
-import Colors from 'src/Colors';
+import Colors from '../Colors';
 
 export const Settings: Command = {
     name: "settings",
@@ -150,35 +150,26 @@ const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<Int
     const setting = interaction.options.getString("setting", true);
     const numberValue = interaction.options.getNumber("number-value");
 
-    // Get the settings for this guild
-    const gSettings = await guildSchema.getGuildSettings(interaction.guildId!);
-
     // Change the setting if it exists
-    let s: keyof GuildSettings;
-    for (s in gSettings) {
-        if (s == setting) {
-            if (typeof gSettings[s]!.value === "number") {
-                // Check if a valid new value was provided
-                if (numberValue === null) {
-                    return {
-                        content: "Please provide a number value",
-                        ephemeral: true
-                    };
-                } else {
-                    // Update the setting
-                    gSettings[s]!.value = numberValue;
-                    await guildSchema.updateGuildSettings(interaction.guildId!, gSettings);
-                    return {
-                        content: "Updated setting " + s + " to " + numberValue,
-                        ephemeral: true
-                    };
-                }
-            }
-        }
-    }
+    const result = await changeSetting(interaction.guildId!, setting, numberValue);
 
-    return {
-        content: "Setting " + setting + " not found",
-        ephemeral: true
+    // Return the result
+    switch (result) {
+        case ChangeSettingResult.Changed_Number:
+            return {
+                content: "Updated setting " + setting + " to " + numberValue,
+                ephemeral: true
+            };
+        case ChangeSettingResult.Missing_Number:
+            return {
+                content: "Please provide a number value",
+                ephemeral: true
+            };
+        case ChangeSettingResult.Invalid_Setting:
+            return {
+                content: "Setting " + setting + " not found",
+            }
+        default:
+            return generalError;
     }
 }

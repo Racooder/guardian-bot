@@ -1,6 +1,6 @@
 import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionReplyOptions, GuildMember, StringSelectMenuBuilder, SelectMenuComponentOptionData, ButtonInteraction } from "discord.js";
 import { Command } from "../InteractionInterface";
-import { generalError, noGuildError } from "../InteractionReplies";
+import { failedToCreateGameError, generalError, noGuildError, noQuotesError } from "../InteractionReplies";
 import { isGuildCommand } from "../Essentials";
 import quoteSchema from "../models/quoteSchema";
 import quoteGuesserSchema from "../models/quoteGuesserSchema";
@@ -63,7 +63,7 @@ const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<Int
 
     const token = await newToken();
     if (token === undefined) {
-        return { content: "Failed to create a new game", ephemeral: true };
+        return failedToCreateGameError;
     }
 
     return await newGame(interaction, token, 1);
@@ -103,7 +103,7 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
 
     // If there are no quotes, return an error
     if (quote === undefined) {
-        return { content: "There are no quotes on this server", ephemeral: true }
+        return noQuotesError;
     }
     
     // Create a new quote guesser document in the database

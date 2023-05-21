@@ -3,11 +3,11 @@ import { Command } from "../InteractionInterface";
 import quoteSchema, { IQuote } from "../models/quoteSchema";
 import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
 import quoteListSchema from "../models/quoteListSchema";
-import { isGuildCommand, usernameString } from "../Essentials";
+import { isGuildCommand, parseDate, usernameString } from "../Essentials";
 import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builders";
-import { generalError, noGuildError, notImplementedError } from "../InteractionReplies";
+import { generalError, invalidDateFormatError, noGuildError, notImplementedError, notMatchingSearchError } from "../InteractionReplies";
 import guildSchema, { guildSettings } from "../models/guildSchema";
-import Colors from "src/Colors";
+import Colors from "../Colors";
 export const Quote: Command = {
     name: "quote",
     description: "Create, view, edit and delete quotes",
@@ -244,16 +244,9 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
     }
 
     // Parse the date
-    let date: Date | undefined = undefined;
-    if (dateString !== null) {
-        if (new RegExp(/^\d{4}-\d\d?-\d\d?$/).test(dateString)) {
-            date = new Date(dateString);
-        } else {
-            return {
-                content: "Invalid date format! Format: YYYY-MM-DD",
-                ephemeral: true
-            };
-        }
+    let date: Date | undefined = parseDate(dateString);
+    if (date === undefined) {
+        return invalidDateFormatError;
     }
 
     // Get the quotes
@@ -267,10 +260,7 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
 
     // Check if there are any quotes
     if (quoteChunks.length === 0) {
-        return {
-            content: "There are no quotes matching your search criteria on this server!",
-            ephemeral: true
-        };
+        return notMatchingSearchError;
     }
     
     // Create the quote list document in the database

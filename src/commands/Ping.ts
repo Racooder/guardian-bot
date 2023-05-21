@@ -34,7 +34,7 @@ export const Ping: Command = {
     }
 }
 
-const getLatencyMessage = (latency: number): String => {
+export const getLatencyMessage = (latency: number): String => {
     if (latency === 69) {
         return "(Nice)";
     }
