@@ -4,7 +4,7 @@ import { generalError, noGuildError } from "../InteractionReplies";
 import { isGuildCommand } from "../Essentials";
 import codenamesSchema from "../models/codenamesSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
-import { debug } from "../Log";
+import { debug, error } from '../Log';
 
 export const Codenames: Command = {
     name: "codenames",
@@ -80,11 +80,22 @@ const handleAddWord = async (interaction: ChatInputCommandInteraction): Promise<
     const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, interaction.user.id, interaction.user.username, creatorMember.displayName, interaction.user.discriminator);
 
     // Create the codenames word
-    const codenamesDocument = await codenamesSchema.create({
-        guildId: interaction.guildId,
-        word: word,
-        creator: creatorDocument._id,
-    });
+    try {
+        const codenamesDocument = await codenamesSchema.create({
+            guildId: interaction.guildId,
+            word: word,
+            creator: creatorDocument._id,
+        });
+    } catch (error: any) {
+        if (error.code === 11000) {
+            return {
+                content: `The word "${word}" is already in the server wordpack`,
+                ephemeral: true,
+            };
+        } else {
+            error(error);
+        }
+    }
 
     return {
         content: `Added the word "${word}" to the server wordpack`,
