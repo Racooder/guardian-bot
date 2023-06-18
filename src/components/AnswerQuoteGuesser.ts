@@ -3,11 +3,14 @@ import { StringSelectMenu } from '../InteractionInterface';
 import { isGuildCommand } from '../Essentials';
 import { noGuildError } from '../InteractionReplies';
 import quoteGuesserSchema, { resultTranslation } from '../models/quoteGuesserSchema';
+import { debug } from '../Log';
 
 export const AnswerQuoteGuesser: StringSelectMenu = {
     name: "answerQuoteGuesser",
     isStringSelectMenu: true,
     run: async (client: Client, interaction: StringSelectMenuInteraction, data: string[]) => {
+        debug("Answer quote guesser select menu called");
+
         if (!isGuildCommand(interaction)) {
             await interaction.reply(noGuildError);
             return;

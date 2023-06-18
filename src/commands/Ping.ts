@@ -1,11 +1,14 @@
 import { CommandInteraction, Client, ApplicationCommandType, InteractionResponse, EmbedBuilder } from "discord.js";
 import { Command } from "../InteractionInterface";
+import { debug } from "../Log";
 
 export const Ping: Command = {
     name: "ping",
     description: "A ping command",
     type: ApplicationCommandType.ChatInput,
     run: async (client: Client, interaction: CommandInteraction) => {
+        debug("Ping command called");
+
         const latency = Date.now() - interaction.createdTimestamp;
         const apiLatency = client.ws.ping;
 
@@ -35,6 +38,8 @@ export const Ping: Command = {
 }
 
 export const getLatencyMessage = (latency: number): String => {
+    debug(`Getting latency message for ${latency}`);
+
     if (latency === 69) {
         return "(Nice)";
     }

@@ -3,30 +3,33 @@ import { Commands } from "../Interactions";
 import mongoose, { ConnectOptions } from "mongoose";
 import quoteListSchema from "../models/quoteListSchema";
 import quoteGuesserSchema from "../models/quoteGuesserSchema";
+import { info, success, debug } from "../Log";
 
 /**
  * A listener for the ready event.
  */
 export default (client: Client): void => {
     client.on("ready", async () => {
+        debug("Client ready");
+
         // Make sure the client is ready
         if (!client.user || !client.application) {
             return;
         }
 
-        console.log("Connecting to MongoDB...");
+        info("Connecting to MongoDB...");
         await mongoose.connect(process.env.MONGO_URI || '', {
             useNewUrlParser: true,
             useUnifiedTopology: true
         } as ConnectOptions);
 
-        console.log("Clearing old database elements...");
+        info("Clearing old database elements...");
         quoteListSchema.clearOld();
         quoteGuesserSchema.clearOld();
 
-        console.log("Registering commands...");
+        info("Registering commands...");
         await client.application.commands.set(Commands);
 
-        console.log(`${client.user.username} is online`);
+        success(`${client.user.username} is online`);
     });
 }

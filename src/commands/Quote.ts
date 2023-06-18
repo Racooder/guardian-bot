@@ -8,6 +8,8 @@ import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builde
 import { generalError, invalidDateFormatError, noGuildError, notImplementedError, notMatchingSearchError } from "../InteractionReplies";
 import guildSchema, { guildSettings } from "../models/guildSchema";
 import Colors from "../Colors";
+import { debug, warn } from "../Log";
+
 export const Quote: Command = {
     name: "quote",
     description: "Create, view, edit and delete quotes",
@@ -85,6 +87,8 @@ export const Quote: Command = {
         // }
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
+        debug("Quote command called")
+
         if (!interaction.isChatInputCommand()) {
             await interaction.reply(generalError);
             return;
@@ -125,6 +129,8 @@ export const Quote: Command = {
  * @param interaction
  */
 const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    debug("New quote subcommand called")
+
     if (!isGuildCommand(interaction)) {
         return noGuildError;
     }
@@ -183,6 +189,8 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
  * @param interaction
  */
 const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    debug("List quotes subcommand called")
+
     if (!isGuildCommand(interaction)) {
         return noGuildError;
     }
@@ -223,6 +231,8 @@ const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promi
  * @param interaction
  */
 const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    debug("Search quotes subcommand called")
+
     if (!isGuildCommand(interaction)) {
         return noGuildError;
     }
@@ -290,6 +300,9 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
 }
 
 const handleEditQuote = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    debug("Edit quote subcommand called")
+    warn("Edit quote subcommand not implemented")
+
     return notImplementedError;
     // TODO: Implement
 }
@@ -303,6 +316,8 @@ const handleEditQuote = async (interaction: ChatInputCommandInteraction): Promis
  * @returns The embed builder
  */
 export const quoteListEmbed = (pages: IQuote[][], page: number, description?: string): EmbedBuilder => {
+    debug(`Building quote list embed for page ${page + 1}/${pages.length}`)
+
     if (page >= pages.length) {
         page = pages.length - 1;
     } else if (page < 0) {
@@ -328,6 +343,8 @@ export const quoteListEmbed = (pages: IQuote[][], page: number, description?: st
  * @returns The button builder
  */
 const previousPageButton = (quoteListId: string, enabled: boolean): ButtonBuilder => {
+    debug(`Building previous page button for quote list ${quoteListId}`)
+
     return new ButtonBuilder()
         .setCustomId(`quotePage:previous:${quoteListId}`)
         .setLabel("Previous Page")
@@ -342,6 +359,8 @@ const previousPageButton = (quoteListId: string, enabled: boolean): ButtonBuilde
  * @returns The button builder
  */
 const nextPageButton = (quoteListId: string, enabled: boolean): ButtonBuilder => {
+    debug(`Building next page button for quote list ${quoteListId}`)
+
     return new ButtonBuilder()
         .setCustomId(`quotePage:next:${quoteListId}`)
         .setLabel("Next Page")

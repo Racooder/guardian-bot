@@ -6,11 +6,14 @@ import quoteListSchema from '../models/quoteListSchema';
 import { quoteListEmbed } from '../commands/Quote';
 import guildSchema, { guildSettings } from '../models/guildSchema';
 import { noGuildError } from '../InteractionReplies';
+import { debug } from '../Log';
 
 export const QuotePage: Button = {
     name: "quotePage",
     isButton: true,
     run: async (client: Client, interaction: ButtonInteraction, data: string[]) => {
+        debug("Quote page button interaction received");
+
         if (!isGuildCommand(interaction)) {
             await interaction.update(noGuildError as InteractionUpdateOptions);
             return;

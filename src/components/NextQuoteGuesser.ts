@@ -6,11 +6,14 @@ import quoteGuesserSchema from '../models/quoteGuesserSchema';
 import { findCurrentRound } from '../models/quoteGuesserSchema';
 import { stopRound } from './StopQuoteGuesser';
 import { newGame } from '../commands/QuoteGuesser';
+import { debug } from '../Log';
 
 export const NextQuoteGuesser: Button = {
     name: "nextQuoteGuesser",
     isButton: true,
     run: async (client: Client, interaction: ButtonInteraction, data: string[]) => {
+        debug("Next quote guesser button interaction received");
+
         if (!isGuildCommand(interaction)) {
             await interaction.reply(noGuildError);
             return;

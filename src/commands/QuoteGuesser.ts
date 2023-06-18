@@ -6,10 +6,11 @@ import quoteSchema from "../models/quoteSchema";
 import quoteGuesserSchema from "../models/quoteGuesserSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
 import settings from "../settings.json";
+import { debug } from "../Log";
 
 export const QuoteGuesser: Command = {
     name: "quote-guesser",
-    description: "Play different games with your friends",
+    description: "Play a game of quoteguesser with your friends",
     type: ApplicationCommandType.ChatInput,
     options: [
         {
@@ -24,6 +25,8 @@ export const QuoteGuesser: Command = {
         }
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
+        debug("Quote guesser command called");
+
         if (!interaction.isChatInputCommand()) {
             await interaction.reply(generalError);
             return;
@@ -57,6 +60,8 @@ export const QuoteGuesser: Command = {
  * @param interaction
  */
 const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    debug("Play quoteguesser subcommand called");
+
     if (!isGuildCommand(interaction)) {
         return noGuildError;
     }
@@ -74,6 +79,8 @@ const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<Int
  * @param interaction
  */
 const handleLeaderboard = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    debug("Quote guesser leaderboard subcommand called")
+
     if (!isGuildCommand(interaction)) {
         return noGuildError;
     }
@@ -98,6 +105,8 @@ const handleLeaderboard = async (interaction: ChatInputCommandInteraction): Prom
  * @returns The game message
  */
 export const newGame = async (interaction: ChatInputCommandInteraction | ButtonInteraction, token: string, round: number): Promise<InteractionReplyOptions> => {
+    debug(`Creating new game of quote guesser with token ${token} and round ${round}`);
+    
     // Gets a random quote from the database
     const quote = await quoteSchema.randomQuote(interaction.guildId!);
 
@@ -167,6 +176,8 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
  * @returns The new token or undefined if no token could be generated
  */
 const newToken = async (): Promise<string | undefined> => {
+    debug("Generating new token for quote guesser");
+
     const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
     const length = characters.length;
 

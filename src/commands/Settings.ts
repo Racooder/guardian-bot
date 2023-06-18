@@ -4,6 +4,7 @@ import { ChangeSettingResult, changeSetting, isGuildCommand } from "../Essential
 import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema, { GuildSettings } from '../models/guildSchema';
 import Colors from '../Colors';
+import { debug } from '../Log';
 
 export const Settings: Command = {
     name: "settings",
@@ -45,6 +46,8 @@ export const Settings: Command = {
         }
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
+        debug("Settings command called");
+
         if (!interaction.isChatInputCommand()) {
             await interaction.reply(generalError);
             return;
@@ -89,6 +92,8 @@ export const Settings: Command = {
  * @param interaction
  */
 const handleView = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    debug("Settings view subcommand called");
+
     if (!isGuildCommand(interaction)) {
         return noGuildError;
     }
@@ -142,6 +147,8 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
  * @param interaction
  */
 const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    debug("Settings edit subcommand called");
+
     if (!isGuildCommand(interaction)) {
         return noGuildError;
     }
