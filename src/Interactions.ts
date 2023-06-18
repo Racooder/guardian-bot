@@ -7,11 +7,12 @@ import { QuoteGuesser } from "./commands/QuoteGuesser";
 import { Settings } from "./commands/Settings";
 import { NextQuoteGuesser } from './components/NextQuoteGuesser';
 import { AnswerQuoteGuesser } from './components/AnswerQuoteGuesser';
+import { Codenames } from './commands/Codenames';
 
 /**
  * A list of all commands that are handled by the bot.
  */
-export const Commands: Command[] = [Ping, Quote, Settings, QuoteGuesser];
+export const Commands: Command[] = [Ping, Quote, Settings, QuoteGuesser, Codenames];
 
 /**
  * A list of all components that are handled by the bot.
