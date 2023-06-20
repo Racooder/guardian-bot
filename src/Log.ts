@@ -35,7 +35,9 @@ const folderPath = "./logs";
 const latestPath = `${folderPath}/latest.txt`;
 
 export const debug = (message: string) => {
-    log(message, "[DEBUG]  ", format.FgGray, process.env.DEBUG === "true");
+    if (process.env.DEBUG === "true") {
+        log(message, "[DEBUG]  ", format.FgGray);
+    }
 }
 
 export const info = (message: string) => {
