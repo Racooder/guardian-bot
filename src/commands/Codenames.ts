@@ -81,7 +81,7 @@ const handleAddWord = async (interaction: ChatInputCommandInteraction): Promise<
 
     // Update the creator's names in the database
     const creatorMember = interaction.member as GuildMember;
-    const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, interaction.user.id, interaction.user.username, creatorMember.displayName, interaction.user.discriminator);
+    const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, interaction.user);
 
     // Create the codenames word
     debug(`Creating codenames word "${word}" in ${interaction.guildId}`);

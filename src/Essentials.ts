@@ -26,18 +26,24 @@ export const splitArrayIntoChunks = <T>(array: T[], chunkSize: number): T[][] =>
 }
 
 /**
+ * Gets the base user of a user or guild member
+ * @param user - The user to get the base user of
+ * @returns The user object
+ */
+export const getBaseUser = (user: User | GuildMember): User => {
+    return user instanceof GuildMember ? user.user : user;
+}
+
+/**
  * Returns the display name or username of a user
  * @param user - The user to get the name of
  * @returns The name string
  */
 export const usernameString = (user: User | GuildMember): string => {
-    let baseUser = user instanceof GuildMember ? user.user : user;
-    let displayName = user instanceof GuildMember ? user.displayName : undefined;
-    
-    if (displayName === undefined) {
-        return baseUser.username;
+    if (user instanceof GuildMember) {
+        return user.displayName;
     } else {
-        return displayName;
+        return user.username;
     }
 }
 

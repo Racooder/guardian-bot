@@ -152,10 +152,10 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
     const creatorMember = interaction.member as GuildMember;
 
     debug("Updating creator and author names in the database")
-    const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, interaction.user.id, interaction.user.username, creatorMember.displayName, interaction.user.discriminator);
+    const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, (await interaction.guild!.members.fetch(interaction.user.id)));
     let authorDocument: IGuildMember | null = null;
     if (author !== null) {
-        authorDocument = await guildMemberSchema.updateNames(interaction.guildId!, author.id, author.username, (await interaction.guild!.members.fetch(author.id)).displayName, author.discriminator);
+        authorDocument = await guildMemberSchema.updateNames(interaction.guildId!, (await interaction.guild!.members.fetch(author.id)));
     }
 
     // Create the quote
