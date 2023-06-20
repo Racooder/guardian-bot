@@ -1,7 +1,7 @@
 import { CommandInteraction, Client, Interaction, ButtonInteraction, MessageComponentInteraction, StringSelectMenuInteraction } from "discord.js";
 import { Commands, Components } from "../Interactions";
 import { generalError } from "../InteractionReplies";
-import { Button, StringSelectMenu } from '../InteractionInterface';
+import { Button, StringSelectMenu } from '../InteractionInterfaces';
 import { debug } from "../Log";
 
 /**

@@ -1,5 +1,5 @@
 import { ButtonInteraction, Client } from 'discord.js';
-import { Button } from '../InteractionInterface';
+import { Button } from '../InteractionInterfaces';
 import { isGuildCommand } from '../Essentials';
 import { noGuildError } from '../InteractionReplies';
 import quoteGuesserSchema from '../models/quoteGuesserSchema';

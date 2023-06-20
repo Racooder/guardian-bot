@@ -1,5 +1,5 @@
 import { Client, EmbedBuilder, GuildMember, StringSelectMenuInteraction } from 'discord.js';
-import { StringSelectMenu } from '../InteractionInterface';
+import { StringSelectMenu } from '../InteractionInterfaces';
 import { isGuildCommand } from '../Essentials';
 import { noGuildError } from '../InteractionReplies';
 import quoteGuesserSchema, { resultTranslation } from '../models/quoteGuesserSchema';

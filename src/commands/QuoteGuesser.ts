@@ -1,5 +1,5 @@
 import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionReplyOptions, GuildMember, StringSelectMenuBuilder, SelectMenuComponentOptionData, ButtonInteraction } from "discord.js";
-import { Command } from "../InteractionInterface";
+import { Command } from "../InteractionInterfaces";
 import { failedToCreateGameError, generalError, noGuildError, noQuotesError } from "../InteractionReplies";
 import { isGuildCommand } from "../Essentials";
 import quoteSchema from "../models/quoteSchema";

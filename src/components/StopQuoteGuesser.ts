@@ -1,5 +1,5 @@
 import { ButtonInteraction, Client, EmbedBuilder, InteractionUpdateOptions } from 'discord.js';
-import { Button } from '../InteractionInterface';
+import { Button } from '../InteractionInterfaces';
 import quoteGuesserSchema, { findCurrentRound } from '../models/quoteGuesserSchema';
 import { isGuildCommand } from '../Essentials';
 import { noGuildError } from '../InteractionReplies';

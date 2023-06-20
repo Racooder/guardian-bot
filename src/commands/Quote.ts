@@ -1,5 +1,5 @@
 import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, GuildMember, ButtonStyle, InteractionReplyOptions } from "discord.js";
-import { Command } from "../InteractionInterface";
+import { Command } from "../InteractionInterfaces";
 import quoteSchema, { IQuote } from "../models/quoteSchema";
 import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
 import quoteListSchema from "../models/quoteListSchema";

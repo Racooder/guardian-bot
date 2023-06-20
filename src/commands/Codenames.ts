@@ -1,5 +1,5 @@
 import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, InteractionReplyOptions, GuildMember, AttachmentBuilder } from "discord.js";
-import { Command } from "../InteractionInterface";
+import { Command } from "../InteractionInterfaces";
 import { generalError, noGuildError } from "../InteractionReplies";
 import { isGuildCommand } from "../Essentials";
 import codenamesSchema from "../models/codenamesSchema";

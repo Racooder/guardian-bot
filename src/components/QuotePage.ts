@@ -1,5 +1,5 @@
 import { ButtonInteraction, Client, ButtonBuilder, APIButtonComponent, ActionRowBuilder, InteractionUpdateOptions } from 'discord.js';
-import { Button } from '../InteractionInterface';
+import { Button } from '../InteractionInterfaces';
 import quoteSchema from '../models/quoteSchema';
 import { isGuildCommand } from '../Essentials';
 import quoteListSchema from '../models/quoteListSchema';

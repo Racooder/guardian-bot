@@ -1,5 +1,5 @@
 import { CommandInteraction, Client, ApplicationCommandType, InteractionResponse, EmbedBuilder } from "discord.js";
-import { Command } from "../InteractionInterface";
+import { Command } from "../InteractionInterfaces";
 import { debug } from "../Log";
 
 export const Ping: Command = {

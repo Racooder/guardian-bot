@@ -1,5 +1,5 @@
 import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, PermissionsBitField, InteractionReplyOptions } from 'discord.js';
-import { Command } from "../InteractionInterface";
+import { Command } from "../InteractionInterfaces";
 import { ChangeSettingResult, changeSetting, isGuildCommand } from "../Essentials";
 import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema, { GuildSettings } from '../models/guildSchema';
