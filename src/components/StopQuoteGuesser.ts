@@ -4,13 +4,13 @@ import quoteGuesserSchema, { findCurrentRound } from '../models/quoteGuesserSche
 import { isGuildCommand } from '../Essentials';
 import { noGuildError } from '../InteractionReplies';
 import guildSchema, { guildSettings } from '../models/guildSchema';
-import { debug, info } from '../Log';
+import { debug } from '../Log';
 
 export const StopQuoteGuesser: Button = {
     name: "stopQuoteGuesser",
     isButton: true,
     run: async (client: Client, interaction: ButtonInteraction, data: string[]) => {
-        info("Stop quote guesser button interaction received");
+        debug("Stop quote guesser button interaction received");
 
         if (!isGuildCommand(interaction)) {
             await interaction.reply(noGuildError);

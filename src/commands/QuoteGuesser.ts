@@ -6,7 +6,7 @@ import quoteSchema from "../models/quoteSchema";
 import quoteGuesserSchema from "../models/quoteGuesserSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
 import settings from "../settings.json";
-import { debug, error, info } from "../Log";
+import { debug, error } from "../Log";
 
 export const QuoteGuesser: Command = {
     name: "quote-guesser",
@@ -25,7 +25,7 @@ export const QuoteGuesser: Command = {
         }
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
-        info("Quote guesser command called");
+        debug("Quote guesser command called");
 
         if (!interaction.isChatInputCommand()) {
             error("QuoteGuesser command was not a chat input command")

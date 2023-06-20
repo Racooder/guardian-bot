@@ -8,7 +8,7 @@ import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builde
 import { generalError, invalidDateFormatError, noGuildError, notImplementedError, notMatchingSearchError } from "../InteractionReplies";
 import guildSchema, { guildSettings } from "../models/guildSchema";
 import Colors from "../Colors";
-import { debug, error, info, warn } from "../Log";
+import { debug, error, warn } from "../Log";
 
 export const Quote: Command = {
     name: "quote",
@@ -128,7 +128,7 @@ export const Quote: Command = {
  * @param interaction
  */
 const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
-    info("New quote subcommand called")
+    debug("New quote subcommand called")
 
     // Get the option values
     const quote = interaction.options.getString("quote", true);

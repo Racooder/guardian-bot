@@ -4,7 +4,7 @@ import { ChangeSettingResult, changeSetting, handleSubcommands, isGuildCommand }
 import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema, { GuildSettings } from '../models/guildSchema';
 import Colors from '../Colors';
-import { debug, error, info } from '../Log';
+import { debug, error } from '../Log';
 
 export const Settings: Command = {
     name: "settings",
@@ -89,7 +89,7 @@ export const Settings: Command = {
  * @param interaction
  */
 const handleView = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
-    info("Settings view subcommand called");
+    debug("Settings view subcommand called");
 
     debug("Getting guild settings from database");
     const gSettings = await guildSchema.getGuildSettings(interaction.guildId!);
