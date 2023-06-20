@@ -1,4 +1,4 @@
-import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionReplyOptions, GuildMember, StringSelectMenuBuilder, SelectMenuComponentOptionData, ButtonInteraction } from "discord.js";
+import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionReplyOptions, StringSelectMenuBuilder, SelectMenuComponentOptionData, ButtonInteraction } from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import { failedToCreateGameError, generalError, noGuildError, noQuotesError } from "../InteractionReplies";
 import { handleSubcommands, isGuildCommand } from "../Essentials";
@@ -61,6 +61,7 @@ const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<Int
 
     const token = await newToken();
     if (token === undefined) {
+        debug("Failed to generate token");
         return failedToCreateGameError;
     }
 
@@ -72,7 +73,7 @@ const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<Int
  * @param interaction
  */
 const handleLeaderboard = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
-    debug("Quote guesser leaderboard subcommand called")
+    debug("Quote guesser leaderboard subcommand called");
 
     const guildMembers = await guildMemberSchema.find({ guildId: interaction.guildId });
 
@@ -96,16 +97,16 @@ const handleLeaderboard = async (interaction: ChatInputCommandInteraction): Prom
 export const newGame = async (interaction: ChatInputCommandInteraction | ButtonInteraction, token: string, round: number): Promise<InteractionReplyOptions> => {
     debug(`Creating new game of quote guesser with token ${token} and round ${round}`);
     
-    // Gets a random quote from the database
+    debug("Getting a random quote");
     const quote = await quoteSchema.randomQuote(interaction.guildId!);
 
-    // If there are no quotes, return an error
     if (quote === undefined) {
+        debug("No quotes found");
         return noQuotesError;
     }
     
-    debug("Creating new game document")
-    const document = await quoteGuesserSchema.create({
+    debug("Creating new game document");
+    await quoteGuesserSchema.create({
         guildId: interaction.guildId,
         token: token,
         quote: quote.quote,
@@ -115,31 +116,25 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
         round: round
     })
 
-    debug("Creating message embed and components")
-    // Create the game embed
+    debug("Creating message embed and components");
     const embed = new EmbedBuilder()
         .setTitle("Who said this quote?")
         .setDescription(`"${quote.quote}" - ???`)
         .setFooter({ text: "No one answered yet" })
         .setAuthor({ name: `Round ${round}` });
-
-    // Create the selection menu
     const selectionMenu = new StringSelectMenuBuilder()
         .setCustomId(`answerQuoteGuesser:${token}`)
         .setPlaceholder("Select your guess")
-
-    // Create the buttons
     const nextButton = new ButtonBuilder()
         .setCustomId(`nextQuoteGuesser:${token}`)
         .setLabel("Next Round")
         .setStyle(ButtonStyle.Primary);
-
     const stopButton = new ButtonBuilder()
         .setCustomId(`stopQuoteGuesser:${token}`)
         .setLabel("Stop")
         .setStyle(ButtonStyle.Danger);
 
-    // Add the authors to the selection menu
+    debug("Adding authors to selection menu");
     const allAuthors = await quoteSchema.allAuthors(interaction.guildId!);
     for (const author of allAuthors) {
         selectionMenu.addOptions({
@@ -148,13 +143,12 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
         } as SelectMenuComponentOptionData);
     }
 
-    // Create the component rows
+    debug("Adding components to message");
     const buttonRow = new ActionRowBuilder()
         .addComponents(nextButton, stopButton);
     const selectionRow = new ActionRowBuilder()
         .addComponents(selectionMenu);
 
-    // Return the game message
     return { 
         embeds: [embed], 
         components: [buttonRow, selectionRow] 

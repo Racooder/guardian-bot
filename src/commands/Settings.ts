@@ -49,7 +49,7 @@ export const Settings: Command = {
         debug("Settings command called");
 
         if (!interaction.isChatInputCommand()) {
-            error("Settings command was not a chat input command")
+            error("Settings command was not a chat input command");
             await interaction.reply(generalError);
             return;
         }
@@ -59,9 +59,10 @@ export const Settings: Command = {
             return;
         }
 
-        // Check if the user has permission to use this command
+        debug("Checking if user has permission to use this command");
         const permissions = interaction.member!.permissions as PermissionsBitField;
         if (!permissions.has(PermissionsBitField.Flags.ManageGuild | PermissionsBitField.Flags.Administrator)) {
+            debug("User does not have permission to use this command");
             await interaction.reply({
                 content: "You do not have permission to use this command",
                 ephemeral: true
@@ -94,7 +95,7 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
     debug("Getting guild settings from database");
     const gSettings = await guildSchema.getGuildSettings(interaction.guildId!);
     
-    // Create the embed
+    debug("Building embed");
     const messageEmbed = new EmbedBuilder()
         .setTitle("Settings")
         .setTimestamp(Date.now())
@@ -127,7 +128,6 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
         }
     }
 
-    // Send the embed
     return {
         embeds: [messageEmbed],
         ephemeral: true
@@ -146,10 +146,10 @@ const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<Int
     const setting = interaction.options.getString("setting", true);
     const numberValue = interaction.options.getNumber("number-value");
 
-    // Change the setting if it exists
+    debug("Changing setting");
     const result = await changeSetting(interaction.guildId!, setting, numberValue);
 
-    // Return the result
+    debug("Building reply");
     switch (result) {
         case ChangeSettingResult.Changed_Number:
             return {

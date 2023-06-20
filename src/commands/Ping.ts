@@ -1,4 +1,4 @@
-import { CommandInteraction, Client, ApplicationCommandType, InteractionResponse, EmbedBuilder } from "discord.js";
+import { CommandInteraction, Client, ApplicationCommandType, EmbedBuilder } from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import { debug } from "../Log";
 
@@ -11,13 +11,13 @@ export const Ping: Command = {
 
         const latency = Date.now() - interaction.createdTimestamp;
         const apiLatency = client.ws.ping;
-        debug(`API latency: ${apiLatency}ms`);
+        debug(`Latency: ${latency}ms, API latency: ${apiLatency}ms`);
 
-        // Easter egg messages
+        debug("Getting latency messages");
         const latencyMessage = getLatencyMessage(latency);
         const apiLatencyMessage = getLatencyMessage(apiLatency);
 
-        // Create the embed
+        debug("Building embed");
         const messageEmbed = new EmbedBuilder()
             .addFields(
                 {
@@ -30,7 +30,6 @@ export const Ping: Command = {
                 }
             )
 
-        // Send the embed
         await interaction.reply({
             ephemeral: true,
             embeds: [messageEmbed]
@@ -39,8 +38,6 @@ export const Ping: Command = {
 }
 
 export const getLatencyMessage = (latency: number): String => {
-    debug(`Getting latency message for ${latency}`);
-
     if (latency === 69) {
         return "(Nice)";
     }

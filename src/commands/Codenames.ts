@@ -1,4 +1,4 @@
-import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, InteractionReplyOptions, GuildMember, AttachmentBuilder } from "discord.js";
+import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, InteractionReplyOptions, GuildMember } from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import { generalError, noGuildError } from "../InteractionReplies";
 import { handleSubcommands, isGuildCommand } from "../Essentials";
@@ -68,28 +68,30 @@ const handleAddWord = async (interaction: ChatInputCommandInteraction): Promise<
     // Get the options
     const word = interaction.options.getString("word", true);
 
-    // Update the creator's names in the database
+    debug("Updating creator name in the database");
     const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, interaction.member as GuildMember);
 
-    // Create the codenames word
-    debug(`Creating codenames word "${word}" in ${interaction.guildId}`);
+    debug(`Creating codenames word "${word}" in guild: ${interaction.guild!.name}(${interaction.guildId})`);
     try {
-        const codenamesDocument = await codenamesSchema.create({
+        await codenamesSchema.create({
             guildId: interaction.guildId,
             word: word,
             creator: creatorDocument._id,
         });
     } catch (error: any) {
         if (error.code === 11000) {
+            debug(`Codenames word already exists`);
             return {
                 content: `The word "${word}" is already in the server wordpack`,
                 ephemeral: true,
             };
         } else {
             error(error);
+            return generalError;
         }
     }
 
+    debug("Codenames word created");
     return {
         content: `Added the word "${word}" to the server wordpack`,
         ephemeral: true,
@@ -103,14 +105,15 @@ const handleAddWord = async (interaction: ChatInputCommandInteraction): Promise<
 const handleGetPack = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     debug("Codenames wordpack subcommand called");
 
-    debug("Generating wordpack buffer")
+    debug("Generating wordpack buffer");
     const words = await codenamesSchema.listQuotes(interaction.guildId!);
     const buffer = Buffer.from(words.join("\n"), "utf-8");
 
+    debug("Sending wordpack buffer");
     return{
         files: [{
             attachment: buffer,
-            name: "wordpack.txt",
+            name: `wordpack-${interaction.guild!.name}.txt`,
         }],
         ephemeral: true,
     };

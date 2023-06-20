@@ -87,7 +87,7 @@ export const Quote: Command = {
         // }
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
-        debug("Quote command called")
+        debug("Quote command called");
 
         if (!interaction.isChatInputCommand()) {
             error("Quote command was not a chat input command")
@@ -128,7 +128,7 @@ export const Quote: Command = {
  * @param interaction
  */
 const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
-    debug("New quote subcommand called")
+    debug("New quote subcommand called");
 
     // Get the option values
     const quote = interaction.options.getString("quote", true);
@@ -137,6 +137,7 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
 
     // Check if any type of author was specified
     if (author === null && nonDiscordAuthor === null) {
+        debug("No author specified");
         return {
             content: "You must specify a author or non-discord author!",
             ephemeral: true
@@ -145,15 +146,14 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
 
     const creatorMember = interaction.member as GuildMember;
 
-    debug("Updating creator and author names in the database")
+    debug("Updating creator and author names in the database");
     const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, interaction.member as GuildMember);
     let authorDocument: IGuildMember | null = null;
     if (author !== null) {
         authorDocument = await guildMemberSchema.updateNames(interaction.guildId!, (await interaction.guild!.members.fetch(author.id)));
     }
 
-    // Create the quote
-    debug(`Creating quote ${quote} in ${interaction.guildId}`)
+    debug(`Creating quote ${quote} in guild: ${interaction.guild!.name}(${interaction.guildId})`);
     const quoteDocument = await quoteSchema.create({
         guildId: interaction.guildId!,
         quote: quote,
@@ -163,7 +163,7 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
         creator: creatorDocument._id
     });
 
-    // Create the embed
+    debug("Building the embed");
     const messageEmbed = new EmbedBuilder()
         .setTitle(`"${quoteDocument.quote}" - ${authorDocument?._id ? `${authorDocument.displayName}` : quoteDocument.nonDiscordAuthor}`)
         .setTimestamp(quoteDocument.timestamp * 1000)
@@ -173,7 +173,6 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
         })
         .setColor(Colors.quoteEmbed)
 
-    // Return the embed
     return {
         embeds: [messageEmbed]
     };
@@ -185,32 +184,30 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
  * @param interaction
  */
 const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
-    debug("List quotes subcommand called")
+    debug("List quotes subcommand called");
 
-    debug("Getting quotes from the database")
+    debug("Getting quotes from the database");
     const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, await guildSettings.quoteListPageSize(guildSchema, interaction.guildId!));
 
     // Check if there are any quotes
     if (quoteChunks.length === 0) {
+        debug("There are no quotes on this server");
         return {
             content: "There are no quotes on this server!",
             ephemeral: true
         };
     }
     
-    debug("Creating quote list document")
+    debug("Creating quote list document");
     const quoteListDocument = await quoteListSchema.create({
         page: 0,
     })
 
-    // Create the embed
+    debug(`Building the embed and action row for quote list: ${quoteListDocument._id}`);
     const messageEmbed = quoteListEmbed(quoteChunks, quoteListDocument.page);
-
-    // Create the action row with next and previous page buttons
     const row = new ActionRowBuilder()
         .addComponents(previousPageButton(quoteListDocument._id, quoteListDocument.page > 0), nextPageButton(quoteListDocument._id, quoteListDocument.page < quoteChunks.length - 1));
 
-    // Send the embed and action row
     return {
         embeds: [messageEmbed],
         components: [row]
@@ -223,7 +220,7 @@ const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promi
  * @param interaction
  */
 const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
-    debug("Search quotes subcommand called")
+    debug("Search quotes subcommand called");
 
     // Get the option values
     const content = interaction.options.getString("content");
@@ -235,19 +232,20 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
 
     // Check if any search parameters were specified
     if (content === null && author === null && authorName === null && creator === null && creatorName === null && dateString === null) {
+        debug("No search parameters specified");
         return {
             content: "You must specify at least one search parameter!",
             ephemeral: true
         };
     }
 
-    // Parse the date
+    debug("Parsing date");
     let date: Date | undefined = parseDate(dateString);
     if (date === undefined) {
         return invalidDateFormatError;
     }
 
-    debug("Getting quote chunks from the database")
+    debug("Getting quote chunks from the database");
     const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, await guildSettings.quoteListPageSize(guildSchema, interaction.guildId!), 
         content ?? undefined, 
         author?.id, 
@@ -258,10 +256,11 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
 
     // Check if there are any quotes
     if (quoteChunks.length === 0) {
+        debug("No quotes matched the search criteria");
         return notMatchingSearchError;
     }
     
-    debug("Creating quote list document")
+    debug("Creating quote list document");
     const quoteListDocument = await quoteListSchema.create({
         page: 0,
         content: content,
@@ -272,15 +271,12 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
         date: date
     })
 
-    // Create the embed
+    debug(`Building the embed and action row for quote list: ${quoteListDocument._id}`);
     const queryDescription = `Quotes matching the following criteria:\n${content ? `Content: ${content}\n` : ""}${author ? `Author: ${usernameString(author)}\n` : ""}${authorName ? `Author Name: ${authorName}\n` : ""}${creator ? `Creator: ${usernameString(creator)}\n` : ""}${creatorName ? `Creator Name: ${creatorName}\n` : ""}${date ? `Date: ${date.toISOString().split("T")[0]}\n` : ""}`;
     const messageEmbed = quoteListEmbed(quoteChunks, quoteListDocument.page, queryDescription);
-
-    // Create the action row with next and previous page buttons
     const row = new ActionRowBuilder()
         .addComponents(previousPageButton(quoteListDocument._id, quoteListDocument.page > 0), nextPageButton(quoteListDocument._id, quoteListDocument.page < quoteChunks.length - 1));
 
-    // Send the embed and action row
     return {
         embeds: [messageEmbed],
         components: [row]
@@ -288,7 +284,7 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
 }
 
 const handleEditQuote = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
-    debug("Edit quote subcommand called")
+    debug("Edit quote subcommand called");
     warn("Edit quote subcommand not implemented")
 
     return notImplementedError;
@@ -304,23 +300,24 @@ const handleEditQuote = async (interaction: ChatInputCommandInteraction): Promis
  * @returns The embed builder
  */
 export const quoteListEmbed = (pages: IQuote[][], page: number, description?: string): EmbedBuilder => {
-    debug(`Building quote list embed for page ${page + 1}/${pages.length}`)
+    debug(`Building quote list embed for page ${page + 1}/${pages.length}`);
 
     if (page >= pages.length) {
         page = pages.length - 1;
     } else if (page < 0) {
         page = 0;
     }
+
     return new EmbedBuilder()
-    .setTitle(`Quotes (Page ${page + 1}/${pages.length})`)
-    .setDescription(description ?? null)
-    .setColor(Colors.quoteEmbed)
-    .addFields(pages[page].map((quote: IQuote) => {
-        return {
-            name: `"${quote.quote}" - ${quote.author?._id ? `${quote.author.displayName ?? quote.author.username}` : quote.nonDiscordAuthor}`,
-            value: `Created by ${quote.creator.displayName} on <t:${quote.timestamp}:d>`
-        }
-    }));
+        .setTitle(`Quotes (Page ${page + 1}/${pages.length})`)
+        .setDescription(description ?? null)
+        .setColor(Colors.quoteEmbed)
+        .addFields(pages[page].map((quote: IQuote) => {
+            return {
+                name: `"${quote.quote}" - ${quote.author?._id ? `${quote.author.displayName ?? quote.author.username}` : quote.nonDiscordAuthor}`,
+                value: `Created by ${quote.creator.displayName} on <t:${quote.timestamp}:d>`
+            }
+        }));
 }
 
 // Button builders
@@ -331,7 +328,7 @@ export const quoteListEmbed = (pages: IQuote[][], page: number, description?: st
  * @returns The button builder
  */
 const previousPageButton = (quoteListId: string, enabled: boolean): ButtonBuilder => {
-    debug(`Building previous page button for quote list ${quoteListId}`)
+    debug(`Building previous page button`);
 
     return new ButtonBuilder()
         .setCustomId(`quotePage:previous:${quoteListId}`)
@@ -347,8 +344,8 @@ const previousPageButton = (quoteListId: string, enabled: boolean): ButtonBuilde
  * @returns The button builder
  */
 const nextPageButton = (quoteListId: string, enabled: boolean): ButtonBuilder => {
-    debug(`Building next page button for quote list ${quoteListId}`)
-
+    debug(`Building next page button`);
+    
     return new ButtonBuilder()
         .setCustomId(`quotePage:next:${quoteListId}`)
         .setLabel("Next Page")

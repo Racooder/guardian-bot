@@ -9,7 +9,7 @@ import { debug } from "../Log";
  */
 export default (client: Client): void => {
     client.on("interactionCreate", async (interaction: Interaction) => {
-        debug("Interaction received")
+        debug("Interaction received");
 
         if (interaction.isCommand()) {
             await handleSlashCommand(client, interaction as CommandInteraction);
