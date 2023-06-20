@@ -1,13 +1,13 @@
 import { CommandInteraction, Client, ApplicationCommandType, InteractionResponse, EmbedBuilder } from "discord.js";
 import { Command } from "../InteractionInterfaces";
-import { debug } from "../Log";
+import { debug, info } from "../Log";
 
 export const Ping: Command = {
     name: "ping",
     description: "A ping command",
     type: ApplicationCommandType.ChatInput,
     run: async (client: Client, interaction: CommandInteraction) => {
-        debug("Ping command called");
+        info("Ping command called");
 
         const latency = Date.now() - interaction.createdTimestamp;
         const apiLatency = client.ws.ping;

@@ -4,7 +4,7 @@ import { generalError, noGuildError } from "../InteractionReplies";
 import { handleSubcommands, isGuildCommand } from "../Essentials";
 import codenamesSchema from "../models/codenamesSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
-import { debug, error } from '../Log';
+import { debug, error, info } from '../Log';
 
 export const Codenames: Command = {
     name: "codenames",
@@ -31,7 +31,7 @@ export const Codenames: Command = {
         }
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
-        debug("Codenames command called");
+        info("Codenames command called");
 
         if (!interaction.isChatInputCommand()) {
             error("Codenames command was not a chat input command");
