@@ -28,7 +28,7 @@ export const QuoteGuesser: Command = {
         debug("Quote guesser command called");
 
         if (!interaction.isChatInputCommand()) {
-            error("QuoteGuesser command was not a chat input command")
+            error("QuoteGuesser command was not a chat input command", client);
             await interaction.reply(generalError);
             return;
         }

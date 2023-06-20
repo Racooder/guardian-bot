@@ -49,7 +49,7 @@ export const Settings: Command = {
         debug("Settings command called");
 
         if (!interaction.isChatInputCommand()) {
-            error("Settings command was not a chat input command");
+            error("Settings command was not a chat input command", client);
             await interaction.reply(generalError);
             return;
         }
@@ -166,7 +166,7 @@ const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<Int
                 content: "Setting " + setting + " not found",
             }
         default:
-            error(`ChangeSettingResult "${result}" not found`);
+            error(`ChangeSettingResult "${result}" not found`, interaction.client);
             return generalError;
     }
 }

@@ -34,7 +34,7 @@ export const Codenames: Command = {
         debug("Codenames command called");
 
         if (!interaction.isChatInputCommand()) {
-            error("Codenames command was not a chat input command");
+            error("Codenames command was not a chat input command", client);
             await interaction.reply(generalError);
             return;
         }
@@ -65,7 +65,7 @@ export const Codenames: Command = {
 const handleAddWord = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     debug("Codenames add-word subcommand called");
 
-    // Get the options
+    // Get the option values
     const word = interaction.options.getString("word", true);
 
     debug("Updating creator name in the database");
@@ -86,7 +86,7 @@ const handleAddWord = async (interaction: ChatInputCommandInteraction): Promise<
                 ephemeral: true,
             };
         } else {
-            error(error);
+            error(error, interaction.client);
             return generalError;
         }
     }

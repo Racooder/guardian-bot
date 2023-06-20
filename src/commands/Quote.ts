@@ -90,7 +90,7 @@ export const Quote: Command = {
         debug("Quote command called");
 
         if (!interaction.isChatInputCommand()) {
-            error("Quote command was not a chat input command")
+            error("Quote command was not a chat input command", client);
             await interaction.reply(generalError);
             return;
         }

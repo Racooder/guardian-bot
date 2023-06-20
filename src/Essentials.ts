@@ -163,6 +163,6 @@ export const handleSubcommands = async function (interaction: ChatInputCommandIn
         }
     }
 
-    error(`Subcommand ${key} not found`);
+    error(`Subcommand ${key} not found`, interaction.client);
     interaction.reply(generalError);
 }

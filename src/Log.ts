@@ -1,3 +1,4 @@
+import { Client, EmbedBuilder } from "discord.js";
 import { createReadStream, createWriteStream, existsSync, mkdirSync, writeFileSync } from "fs";
 import { createGzip } from "zlib";
 
@@ -52,8 +53,24 @@ export const warn = (message: string) => {
     log(message, "[WARN]   ", format.FgYellow);
 }
 
-export const error = (message: string) => {
+export const error = (message: string, client?: Client) => {
     log(message, "[ERROR]  ", format.FgRed);
+
+    const errorChannel = process.env.ERROR_CHANNEL;
+    if (client && errorChannel) {
+        client.channels.fetch(errorChannel).then(channel => {
+            if (channel && channel.isTextBased()) {
+                const messageEmbed = new EmbedBuilder()
+                    .setTitle("Error")
+                    .setDescription(message)
+                    .setColor(0xAA0000);
+                channel.send({
+                    content: "<@&" + process.env.ERROR_ROLE + ">",
+                    embeds: [messageEmbed]
+                });
+            }
+        });
+    }
 }
 
 const log = (message: string, prefix: string, color = "", doSave = true) => {
