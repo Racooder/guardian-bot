@@ -130,10 +130,6 @@ export const Quote: Command = {
 const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     debug("New quote subcommand called")
 
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
-
     // Get the option values
     const quote = interaction.options.getString("quote", true);
     const author = interaction.options.getUser("author");
@@ -191,10 +187,6 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
 const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     debug("List quotes subcommand called")
 
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
-
     debug("Getting quotes from the database")
     const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, await guildSettings.quoteListPageSize(guildSchema, interaction.guildId!));
 
@@ -232,10 +224,6 @@ const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promi
  */
 const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     debug("Search quotes subcommand called")
-
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
 
     // Get the option values
     const content = interaction.options.getString("content");

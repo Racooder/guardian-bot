@@ -64,10 +64,6 @@ export const Codenames: Command = {
  */
 const handleAddWord = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     debug("Codenames add-word subcommand called");
-    
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
 
     // Get the options
     const word = interaction.options.getString("word", true);
@@ -106,10 +102,6 @@ const handleAddWord = async (interaction: ChatInputCommandInteraction): Promise<
  */
 const handleGetPack = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     debug("Codenames wordpack subcommand called");
-
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
 
     debug("Generating wordpack buffer")
     const words = await codenamesSchema.listQuotes(interaction.guildId!);

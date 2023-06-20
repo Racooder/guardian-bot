@@ -59,10 +59,6 @@ export const QuoteGuesser: Command = {
 const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     debug("Play quoteguesser subcommand called");
 
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
-
     const token = await newToken();
     if (token === undefined) {
         return failedToCreateGameError;
@@ -77,10 +73,6 @@ const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<Int
  */
 const handleLeaderboard = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     debug("Quote guesser leaderboard subcommand called")
-
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
 
     const guildMembers = await guildMemberSchema.find({ guildId: interaction.guildId });
 

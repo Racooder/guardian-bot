@@ -91,10 +91,6 @@ export const Settings: Command = {
 const handleView = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     debug("Settings view subcommand called");
 
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
-
     debug("Getting guild settings from database");
     const gSettings = await guildSchema.getGuildSettings(interaction.guildId!);
     
@@ -145,10 +141,6 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
  */
 const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     debug("Settings edit subcommand called");
-
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
 
     // Get the option values
     const setting = interaction.options.getString("setting", true);
