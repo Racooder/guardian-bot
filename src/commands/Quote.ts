@@ -150,7 +150,7 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
     const creatorMember = interaction.member as GuildMember;
 
     debug("Updating creator and author names in the database")
-    const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, (await interaction.guild!.members.fetch(interaction.user.id)));
+    const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, interaction.member as GuildMember);
     let authorDocument: IGuildMember | null = null;
     if (author !== null) {
         authorDocument = await guildMemberSchema.updateNames(interaction.guildId!, (await interaction.guild!.members.fetch(author.id)));
