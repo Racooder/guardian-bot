@@ -1,7 +1,7 @@
 import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionReplyOptions, GuildMember, StringSelectMenuBuilder, SelectMenuComponentOptionData, ButtonInteraction } from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import { failedToCreateGameError, generalError, noGuildError, noQuotesError } from "../InteractionReplies";
-import { isGuildCommand } from "../Essentials";
+import { handleSubcommands, isGuildCommand } from "../Essentials";
 import quoteSchema from "../models/quoteSchema";
 import quoteGuesserSchema from "../models/quoteGuesserSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
@@ -28,30 +28,26 @@ export const QuoteGuesser: Command = {
         debug("Quote guesser command called");
 
         if (!interaction.isChatInputCommand()) {
+            error("QuoteGuesser command was not a chat input command")
             await interaction.reply(generalError);
             return;
         }
         if (!isGuildCommand(interaction)) {
+            debug("QuoteGuesser command was not a guild command"); // This happens when the command is run in a DM
             await interaction.reply(noGuildError);
             return;
         }
 
-        const subcommand = interaction.options.getSubcommand();
-        let reply: InteractionReplyOptions;
-        switch (subcommand) {
-            case "play":
-                reply = await handlePlay(interaction);
-                break;
-            case "leaderboard":
-                reply = await handleLeaderboard(interaction);
-                break;
-            default:
-                error(`Quote guesser subcommand "${subcommand}" not found`);
-                reply = generalError;
-                break;
-        }
-
-        await interaction.reply(reply);
+        await handleSubcommands(interaction, interaction.options.getSubcommand(), [
+            {
+                key: "play",
+                run: handlePlay
+            },
+            {
+                key: "leaderboard",
+                run: handleLeaderboard
+            }
+        ]);
     }
 }
 

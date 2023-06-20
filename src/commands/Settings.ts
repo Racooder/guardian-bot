@@ -1,6 +1,6 @@
 import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, PermissionsBitField, InteractionReplyOptions } from 'discord.js';
 import { Command } from "../InteractionInterfaces";
-import { ChangeSettingResult, changeSetting, isGuildCommand } from "../Essentials";
+import { ChangeSettingResult, changeSetting, handleSubcommands, isGuildCommand } from "../Essentials";
 import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema, { GuildSettings } from '../models/guildSchema';
 import Colors from '../Colors';
@@ -49,11 +49,14 @@ export const Settings: Command = {
         debug("Settings command called");
 
         if (!interaction.isChatInputCommand()) {
+            error("Settings command was not a chat input command")
             await interaction.reply(generalError);
             return;
         }
         if (!isGuildCommand(interaction)) {
+            debug("Settings command was not a guild command"); // This happens when the command is run in a DM
             await interaction.reply(noGuildError);
+            return;
         }
 
         // Check if the user has permission to use this command
@@ -66,23 +69,16 @@ export const Settings: Command = {
             return;
         }
 
-        // Handle subcommands
-        const subcommand = interaction.options.getSubcommand();
-        let reply: InteractionReplyOptions;
-        switch (subcommand) {
-            case "view":
-                reply = await handleView(interaction);
-                break;
-            case "edit":
-                reply = await handleEdit(interaction);
-                break;
-            default:
-                error(`Settings subcommand "${subcommand}" not found`);
-                reply = generalError;
-                break;
-        }
-
-        await interaction.reply(reply);
+        await handleSubcommands(interaction, interaction.options.getSubcommand(), [
+            {
+                key: "view",
+                run: handleView
+            },
+            {
+                key: "edit",
+                run: handleEdit
+            }
+        ]);
     }
 }
 

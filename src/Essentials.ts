@@ -1,6 +1,8 @@
-import { GuildMember, Interaction, User } from "discord.js";
+import { ChatInputCommandInteraction, GuildMember, Interaction, InteractionReplyOptions, User } from "discord.js";
 import { IQuoteGuesser } from "./models/quoteGuesserSchema";
 import guildSchema, { GuildSettings } from "./models/guildSchema";
+import { generalError } from "./InteractionReplies";
+import { debug, error } from "./Log";
 
 /**
  * Checks for `guildId` and `member` properties
@@ -144,4 +146,23 @@ export const changeSetting = async function (guildId: string, setting: string, n
         }
     }
     return ChangeSettingResult.Invalid_Setting;
+}
+
+export type SubcommandHandlerData = {
+    key: string,
+    run: (interaction: ChatInputCommandInteraction, args?: any) => Promise<InteractionReplyOptions>
+}
+
+export const handleSubcommands = async function (interaction: ChatInputCommandInteraction, key: string, subcommands: SubcommandHandlerData[]): Promise<void> {
+    debug(`Handling subcommand ${key}`);
+    
+    for (const subcommand of subcommands) {
+        if (subcommand.key == key) {
+            interaction.reply(await subcommand.run(interaction));
+            return;
+        }
+    }
+
+    error(`Subcommand ${key} not found`);
+    interaction.reply(generalError);
 }

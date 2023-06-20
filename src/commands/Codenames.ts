@@ -1,7 +1,7 @@
 import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, InteractionReplyOptions, GuildMember, AttachmentBuilder } from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import { generalError, noGuildError } from "../InteractionReplies";
-import { isGuildCommand } from "../Essentials";
+import { handleSubcommands, isGuildCommand } from "../Essentials";
 import codenamesSchema from "../models/codenamesSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
 import { debug, error } from '../Log';
@@ -39,28 +39,21 @@ export const Codenames: Command = {
             return;
         }
         if (!isGuildCommand(interaction)) {
-            debug("Codenames command was not a guild command");
+            debug("Codenames command was not a guild command"); // This happens when the command is run in a DM
             await interaction.reply(noGuildError);
             return;
         }
 
-        const subcommand = interaction.options.getSubcommand();
-        debug(`Codenames subcommand: ${subcommand}`);
-        let reply: InteractionReplyOptions;
-        switch (subcommand) {
-            case "add-word":
-                reply = await handleAddWord(interaction);
-                break;
-            case "wordpack":
-                reply = await handleGetPack(interaction);
-                break;
-            default:
-                error(`Codenames subcommand "${subcommand}" not found`);
-                reply = generalError;
-                break;
-        }
-
-        await interaction.reply(reply);
+        await handleSubcommands(interaction, interaction.options.getSubcommand(), [
+            {
+                key: "add-word",
+                run: handleAddWord
+            },
+            {
+                key: "wordpack",
+                run: handleGetPack
+            }
+        ]);
     }
 }
 

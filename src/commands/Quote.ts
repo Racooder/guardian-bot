@@ -3,7 +3,7 @@ import { Command } from "../InteractionInterfaces";
 import quoteSchema, { IQuote } from "../models/quoteSchema";
 import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
 import quoteListSchema from "../models/quoteListSchema";
-import { isGuildCommand, parseDate, usernameString } from "../Essentials";
+import { handleSubcommands, isGuildCommand, parseDate, usernameString } from "../Essentials";
 import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builders";
 import { generalError, invalidDateFormatError, noGuildError, notImplementedError, notMatchingSearchError } from "../InteractionReplies";
 import guildSchema, { guildSettings } from "../models/guildSchema";
@@ -90,36 +90,34 @@ export const Quote: Command = {
         debug("Quote command called")
 
         if (!interaction.isChatInputCommand()) {
+            error("Quote command was not a chat input command")
             await interaction.reply(generalError);
             return;
         }
         if (!isGuildCommand(interaction)) {
+            debug("Quote command was not a guild command"); // This happens when the command is run in a DM
             await interaction.reply(noGuildError);
             return;
         }
 
-        const subcommand = interaction.options.getSubcommand();
-        let reply: InteractionReplyOptions;
-        switch (subcommand) {
-            case "new":
-                reply = await handleNewQuote(interaction);
-                break;
-            case "list":
-                reply = await handleListQuotes(interaction);
-                break;
-            case "search":
-                reply = await handleSearchQuotes(interaction);
-                break;
-            case "edit":
-                reply = await handleEditQuote(interaction);
-                break;
-            default:
-                error(`Quote subcommand "${subcommand}" not found`);
-                reply = generalError;
-                break;
-        }
-
-        await interaction.reply(reply);
+        await handleSubcommands(interaction, interaction.options.getSubcommand(), [
+            {
+                key: "new",
+                run: handleNewQuote
+            },
+            {
+                key: "list",
+                run: handleListQuotes
+            },
+            {
+                key: "search",
+                run: handleSearchQuotes
+            },
+            {
+                key: "edit",
+                run: handleEditQuote
+            }
+        ]);
     }
 }
 
