@@ -34,15 +34,18 @@ export const Codenames: Command = {
         debug("Codenames command called");
 
         if (!interaction.isChatInputCommand()) {
+            error("Codenames command was not a chat input command");
             await interaction.reply(generalError);
             return;
         }
         if (!isGuildCommand(interaction)) {
+            debug("Codenames command was not a guild command");
             await interaction.reply(noGuildError);
             return;
         }
 
         const subcommand = interaction.options.getSubcommand();
+        debug(`Codenames subcommand: ${subcommand}`);
         let reply: InteractionReplyOptions;
         switch (subcommand) {
             case "add-word":
@@ -52,6 +55,7 @@ export const Codenames: Command = {
                 reply = await handleGetPack(interaction);
                 break;
             default:
+                error(`Codenames subcommand "${subcommand}" not found`);
                 reply = generalError;
                 break;
         }
@@ -80,6 +84,7 @@ const handleAddWord = async (interaction: ChatInputCommandInteraction): Promise<
     const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, interaction.user.id, interaction.user.username, creatorMember.displayName, interaction.user.discriminator);
 
     // Create the codenames word
+    debug(`Creating codenames word "${word}" in ${interaction.guildId}`);
     try {
         const codenamesDocument = await codenamesSchema.create({
             guildId: interaction.guildId,
@@ -114,6 +119,7 @@ const handleGetPack = async (interaction: ChatInputCommandInteraction): Promise<
         return noGuildError;
     }
 
+    debug("Generating wordpack buffer")
     const words = await codenamesSchema.listQuotes(interaction.guildId!);
     const buffer = Buffer.from(words.join("\n"), "utf-8");
 

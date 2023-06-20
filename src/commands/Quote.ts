@@ -8,7 +8,7 @@ import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builde
 import { generalError, invalidDateFormatError, noGuildError, notImplementedError, notMatchingSearchError } from "../InteractionReplies";
 import guildSchema, { guildSettings } from "../models/guildSchema";
 import Colors from "../Colors";
-import { debug, warn } from "../Log";
+import { debug, error, warn } from "../Log";
 
 export const Quote: Command = {
     name: "quote",
@@ -114,6 +114,7 @@ export const Quote: Command = {
                 reply = await handleEditQuote(interaction);
                 break;
             default:
+                error(`Quote subcommand "${subcommand}" not found`);
                 reply = generalError;
                 break;
         }
@@ -150,7 +151,7 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
 
     const creatorMember = interaction.member as GuildMember;
 
-    // Update the creator's names in the database
+    debug("Updating creator and author names in the database")
     const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, interaction.user.id, interaction.user.username, creatorMember.displayName, interaction.user.discriminator);
     let authorDocument: IGuildMember | null = null;
     if (author !== null) {
@@ -158,6 +159,7 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
     }
 
     // Create the quote
+    debug(`Creating quote ${quote} in ${interaction.guildId}`)
     const quoteDocument = await quoteSchema.create({
         guildId: interaction.guildId!,
         quote: quote,
@@ -195,7 +197,7 @@ const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promi
         return noGuildError;
     }
 
-    // Get the quotes
+    debug("Getting quotes from the database")
     const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, await guildSettings.quoteListPageSize(guildSchema, interaction.guildId!));
 
     // Check if there are any quotes
@@ -206,7 +208,7 @@ const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promi
         };
     }
     
-    // Create the quote list document in the database
+    debug("Creating quote list document")
     const quoteListDocument = await quoteListSchema.create({
         page: 0,
     })
@@ -259,7 +261,7 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
         return invalidDateFormatError;
     }
 
-    // Get the quotes
+    debug("Getting quote chunks from the database")
     const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, await guildSettings.quoteListPageSize(guildSchema, interaction.guildId!), 
         content ?? undefined, 
         author?.id, 
@@ -273,7 +275,7 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
         return notMatchingSearchError;
     }
     
-    // Create the quote list document in the database
+    debug("Creating quote list document")
     const quoteListDocument = await quoteListSchema.create({
         page: 0,
         content: content,

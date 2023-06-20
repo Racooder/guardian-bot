@@ -4,7 +4,7 @@ import { ChangeSettingResult, changeSetting, isGuildCommand } from "../Essential
 import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema, { GuildSettings } from '../models/guildSchema';
 import Colors from '../Colors';
-import { debug } from '../Log';
+import { debug, error } from '../Log';
 
 export const Settings: Command = {
     name: "settings",
@@ -77,6 +77,7 @@ export const Settings: Command = {
                 reply = await handleEdit(interaction);
                 break;
             default:
+                error(`Settings subcommand "${subcommand}" not found`);
                 reply = generalError;
                 break;
         }
@@ -98,7 +99,7 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
         return noGuildError;
     }
 
-    // Get the settings for this guild
+    debug("Getting guild settings from database");
     const gSettings = await guildSchema.getGuildSettings(interaction.guildId!);
     
     // Create the embed
@@ -107,7 +108,7 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
         .setTimestamp(Date.now())
         .setColor(Colors.settingsEmbed)
 
-    // Add the settings to the embed
+    debug("Adding settings fields to embed");
     let setting: keyof GuildSettings;
     for (setting in gSettings) {
         const type = typeof gSettings[setting]!.value;
@@ -177,6 +178,7 @@ const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<Int
                 content: "Setting " + setting + " not found",
             }
         default:
+            error(`ChangeSettingResult "${result}" not found`);
             return generalError;
     }
 }

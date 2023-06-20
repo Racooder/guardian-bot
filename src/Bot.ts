@@ -6,8 +6,7 @@ import { debug, info, setupLog } from './Log';
 
 setupLog().then(() => {
     if (process.env.DEBUG === "true") {
-        info("Debug mode is enabled");
-        debug("In debug mode debug messages will be saved to the log file\n")
+        info("Debug mode is enabled\n");
     }
 
     info("Bot is starting...");

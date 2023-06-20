@@ -6,7 +6,7 @@ import quoteSchema from "../models/quoteSchema";
 import quoteGuesserSchema from "../models/quoteGuesserSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
 import settings from "../settings.json";
-import { debug } from "../Log";
+import { debug, error } from "../Log";
 
 export const QuoteGuesser: Command = {
     name: "quote-guesser",
@@ -46,6 +46,7 @@ export const QuoteGuesser: Command = {
                 reply = await handleLeaderboard(interaction);
                 break;
             default:
+                error(`Quote guesser subcommand "${subcommand}" not found`);
                 reply = generalError;
                 break;
         }
@@ -115,7 +116,7 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
         return noQuotesError;
     }
     
-    // Create a new quote guesser document in the database
+    debug("Creating new game document")
     const document = await quoteGuesserSchema.create({
         guildId: interaction.guildId,
         token: token,
@@ -126,6 +127,7 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
         round: round
     })
 
+    debug("Creating message embed and components")
     // Create the game embed
     const embed = new EmbedBuilder()
         .setTitle("Who said this quote?")

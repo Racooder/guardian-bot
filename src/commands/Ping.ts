@@ -11,6 +11,7 @@ export const Ping: Command = {
 
         const latency = Date.now() - interaction.createdTimestamp;
         const apiLatency = client.ws.ping;
+        debug(`API latency: ${apiLatency}ms`);
 
         // Easter egg messages
         const latencyMessage = getLatencyMessage(latency);
