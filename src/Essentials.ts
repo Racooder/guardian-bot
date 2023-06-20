@@ -150,15 +150,16 @@ export const changeSetting = async function (guildId: string, setting: string, n
 
 export type SubcommandHandlerData = {
     key: string,
-    run: (interaction: ChatInputCommandInteraction, args?: any) => Promise<InteractionReplyOptions>
+    run: (interaction: ChatInputCommandInteraction, args?: any) => Promise<InteractionReplyOptions>,
+    args?: any
 }
 
-export const handleSubcommands = async function (interaction: ChatInputCommandInteraction, key: string, subcommands: SubcommandHandlerData[]): Promise<void> {
+export const handleSubcommands = async function (interaction: ChatInputCommandInteraction, key: string, subcommands: SubcommandHandlerData[], args?: any): Promise<void> {
     debug(`Handling subcommand ${key}`);
     
     for (const subcommand of subcommands) {
         if (subcommand.key == key) {
-            interaction.reply(await subcommand.run(interaction));
+            interaction.reply(await subcommand.run(interaction, subcommand.args || args));
             return;
         }
     }
