@@ -1,4 +1,6 @@
+import { GuildMember, User } from "discord.js";
 import mongoose, { Model, Schema, Document } from "mongoose";
+import { getBaseUser } from "../Essentials";
 
 /**
  * Represents a guild member in the database.
@@ -19,13 +21,10 @@ interface GuildMemberModel extends Model<IGuildMember> {
     /**
      * Updates the username, discriminator and display name of a guild member in the database.
      * @param guildId - The ID of the guild.
-     * @param userId - The ID of the user.
-     * @param username - The username of the user.
-     * @param displayName - The display name of the user.
-     * @param discriminator - The discriminator of the user.
+     * @param user - The user or member object.
      * @returns The updated guild member document.
      */
-    updateNames: (guildId: string, userId: string, username: string, discriminator?: string, displayName?: string) => Promise<IGuildMember>;
+    updateNames: (guildId: string, user: User | GuildMember) => Promise<IGuildMember>;
 }
 
 /**
@@ -59,13 +58,18 @@ const guildMemberSchema = new Schema<IGuildMember, GuildMemberModel>({
 /**
  * Updates the username, discriminator and display name of a guild member in the database.
  * @param guildId - The ID of the guild.
- * @param userId - The ID of the user.
- * @param username - The username of the user.
- * @param displayName - The display name of the user.
- * @param discriminator - The discriminator of the user.
+ * @param user - The user or member object.
  * @returns The updated guild member document.
  */
-guildMemberSchema.statics.updateNames = function (guildId: string, userId: string, username: string, displayName?: string, discriminator?: string): Promise<IGuildMember> {
+guildMemberSchema.statics.updateNames = function (guildId: string, user: User | GuildMember): Promise<IGuildMember> {
+    const userId = user.id;
+
+    const baseUser = getBaseUser(user);
+    const username = baseUser.username;
+    const discriminator = baseUser.discriminator;
+
+    let displayName = user instanceof GuildMember ? user.displayName : undefined;
+
     if (!displayName) displayName = username;
     return this.findOneAndUpdate(
         { guildId, userId },

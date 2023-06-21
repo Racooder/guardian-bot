@@ -1,13 +1,17 @@
 import { CommandInteraction, Client, Interaction, ButtonInteraction, MessageComponentInteraction, StringSelectMenuInteraction } from "discord.js";
 import { Commands, Components } from "../Interactions";
 import { generalError } from "../InteractionReplies";
-import { Button, StringSelectMenu } from '../InteractionInterface';
+import { Button, StringSelectMenu } from '../InteractionInterfaces';
+import { debug } from "../Log";
+import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
 
 /**
  * A listener and handler for the interactionCreate event.
  */
 export default (client: Client): void => {
     client.on("interactionCreate", async (interaction: Interaction) => {
+        debug("Interaction received");
+
         if (interaction.isCommand()) {
             await handleSlashCommand(client, interaction as CommandInteraction);
         } else if (interaction.isMessageComponent()) {
@@ -22,6 +26,8 @@ export default (client: Client): void => {
  * @param interaction - The interaction
  */
 const handleSlashCommand = async (client: Client, interaction: CommandInteraction): Promise<void> => {
+    debug("Slash command interaction received");
+
     // Get the command
     const slashCommand = Commands.find(c => c.name === interaction.commandName);
     if (!slashCommand) {
@@ -31,6 +37,11 @@ const handleSlashCommand = async (client: Client, interaction: CommandInteractio
 
     // Run the command
     slashCommand.run(client, interaction);
+
+    debug("Updating statistics");
+    statisticsSchema.create({
+        types: [StatisticType.Event, StatisticType.Event_Interaction, StatisticType.Event_Interaction_SlashCommand],
+    });
 }
 
 /**
@@ -39,6 +50,8 @@ const handleSlashCommand = async (client: Client, interaction: CommandInteractio
  * @param interaction - The interaction
  */
 const handleComponent = async (client: Client, interaction: MessageComponentInteraction): Promise<void> => {
+    debug("Message component interaction received");
+
     // Get the interaction data from the custom ID
     let data = interaction.customId.split(":");
     const name = data.shift();
@@ -58,4 +71,9 @@ const handleComponent = async (client: Client, interaction: MessageComponentInte
         const stringSelectMenu = component as StringSelectMenu;
         stringSelectMenu.run(client, interaction as StringSelectMenuInteraction, data);
     }
+
+    debug("Updating statistics");
+    statisticsSchema.create({
+        types: [StatisticType.Event, StatisticType.Event_Interaction, StatisticType.Event_Interaction_Component],
+    });
 }

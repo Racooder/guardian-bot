@@ -1,15 +1,17 @@
-import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionReplyOptions, GuildMember, StringSelectMenuBuilder, SelectMenuComponentOptionData, ButtonInteraction } from "discord.js";
-import { Command } from "../InteractionInterface";
+import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionReplyOptions, StringSelectMenuBuilder, SelectMenuComponentOptionData, ButtonInteraction } from "discord.js";
+import { Command } from "../InteractionInterfaces";
 import { failedToCreateGameError, generalError, noGuildError, noQuotesError } from "../InteractionReplies";
-import { isGuildCommand } from "../Essentials";
+import { handleSubcommands, isGuildCommand } from "../Essentials";
 import quoteSchema from "../models/quoteSchema";
 import quoteGuesserSchema from "../models/quoteGuesserSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
 import settings from "../settings.json";
+import { debug, error } from '../Log';
+import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
 
 export const QuoteGuesser: Command = {
     name: "quote-guesser",
-    description: "Play different games with your friends",
+    description: "Play a game of quoteguesser with your friends",
     type: ApplicationCommandType.ChatInput,
     options: [
         {
@@ -24,30 +26,36 @@ export const QuoteGuesser: Command = {
         }
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
+        debug("Quote guesser command called");
+
         if (!interaction.isChatInputCommand()) {
+            error("QuoteGuesser command was not a chat input command", client);
             await interaction.reply(generalError);
             return;
         }
         if (!isGuildCommand(interaction)) {
+            debug("QuoteGuesser command was not a guild command"); // This happens when the command is run in a DM
             await interaction.reply(noGuildError);
             return;
         }
 
-        const subcommand = interaction.options.getSubcommand();
-        let reply: InteractionReplyOptions;
-        switch (subcommand) {
-            case "play":
-                reply = await handlePlay(interaction);
-                break;
-            case "leaderboard":
-                reply = await handleLeaderboard(interaction);
-                break;
-            default:
-                reply = generalError;
-                break;
-        }
+        const success = await handleSubcommands(interaction, interaction.options.getSubcommand(), [
+            {
+                key: "play",
+                run: handlePlay
+            },
+            {
+                key: "leaderboard",
+                run: handleLeaderboard
+            }
+        ]);
 
-        await interaction.reply(reply);
+        if (success) {
+            debug("Updating statistics");
+            statisticsSchema.create({
+                types: [StatisticType.Command, StatisticType.Command_QuoteGuesser],
+            });
+        }
     }
 }
 
@@ -57,12 +65,11 @@ export const QuoteGuesser: Command = {
  * @param interaction
  */
 const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
+    debug("Play quoteguesser subcommand called");
 
     const token = await newToken();
     if (token === undefined) {
+        debug("Failed to generate token");
         return failedToCreateGameError;
     }
 
@@ -74,9 +81,7 @@ const handlePlay = async (interaction: ChatInputCommandInteraction): Promise<Int
  * @param interaction
  */
 const handleLeaderboard = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
+    debug("Quote guesser leaderboard subcommand called");
 
     const guildMembers = await guildMemberSchema.find({ guildId: interaction.guildId });
 
@@ -98,16 +103,18 @@ const handleLeaderboard = async (interaction: ChatInputCommandInteraction): Prom
  * @returns The game message
  */
 export const newGame = async (interaction: ChatInputCommandInteraction | ButtonInteraction, token: string, round: number): Promise<InteractionReplyOptions> => {
-    // Gets a random quote from the database
+    debug(`Creating new game of quote guesser with token ${token} and round ${round}`);
+    
+    debug("Getting a random quote");
     const quote = await quoteSchema.randomQuote(interaction.guildId!);
 
-    // If there are no quotes, return an error
     if (quote === undefined) {
+        debug("No quotes found");
         return noQuotesError;
     }
     
-    // Create a new quote guesser document in the database
-    const document = await quoteGuesserSchema.create({
+    debug("Creating new game document");
+    await quoteGuesserSchema.create({
         guildId: interaction.guildId,
         token: token,
         quote: quote.quote,
@@ -117,30 +124,25 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
         round: round
     })
 
-    // Create the game embed
+    debug("Creating message embed and components");
     const embed = new EmbedBuilder()
         .setTitle("Who said this quote?")
         .setDescription(`"${quote.quote}" - ???`)
         .setFooter({ text: "No one answered yet" })
         .setAuthor({ name: `Round ${round}` });
-
-    // Create the selection menu
     const selectionMenu = new StringSelectMenuBuilder()
         .setCustomId(`answerQuoteGuesser:${token}`)
         .setPlaceholder("Select your guess")
-
-    // Create the buttons
     const nextButton = new ButtonBuilder()
         .setCustomId(`nextQuoteGuesser:${token}`)
         .setLabel("Next Round")
         .setStyle(ButtonStyle.Primary);
-
     const stopButton = new ButtonBuilder()
         .setCustomId(`stopQuoteGuesser:${token}`)
         .setLabel("Stop")
         .setStyle(ButtonStyle.Danger);
 
-    // Add the authors to the selection menu
+    debug("Adding authors to selection menu");
     const allAuthors = await quoteSchema.allAuthors(interaction.guildId!);
     for (const author of allAuthors) {
         selectionMenu.addOptions({
@@ -149,13 +151,12 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
         } as SelectMenuComponentOptionData);
     }
 
-    // Create the component rows
+    debug("Adding components to message");
     const buttonRow = new ActionRowBuilder()
         .addComponents(nextButton, stopButton);
     const selectionRow = new ActionRowBuilder()
         .addComponents(selectionMenu);
 
-    // Return the game message
     return { 
         embeds: [embed], 
         components: [buttonRow, selectionRow] 
@@ -167,6 +168,8 @@ export const newGame = async (interaction: ChatInputCommandInteraction | ButtonI
  * @returns The new token or undefined if no token could be generated
  */
 const newToken = async (): Promise<string | undefined> => {
+    debug("Generating new token for quote guesser");
+
     const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
     const length = characters.length;
 

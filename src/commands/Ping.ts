@@ -1,19 +1,24 @@
-import { CommandInteraction, Client, ApplicationCommandType, InteractionResponse, EmbedBuilder } from "discord.js";
-import { Command } from "../InteractionInterface";
+import { CommandInteraction, Client, ApplicationCommandType, EmbedBuilder } from "discord.js";
+import { Command } from "../InteractionInterfaces";
+import { debug } from "../Log";
+import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
 
 export const Ping: Command = {
     name: "ping",
     description: "A ping command",
     type: ApplicationCommandType.ChatInput,
     run: async (client: Client, interaction: CommandInteraction) => {
+        debug("Ping command called");
+
         const latency = Date.now() - interaction.createdTimestamp;
         const apiLatency = client.ws.ping;
+        debug(`Latency: ${latency}ms, API latency: ${apiLatency}ms`);
 
-        // Easter egg messages
+        debug("Getting latency messages");
         const latencyMessage = getLatencyMessage(latency);
         const apiLatencyMessage = getLatencyMessage(apiLatency);
 
-        // Create the embed
+        debug("Building embed");
         const messageEmbed = new EmbedBuilder()
             .addFields(
                 {
@@ -26,10 +31,14 @@ export const Ping: Command = {
                 }
             )
 
-        // Send the embed
         await interaction.reply({
             ephemeral: true,
             embeds: [messageEmbed]
+        });
+
+        debug("Updating statistics");
+        statisticsSchema.create({
+            types: [StatisticType.Command, StatisticType.Command_Ping],
         });
     }
 }

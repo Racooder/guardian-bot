@@ -1,9 +1,11 @@
 import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, PermissionsBitField, InteractionReplyOptions } from 'discord.js';
-import { Command } from "../InteractionInterface";
-import { ChangeSettingResult, changeSetting, isGuildCommand } from "../Essentials";
+import { Command } from "../InteractionInterfaces";
+import { ChangeSettingResult, changeSetting, handleSubcommands, isGuildCommand } from "../Essentials";
 import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema, { GuildSettings } from '../models/guildSchema';
 import Colors from '../Colors';
+import { debug, error } from '../Log';
+import statisticsSchema, { StatisticType } from '../models/statisticsSchema';
 
 export const Settings: Command = {
     name: "settings",
@@ -45,17 +47,23 @@ export const Settings: Command = {
         }
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
+        debug("Settings command called");
+
         if (!interaction.isChatInputCommand()) {
+            error("Settings command was not a chat input command", client);
             await interaction.reply(generalError);
             return;
         }
         if (!isGuildCommand(interaction)) {
+            debug("Settings command was not a guild command"); // This happens when the command is run in a DM
             await interaction.reply(noGuildError);
+            return;
         }
 
-        // Check if the user has permission to use this command
+        debug("Checking if user has permission to use this command");
         const permissions = interaction.member!.permissions as PermissionsBitField;
         if (!permissions.has(PermissionsBitField.Flags.ManageGuild | PermissionsBitField.Flags.Administrator)) {
+            debug("User does not have permission to use this command");
             await interaction.reply({
                 content: "You do not have permission to use this command",
                 ephemeral: true
@@ -63,22 +71,23 @@ export const Settings: Command = {
             return;
         }
 
-        // Handle subcommands
-        const subcommand = interaction.options.getSubcommand();
-        let reply: InteractionReplyOptions;
-        switch (subcommand) {
-            case "view":
-                reply = await handleView(interaction);
-                break;
-            case "edit":
-                reply = await handleEdit(interaction);
-                break;
-            default:
-                reply = generalError;
-                break;
-        }
+        const success = await handleSubcommands(interaction, interaction.options.getSubcommand(), [
+            {
+                key: "view",
+                run: handleView
+            },
+            {
+                key: "edit",
+                run: handleEdit
+            }
+        ]);
 
-        await interaction.reply(reply);
+        if (success) {
+            debug("Updating statistics");
+            statisticsSchema.create({
+                types: [StatisticType.Command, StatisticType.Command_Settings],
+            });
+        }
     }
 }
 
@@ -89,20 +98,18 @@ export const Settings: Command = {
  * @param interaction
  */
 const handleView = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
+    debug("Settings view subcommand called");
 
-    // Get the settings for this guild
+    debug("Getting guild settings from database");
     const gSettings = await guildSchema.getGuildSettings(interaction.guildId!);
     
-    // Create the embed
+    debug("Building embed");
     const messageEmbed = new EmbedBuilder()
         .setTitle("Settings")
         .setTimestamp(Date.now())
         .setColor(Colors.settingsEmbed)
 
-    // Add the settings to the embed
+    debug("Adding settings fields to embed");
     let setting: keyof GuildSettings;
     for (setting in gSettings) {
         const type = typeof gSettings[setting]!.value;
@@ -129,7 +136,6 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
         }
     }
 
-    // Send the embed
     return {
         embeds: [messageEmbed],
         ephemeral: true
@@ -142,18 +148,16 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
  * @param interaction
  */
 const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
-    if (!isGuildCommand(interaction)) {
-        return noGuildError;
-    }
+    debug("Settings edit subcommand called");
 
     // Get the option values
     const setting = interaction.options.getString("setting", true);
     const numberValue = interaction.options.getNumber("number-value");
 
-    // Change the setting if it exists
+    debug("Changing setting");
     const result = await changeSetting(interaction.guildId!, setting, numberValue);
 
-    // Return the result
+    debug("Building reply");
     switch (result) {
         case ChangeSettingResult.Changed_Number:
             return {
@@ -170,6 +174,7 @@ const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<Int
                 content: "Setting " + setting + " not found",
             }
         default:
+            error(`ChangeSettingResult "${result}" not found`, interaction.client);
             return generalError;
     }
 }
