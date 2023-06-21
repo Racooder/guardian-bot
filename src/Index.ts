@@ -2,48 +2,68 @@ import { Client } from "discord.js";
 import interactionCreate from "./listeners/interactionCreate";
 import ready from "./listeners/ready";
 import 'dotenv/config';
+import { debug, info, setupLog, success } from './Log';
 import express, { Express, Request, Response } from "express";
+import statisticsSchema from "./models/statisticsSchema";
 
-// Express Server
-const app: Express = express();
+setupLog().then(() => {
+    if (process.env.DEBUG === "true") {
+        info("Debug mode is enabled\n");
+    }
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.get('/users', (req, res) => {
-    return res.send('Received a GET HTTP method');
-});
-  
-app.post('/users', (req, res) => {
-    return res.send('Received a POST HTTP method');
-});
-  
-app.put('/users/:userId', (req, res) => {
-    return res.send(
-        `PUT HTTP method on user/${req.params.userId} resource`,
-    );
-});
-  
-app.delete('/users/:userId', (req, res) => {
-    return res.send(
-        `DELETE HTTP method on user/${req.params.userId} resource`,
-    );
+    setupAPIServer();
+    setupDiscordBot();
 });
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server is listening on port ${process.env.PORT}`);
-});
+const setupAPIServer = () => {
+    info("Starting API Server...");
 
-// Discord Bot
-console.log("Bot is starting...");
+    const app: Express = express();
 
-const client = new Client({
-    intents: []
-});
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
 
-// Event Handlers
-ready(client);
-interactionCreate(client);
+    debug("Setting up API routes...");
+    app.get('/statistics', (req, res) => {
+        debug("API: Getting all statistics...");
+        statisticsSchema.getAll().then((statistics) => {
+            return res.json(statistics);
+        });
+    });
 
-// Login
-client.login(process.env.TOKEN);
+    app.get('/statistics/:from', (req, res) => {
+        const from = new Date(parseFloat(req.params.from) * 1000);
+        debug(`API: Getting all statistics from ${from}...`);
+        statisticsSchema.getAll(from).then((statistics) => {
+            return res.json(statistics);
+        });
+    });
+
+    app.get('/statistics/:from/:to', (req, res) => {
+        const from = new Date(parseFloat(req.params.from) * 1000);
+        const to = new Date(parseFloat(req.params.to) * 1000);
+        debug(`API: Getting all statistics from ${from} to ${to}...`);
+        statisticsSchema.getAll(from, to).then((statistics) => {
+            return res.json(statistics);
+        });
+    });
+
+    app.listen(process.env.API_PORT, () => {
+        success(`API Server is listening on port ${process.env.API_PORT}`);
+    });
+}
+
+const setupDiscordBot = () => {
+    info("Starting Discord Bot...");
+    
+    const client = new Client({
+        intents: []
+    });
+    
+    debug("Starting event listeners...");
+    ready(client);
+    interactionCreate(client);
+    
+    // Login
+    client.login(process.env.TOKEN);
+}
