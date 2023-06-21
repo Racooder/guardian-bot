@@ -8,7 +8,8 @@ import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builde
 import { generalError, invalidDateFormatError, noGuildError, notImplementedError, notMatchingSearchError } from "../InteractionReplies";
 import guildSchema, { guildSettings } from "../models/guildSchema";
 import Colors from "../Colors";
-import { debug, error, warn } from "../Log";
+import { debug, error, warn } from '../Log';
+import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
 
 export const Quote: Command = {
     name: "quote",
@@ -100,7 +101,7 @@ export const Quote: Command = {
             return;
         }
 
-        await handleSubcommands(interaction, interaction.options.getSubcommand(), [
+        const success = await handleSubcommands(interaction, interaction.options.getSubcommand(), [
             {
                 key: "new",
                 run: handleNewQuote
@@ -118,6 +119,13 @@ export const Quote: Command = {
                 run: handleEditQuote
             }
         ]);
+
+        if (success) {
+            debug("Updating statistics");
+            statisticsSchema.create({
+                types: [StatisticType.Command, StatisticType.Command_Quote],
+            });
+        }
     }
 }
 

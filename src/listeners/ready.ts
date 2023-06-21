@@ -4,6 +4,7 @@ import mongoose, { ConnectOptions } from "mongoose";
 import quoteListSchema from "../models/quoteListSchema";
 import quoteGuesserSchema from "../models/quoteGuesserSchema";
 import { info, success, debug } from "../Log";
+import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
 
 /**
  * A listener for the ready event.
@@ -31,5 +32,10 @@ export default (client: Client): void => {
         await client.application.commands.set(Commands);
 
         success(`${client.user.username} is online`);
+
+        debug("Updating statistics");
+        statisticsSchema.create({
+            types: [StatisticType.Event, StatisticType.Event_Ready],
+        });
     });
 }

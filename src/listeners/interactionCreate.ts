@@ -3,6 +3,7 @@ import { Commands, Components } from "../Interactions";
 import { generalError } from "../InteractionReplies";
 import { Button, StringSelectMenu } from '../InteractionInterfaces';
 import { debug } from "../Log";
+import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
 
 /**
  * A listener and handler for the interactionCreate event.
@@ -36,6 +37,11 @@ const handleSlashCommand = async (client: Client, interaction: CommandInteractio
 
     // Run the command
     slashCommand.run(client, interaction);
+
+    debug("Updating statistics");
+    statisticsSchema.create({
+        types: [StatisticType.Event, StatisticType.Event_Interaction, StatisticType.Event_Interaction_SlashCommand],
+    });
 }
 
 /**
@@ -65,4 +71,9 @@ const handleComponent = async (client: Client, interaction: MessageComponentInte
         const stringSelectMenu = component as StringSelectMenu;
         stringSelectMenu.run(client, interaction as StringSelectMenuInteraction, data);
     }
+
+    debug("Updating statistics");
+    statisticsSchema.create({
+        types: [StatisticType.Event, StatisticType.Event_Interaction, StatisticType.Event_Interaction_Component],
+    });
 }

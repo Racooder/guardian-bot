@@ -7,6 +7,7 @@ import { quoteListEmbed } from '../commands/Quote';
 import guildSchema, { guildSettings } from '../models/guildSchema';
 import { noGuildError } from '../InteractionReplies';
 import { debug } from '../Log';
+import statisticsSchema, { StatisticType } from '../models/statisticsSchema';
 
 export const QuotePage: Button = {
     name: "quotePage",
@@ -19,7 +20,7 @@ export const QuotePage: Button = {
             return;
         };
 
-        // Get the quote list
+        debug("Getting quote list from database");
         const quoteListDocument = await quoteListSchema.findById(data[1]);
 
         // Check if the quote list exists
@@ -32,7 +33,7 @@ export const QuotePage: Button = {
             return;
         }
 
-        // Get the quote chunks by listing all quotes matching the filters stored in the quote list
+        debug("Getting quote chunks from database");
         const quoteChunks = await quoteSchema.listQuotes(interaction.guildId!, await guildSettings.quoteListPageSize(guildSchema, interaction.guildId!),
             quoteListDocument.content,
             quoteListDocument.authorId,
@@ -43,6 +44,7 @@ export const QuotePage: Button = {
 
         // Check if there are any quotes
         if (quoteChunks.length === 0) {
+            debug("No quotes found");
             await interaction.update({
                 content: "Error: No quotes found",
                 components: [],
@@ -51,7 +53,7 @@ export const QuotePage: Button = {
             return;
         }
 
-        // Change the page number
+        debug("Updating quote list page");
         if (data[0] === "next") {
             quoteListDocument.page++;
         } else {
@@ -61,7 +63,7 @@ export const QuotePage: Button = {
         // Save the quote list
         await quoteListDocument.save();
 
-        // Create the embed
+        debug("Creating message embed");
         const messageEmbed = quoteListEmbed(quoteChunks, quoteListDocument.page);
 
         // Check if there are any buttons
@@ -74,7 +76,7 @@ export const QuotePage: Button = {
             return;
         }
 
-        // Get the buttons
+        debug("Updating buttons");
         const previousPageButton = interaction.message.components![0].components[0];
         const nextPageButton = interaction.message.components![0].components[1];
         const prevButtonBuilder = ButtonBuilder.from(previousPageButton as APIButtonComponent).setDisabled(quoteListDocument.page === 0);
@@ -84,10 +86,15 @@ export const QuotePage: Button = {
         const row = new ActionRowBuilder()
             .addComponents(prevButtonBuilder, nextButtonBuilder);
 
-        // Update the message
+        debug("Updating message");
         await interaction.update({
             embeds: [messageEmbed],
             components: [row]
         } as InteractionUpdateOptions);
+
+        debug("Updating statistics");
+        statisticsSchema.create({
+            types: [StatisticType.Component, StatisticType.Component_QuotePage],
+        });
     }
 }

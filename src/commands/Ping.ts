@@ -1,6 +1,7 @@
 import { CommandInteraction, Client, ApplicationCommandType, EmbedBuilder } from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import { debug } from "../Log";
+import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
 
 export const Ping: Command = {
     name: "ping",
@@ -33,6 +34,11 @@ export const Ping: Command = {
         await interaction.reply({
             ephemeral: true,
             embeds: [messageEmbed]
+        });
+
+        debug("Updating statistics");
+        statisticsSchema.create({
+            types: [StatisticType.Command, StatisticType.Command_Ping],
         });
     }
 }

@@ -2,9 +2,10 @@ import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandO
 import { Command } from "../InteractionInterfaces";
 import { generalError, noGuildError } from "../InteractionReplies";
 import { handleSubcommands, isGuildCommand } from "../Essentials";
-import { debug, error } from '../Log';
+import { debug, error, success } from '../Log';
 import feedbackSchema from "../models/feedbackSchema";
 import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
+import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
 
 export const Feedback: Command = {
     name: "feedback",
@@ -79,7 +80,7 @@ export const Feedback: Command = {
             creatorName: interaction.user.username,
         });
 
-        await handleSubcommands(interaction, feedbackType, [
+        const success = await handleSubcommands(interaction, feedbackType, [
             {
                 key: "bug",
                 run: handleBug
@@ -93,6 +94,13 @@ export const Feedback: Command = {
                 run: handleOther
             }
         ], feedbackDescription);
+
+        if (success) {
+            debug("Updating statistics");
+            statisticsSchema.create({
+                types: [StatisticType.Command, StatisticType.Command_Feedback],
+            });
+        }
     }
 }
 

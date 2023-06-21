@@ -154,16 +154,17 @@ export type SubcommandHandlerData = {
     args?: any
 }
 
-export const handleSubcommands = async function (interaction: ChatInputCommandInteraction, key: string, subcommands: SubcommandHandlerData[], args?: any): Promise<void> {
+export const handleSubcommands = async function (interaction: ChatInputCommandInteraction, key: string, subcommands: SubcommandHandlerData[], args?: any): Promise<boolean> {
     debug(`Handling subcommand ${key}`);
     
     for (const subcommand of subcommands) {
         if (subcommand.key == key) {
             interaction.reply(await subcommand.run(interaction, subcommand.args || args));
-            return;
+            return true;
         }
     }
 
     error(`Subcommand ${key} not found`, interaction.client);
     interaction.reply(generalError);
+    return false;
 }
