@@ -2,7 +2,7 @@ import { CommandInteraction, Client, Interaction, ButtonInteraction, MessageComp
 import { Commands, Components } from "../Interactions";
 import { generalError } from "../InteractionReplies";
 import { Button, StringSelectMenu } from '../InteractionInterfaces';
-import { debug } from "../Log";
+import { debug, error } from "../Log";
 import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
 
 /**
@@ -36,7 +36,11 @@ const handleSlashCommand = async (client: Client, interaction: CommandInteractio
     }
 
     // Run the command
-    slashCommand.run(client, interaction);
+    try {
+        slashCommand.run(client, interaction);
+    } catch (e: unknown) {
+        error((e as string), client);
+    }
 
     debug("Updating statistics");
     statisticsSchema.create({
@@ -59,17 +63,22 @@ const handleComponent = async (client: Client, interaction: MessageComponentInte
     // Get the component
     const component = Components.find(b => b.name === name);
     if (!component) {
+        error(`Component ${name} not found`, client);
         interaction.reply(generalError);
         return;
     }
 
     // Determine the type of component and run it
-    if (component.isButton) {
-        const button = component as Button;
-        button.run(client, interaction as ButtonInteraction, data);
-    } else if (component.isStringSelectMenu) {
-        const stringSelectMenu = component as StringSelectMenu;
-        stringSelectMenu.run(client, interaction as StringSelectMenuInteraction, data);
+    try {
+        if (component.isButton) {
+            const button = component as Button;
+            button.run(client, interaction as ButtonInteraction, data);
+        } else if (component.isStringSelectMenu) {
+            const stringSelectMenu = component as StringSelectMenu;
+            stringSelectMenu.run(client, interaction as StringSelectMenuInteraction, data);
+        }
+    } catch (e: unknown) {
+        error((e as string), client);
     }
 
     debug("Updating statistics");
