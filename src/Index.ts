@@ -5,6 +5,7 @@ import 'dotenv/config';
 import { debug, info, setupLog, success } from './Log';
 import express, { Express, Request, Response } from "express";
 import statisticsSchema from "./models/statisticsSchema";
+import feedbackSchema from "./models/feedbackSchema";
 
 setupLog().then(() => {
     if (process.env.DEBUG === "true") {
@@ -45,6 +46,41 @@ const setupAPIServer = () => {
         debug(`API: Getting all statistics from ${from} to ${to}...`);
         statisticsSchema.getAll(from, to).then((statistics) => {
             return res.json(statistics);
+        });
+    });
+
+    app.get('/feedback', (req, res) => {
+        debug("API: Getting all feedback...");
+        feedbackSchema.getAll().then((feedback) => {
+            return res.json(feedback);
+        });
+    });
+
+    app.get('/feedback/:from', (req, res) => {
+        const from = new Date(parseFloat(req.params.from) * 1000);
+        debug(`API: Getting all feedback from ${from}...`);
+        feedbackSchema.getAll(from).then((feedback) => {
+            return res.json(feedback);
+        });
+    });
+
+    app.get('/feedback/:from/:to', (req, res) => {
+        const from = new Date(parseFloat(req.params.from) * 1000);
+        const to = new Date(parseFloat(req.params.to) * 1000);
+        debug(`API: Getting all feedback from ${from} to ${to}...`);
+        feedbackSchema.getAll(from, to).then((feedback) => {
+            return res.json(feedback);
+        });
+    });
+
+    app.post('/feedback', (req, res) => {
+        debug("API: Creating feedback...");
+        feedbackSchema.create({
+            type: req.body.type,
+            description: req.body.description,
+            creatorName: req.body.creatorName
+        }).then((feedback) => {
+            return res.json(feedback);
         });
     });
 
