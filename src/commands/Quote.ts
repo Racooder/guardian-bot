@@ -247,10 +247,13 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
         };
     }
 
-    debug("Parsing date");
-    let date: Date | undefined = parseDate(dateString);
-    if (date === undefined) {
-        return invalidDateFormatError;
+    if (dateString !== null) {
+        debug("Parsing date");
+        var date: Date | undefined = parseDate(dateString);
+        if (date === undefined) {
+            debug("Invalid date format provided");
+            return invalidDateFormatError;
+        }
     }
 
     debug("Getting quote chunks from the database");
