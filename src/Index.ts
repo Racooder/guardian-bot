@@ -28,7 +28,7 @@ const setupAPIServer = () => {
     app.get('/statistics', (req, res) => {
         debug("API: Getting all statistics...");
         statisticsSchema.getAll().then((statistics) => {
-            return res.json(statistics);
+            return res.status(200).json(statistics);
         });
     });
 
@@ -36,7 +36,7 @@ const setupAPIServer = () => {
         const from = new Date(parseFloat(req.params.from) * 1000);
         debug(`API: Getting all statistics from ${from}...`);
         statisticsSchema.getAll(from).then((statistics) => {
-            return res.json(statistics);
+            return res.status(200).json(statistics);
         });
     });
 
@@ -45,14 +45,14 @@ const setupAPIServer = () => {
         const to = new Date(parseFloat(req.params.to) * 1000);
         debug(`API: Getting all statistics from ${from} to ${to}...`);
         statisticsSchema.getAll(from, to).then((statistics) => {
-            return res.json(statistics);
+            return res.status(200).json(statistics);
         });
     });
 
     app.get('/feedback', (req, res) => {
         debug("API: Getting all feedback...");
         feedbackSchema.getAll().then((feedback) => {
-            return res.json(feedback);
+            return res.status(200).json(feedback);
         });
     });
 
@@ -60,7 +60,7 @@ const setupAPIServer = () => {
         const from = new Date(parseFloat(req.params.from) * 1000);
         debug(`API: Getting all feedback from ${from}...`);
         feedbackSchema.getAll(from).then((feedback) => {
-            return res.json(feedback);
+            return res.status(200).json(feedback);
         });
     });
 
@@ -69,7 +69,7 @@ const setupAPIServer = () => {
         const to = new Date(parseFloat(req.params.to) * 1000);
         debug(`API: Getting all feedback from ${from} to ${to}...`);
         feedbackSchema.getAll(from, to).then((feedback) => {
-            return res.json(feedback);
+            return res.status(200).json(feedback);
         });
     });
 
@@ -79,8 +79,8 @@ const setupAPIServer = () => {
             type: req.body.type,
             description: req.body.description,
             creatorName: req.body.creatorName
-        }).then((feedback) => {
-            return res.json(feedback);
+        }).then((_) => {
+            return res.status(200);
         });
     });
 
