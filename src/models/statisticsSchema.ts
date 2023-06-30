@@ -1,24 +1,36 @@
 import mongoose, { Model, Schema, Document } from "mongoose";
+import { debug } from "../Log";
 
 export const enum StatisticType {
     Command = "Command",
-        Command_Ping = "Command_Ping",
-        Command_Feedback = "Command_Feedback",
-        Command_Settings = "Command_Settings",
-        Command_Quote = "Command_Quote",
-        Command_QuoteGuesser = "Command_QuoteGuesser",
         Command_Codenames = "Command_Codenames",
+            Command_Codenames_AddWord = "Command_Codenames_AddWord",
+            Command_Codenames_Wordpack = "Command_Codenames_Wordpack",
+        Command_Feedback = "Command_Feedback",
+            Command_Feedback_Bug = "Command_Feedback_Bug",
+            Command_Feedback_Feature = "Command_Feedback_Feature",
+            Command_Feedback_Other = "Command_Feedback_Other",
+        Command_Ping = "Command_Ping",
+        Command_Quote = "Command_Quote",
+            Command_Quote_New = "Command_Quote_New",
+            Command_Quote_List = "Command_Quote_List",
+            Command_Quote_Search = "Command_Quote_Search",
+            Command_Quote_Edit = "Command_Quote_Edit",
+        Command_QuoteGuesser = "Command_QuoteGuesser",
+            Command_QuoteGuesser_Play = "Command_QuoteGuesser_Play",
+            Command_QuoteGuesser_Leaderboard = "Command_QuoteGuesser_Leaderboard",
+        Command_Settings = "Command_Settings",
+            Command_Settings_View = "Command_Settings_View",
+            Command_Settings_Edit = "Command_Settings_Edit",
     Component = "Component",
-    Component_QuotePage = "Component_QuotePage",
-    Component_QuoteGuesser = "Component_QuoteGuesser",
-        Component_QuoteGuesser_Answer = "Component_QuoteGuesser_Answer",
-        Component_QuoteGuesser_Next = "Component_QuoteGuesser_Next",
-        Component_QuoteGuesser_Stop = "Component_QuoteGuesser_Stop",
+        Component_QuotePage = "Component_QuotePage",
+        Component_QuoteGuesser = "Component_QuoteGuesser",
+            Component_QuoteGuesser_Answer = "Component_QuoteGuesser_Answer",
+            Component_QuoteGuesser_Next = "Component_QuoteGuesser_Next",
+            Component_QuoteGuesser_Stop = "Component_QuoteGuesser_Stop",
     Event = "Event",
         Event_Ready = "Event_Ready",
         Event_Interaction = "Event_Interaction",
-            Event_Interaction_SlashCommand = "Event_Interaction_SlashCommand",
-            Event_Interaction_Component = "Event_Interaction_Component",
 }
 
 export type StatisticDictionary = {
@@ -76,29 +88,14 @@ statisticSchema.statics.getAll = async function (from?: Date, to?: Date): Promis
         }
     });
 
-    const statisticDictionary: StatisticDictionary = {
-        Command: 0,
-            Command_Ping: 0,
-            Command_Feedback: 0,
-            Command_Settings: 0,
-            Command_Quote: 0,
-            Command_QuoteGuesser: 0,
-            Command_Codenames: 0,
-        Component: 0,
-        Component_QuotePage: 0,
-        Component_QuoteGuesser: 0,
-            Component_QuoteGuesser_Answer: 0,
-            Component_QuoteGuesser_Next: 0,
-            Component_QuoteGuesser_Stop: 0,
-        Event: 0,
-            Event_Ready: 0,
-            Event_Interaction: 0,
-                Event_Interaction_SlashCommand: 0,
-                Event_Interaction_Component: 0,
-    };
+    // Create a dictionary with all statistic types and set the value to 0
+    const statisticDictionary: StatisticDictionary = {} as StatisticDictionary;
 
     statisticDocuments.forEach((statisticDocument) => {
         statisticDocument.types.forEach((type) => {
+            if (!statisticDictionary[type]) {
+                statisticDictionary[type] = 0;
+            }
             statisticDictionary[type] += 1;
         });
     });
@@ -109,4 +106,16 @@ statisticSchema.statics.getAll = async function (from?: Date, to?: Date): Promis
 /**
  * The guild model.
  */
-export default mongoose.model<IStatistic, StatisticModel>("Statistics", statisticSchema);
+const model = mongoose.model<IStatistic, StatisticModel>("Statistics", statisticSchema);
+export default model;
+
+export function updateStatistic(types: StatisticType[]): Promise<IStatistic | null> {
+    if (process.env.NODE_ENV === "development") {
+        return Promise.resolve(null);
+    }
+
+    debug("Updating statistics");
+    return model.create({
+        types: types,
+    });
+}

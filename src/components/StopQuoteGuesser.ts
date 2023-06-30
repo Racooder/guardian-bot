@@ -5,7 +5,7 @@ import { isGuildCommand } from '../Essentials';
 import { noGuildError } from '../InteractionReplies';
 import guildSchema, { guildSettings } from '../models/guildSchema';
 import { debug } from '../Log';
-import statisticsSchema, { StatisticType } from '../models/statisticsSchema';
+import { StatisticType, updateStatistic } from '../models/statisticsSchema';
 
 export const StopQuoteGuesser: Button = {
     name: "stopQuoteGuesser",
@@ -58,10 +58,7 @@ export const StopQuoteGuesser: Button = {
         debug("Deleting game from database");
         await quoteGuesserSchema.deleteMany({ guildId: interaction.guildId, token: token });
 
-        debug("Updating statistics");
-        statisticsSchema.create({
-            types: [StatisticType.Component, StatisticType.Component_QuoteGuesser, StatisticType.Component_QuoteGuesser_Stop],
-        });
+        updateStatistic([StatisticType.Component, StatisticType.Component_QuoteGuesser, StatisticType.Component_QuoteGuesser_Stop]);
     }
 }
 

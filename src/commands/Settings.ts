@@ -5,7 +5,7 @@ import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema, { GuildSettings } from '../models/guildSchema';
 import Colors from '../Colors';
 import { debug, error } from '../Log';
-import statisticsSchema, { StatisticType } from '../models/statisticsSchema';
+import { StatisticType } from '../models/statisticsSchema';
 
 export const Settings: Command = {
     name: "settings",
@@ -71,23 +71,18 @@ export const Settings: Command = {
             return;
         }
 
-        const success = await handleSubcommands(interaction, interaction.options.getSubcommand(), [
+        await handleSubcommands(interaction, interaction.options.getSubcommand(), [
             {
                 key: "view",
-                run: handleView
+                run: handleView,
+                stats: [StatisticType.Command_Settings_View]
             },
             {
                 key: "edit",
-                run: handleEdit
+                run: handleEdit,
+                stats: [StatisticType.Command_Settings_Edit]
             }
-        ]);
-
-        if (success) {
-            debug("Updating statistics");
-            statisticsSchema.create({
-                types: [StatisticType.Command, StatisticType.Command_Settings],
-            });
-        }
+        ], [StatisticType.Command_Settings]);
     }
 }
 

@@ -5,7 +5,7 @@ import { handleSubcommands, isGuildCommand } from "../Essentials";
 import codenamesSchema from "../models/codenamesSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
 import { debug, error } from '../Log';
-import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
+import { StatisticType } from "../models/statisticsSchema";
 
 export const Codenames: Command = {
     name: "codenames",
@@ -45,23 +45,18 @@ export const Codenames: Command = {
             return;
         }
 
-        const success = await handleSubcommands(interaction, interaction.options.getSubcommand(), [
+        await handleSubcommands(interaction, interaction.options.getSubcommand(), [
             {
                 key: "add-word",
-                run: handleAddWord
+                run: handleAddWord,
+                stats: [StatisticType.Command_Codenames_AddWord]
             },
             {
                 key: "wordpack",
-                run: handleGetPack
+                run: handleGetPack,
+                stats: [StatisticType.Command_Codenames_Wordpack]
             }
-        ]);
-
-        if (success) {
-            debug("Updating statistics");
-            statisticsSchema.create({
-                types: [StatisticType.Command, StatisticType.Command_Codenames],
-            });
-        }
+        ], [StatisticType.Command_Codenames]);
     }
 }
 

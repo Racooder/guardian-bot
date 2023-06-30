@@ -9,7 +9,7 @@ import { generalError, invalidDateFormatError, noGuildError, notImplementedError
 import guildSchema, { guildSettings } from "../models/guildSchema";
 import Colors from "../Colors";
 import { debug, error, warn } from '../Log';
-import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
+import { StatisticType } from "../models/statisticsSchema";
 
 export const Quote: Command = {
     name: "quote",
@@ -101,31 +101,28 @@ export const Quote: Command = {
             return;
         }
 
-        const success = await handleSubcommands(interaction, interaction.options.getSubcommand(), [
+        await handleSubcommands(interaction, interaction.options.getSubcommand(), [
             {
                 key: "new",
-                run: handleNewQuote
+                run: handleNewQuote,
+                stats: [StatisticType.Command_Quote_New]
             },
             {
                 key: "list",
-                run: handleListQuotes
+                run: handleListQuotes,
+                stats: [StatisticType.Command_Quote_List]
             },
             {
                 key: "search",
-                run: handleSearchQuotes
+                run: handleSearchQuotes,
+                stats: [StatisticType.Command_Quote_Search]
             },
             {
                 key: "edit",
-                run: handleEditQuote
+                run: handleEditQuote,
+                stats: [StatisticType.Command_Quote_Edit]
             }
-        ]);
-
-        if (success) {
-            debug("Updating statistics");
-            statisticsSchema.create({
-                types: [StatisticType.Command, StatisticType.Command_Quote],
-            });
-        }
+        ], [StatisticType.Command_Quote]);
     }
 }
 

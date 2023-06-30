@@ -3,7 +3,7 @@ import { Commands, Components } from "../Interactions";
 import { generalError } from "../InteractionReplies";
 import { Button, StringSelectMenu } from '../InteractionInterfaces';
 import { debug, error } from "../Log";
-import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
+import { StatisticType, updateStatistic } from "../models/statisticsSchema";
 
 /**
  * A listener and handler for the interactionCreate event.
@@ -42,10 +42,7 @@ const handleSlashCommand = async (client: Client, interaction: CommandInteractio
         error((e as string), client);
     }
 
-    debug("Updating statistics");
-    statisticsSchema.create({
-        types: [StatisticType.Event, StatisticType.Event_Interaction, StatisticType.Event_Interaction_SlashCommand],
-    });
+    updateStatistic([StatisticType.Event, StatisticType.Event_Interaction, StatisticType.Command]);
 }
 
 /**
@@ -81,8 +78,5 @@ const handleComponent = async (client: Client, interaction: MessageComponentInte
         error((e as string), client);
     }
 
-    debug("Updating statistics");
-    statisticsSchema.create({
-        types: [StatisticType.Event, StatisticType.Event_Interaction, StatisticType.Event_Interaction_Component],
-    });
+    updateStatistic([StatisticType.Event, StatisticType.Event_Interaction, StatisticType.Component]);
 }

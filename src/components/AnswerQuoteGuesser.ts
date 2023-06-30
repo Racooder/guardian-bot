@@ -4,7 +4,7 @@ import { isGuildCommand } from '../Essentials';
 import { noGuildError } from '../InteractionReplies';
 import quoteGuesserSchema, { resultTranslation } from '../models/quoteGuesserSchema';
 import { debug } from '../Log';
-import statisticsSchema, { StatisticType } from '../models/statisticsSchema';
+import { StatisticType, updateStatistic } from '../models/statisticsSchema';
 
 export const AnswerQuoteGuesser: StringSelectMenu = {
     name: "answerQuoteGuesser",
@@ -47,10 +47,7 @@ export const AnswerQuoteGuesser: StringSelectMenu = {
             debug("Replying to user");
             interaction.followUp({ content: resultTranslation[result], ephemeral: true });
 
-            debug("Updating statistics");
-            statisticsSchema.create({
-                types: [StatisticType.Component, StatisticType.Component_QuoteGuesser, StatisticType.Component_QuoteGuesser_Answer],
-            });
+            updateStatistic([StatisticType.Component, StatisticType.Component_QuoteGuesser, StatisticType.Component_QuoteGuesser_Answer]);
         } else {
             debug("Replying problem to user");
             interaction.reply({ content: resultTranslation[result], ephemeral: true });

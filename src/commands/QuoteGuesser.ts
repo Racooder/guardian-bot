@@ -7,7 +7,7 @@ import quoteGuesserSchema from "../models/quoteGuesserSchema";
 import guildMemberSchema from "../models/guildMemberSchema";
 import settings from "../settings.json";
 import { debug, error } from '../Log';
-import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
+import { StatisticType } from "../models/statisticsSchema";
 
 export const QuoteGuesser: Command = {
     name: "quote-guesser",
@@ -39,23 +39,18 @@ export const QuoteGuesser: Command = {
             return;
         }
 
-        const success = await handleSubcommands(interaction, interaction.options.getSubcommand(), [
+        await handleSubcommands(interaction, interaction.options.getSubcommand(), [
             {
                 key: "play",
-                run: handlePlay
+                run: handlePlay,
+                stats: [StatisticType.Command_QuoteGuesser_Play]
             },
             {
                 key: "leaderboard",
-                run: handleLeaderboard
+                run: handleLeaderboard,
+                stats: [StatisticType.Command_QuoteGuesser_Leaderboard]
             }
-        ]);
-
-        if (success) {
-            debug("Updating statistics");
-            statisticsSchema.create({
-                types: [StatisticType.Command, StatisticType.Command_QuoteGuesser],
-            });
-        }
+        ], [StatisticType.Command_QuoteGuesser]);
     }
 }
 

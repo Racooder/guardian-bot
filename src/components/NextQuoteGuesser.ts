@@ -7,7 +7,7 @@ import { findCurrentRound } from '../models/quoteGuesserSchema';
 import { stopRound } from './StopQuoteGuesser';
 import { newGame } from '../commands/QuoteGuesser';
 import { debug } from '../Log';
-import statisticsSchema, { StatisticType } from '../models/statisticsSchema';
+import { StatisticType, updateStatistic } from '../models/statisticsSchema';
 
 export const NextQuoteGuesser: Button = {
     name: "nextQuoteGuesser",
@@ -34,9 +34,6 @@ export const NextQuoteGuesser: Button = {
         debug("Replying to user");
         interaction.followUp(answer);
 
-        debug("Updating statistics");
-        statisticsSchema.create({
-            types: [StatisticType.Component, StatisticType.Component_QuoteGuesser, StatisticType.Component_QuoteGuesser_Next],
-        });
+        updateStatistic([StatisticType.Component, StatisticType.Component_QuoteGuesser, StatisticType.Component_QuoteGuesser_Next]);
     }
 }

@@ -3,6 +3,7 @@ import { IQuoteGuesser } from "./models/quoteGuesserSchema";
 import guildSchema, { GuildSettings } from "./models/guildSchema";
 import { generalError } from "./InteractionReplies";
 import { debug, error } from "./Log";
+import { StatisticType, updateStatistic } from "./models/statisticsSchema";
 
 /**
  * Checks for `guildId` and `member` properties
@@ -151,15 +152,18 @@ export const changeSetting = async function (guildId: string, setting: string, n
 export type SubcommandHandlerData = {
     key: string,
     run: (interaction: ChatInputCommandInteraction, args?: any) => Promise<InteractionReplyOptions>,
+    stats: StatisticType[],
     args?: any
 }
 
-export const handleSubcommands = async function (interaction: ChatInputCommandInteraction, key: string, subcommands: SubcommandHandlerData[], args?: any): Promise<boolean> {
+export const handleSubcommands = async function (interaction: ChatInputCommandInteraction, key: string, subcommands: SubcommandHandlerData[], commandStats: StatisticType[], args?: any): Promise<boolean> {
     debug(`Handling subcommand ${key}`);
     
     for (const subcommand of subcommands) {
         if (subcommand.key == key) {
             interaction.reply(await subcommand.run(interaction, subcommand.args || args));
+            let stats = commandStats.concat(subcommand.stats);
+            updateStatistic(stats);
             return true;
         }
     }

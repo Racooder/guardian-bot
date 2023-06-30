@@ -1,7 +1,7 @@
 import { CommandInteraction, Client, ApplicationCommandType, EmbedBuilder } from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import { debug } from "../Log";
-import statisticsSchema, { StatisticType } from "../models/statisticsSchema";
+import { StatisticType, updateStatistic } from "../models/statisticsSchema";
 
 export const Ping: Command = {
     name: "ping",
@@ -36,10 +36,7 @@ export const Ping: Command = {
             embeds: [messageEmbed]
         });
 
-        debug("Updating statistics");
-        statisticsSchema.create({
-            types: [StatisticType.Command, StatisticType.Command_Ping],
-        });
+        updateStatistic([StatisticType.Command_Ping]);
     }
 }
 

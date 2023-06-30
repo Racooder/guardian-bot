@@ -7,7 +7,7 @@ import { quoteListEmbed } from '../commands/Quote';
 import guildSchema, { guildSettings } from '../models/guildSchema';
 import { noGuildError } from '../InteractionReplies';
 import { debug } from '../Log';
-import statisticsSchema, { StatisticType } from '../models/statisticsSchema';
+import { StatisticType, updateStatistic } from '../models/statisticsSchema';
 
 export const QuotePage: Button = {
     name: "quotePage",
@@ -92,9 +92,6 @@ export const QuotePage: Button = {
             components: [row]
         } as InteractionUpdateOptions);
 
-        debug("Updating statistics");
-        statisticsSchema.create({
-            types: [StatisticType.Component, StatisticType.Component_QuotePage],
-        });
+        updateStatistic([StatisticType.Component, StatisticType.Component_QuotePage]);
     }
 }
