@@ -2,7 +2,7 @@ import { CommandInteraction, Client, ApplicationCommandType, EmbedBuilder } from
 import { Command } from "../InteractionInterfaces";
 import { debug } from "../Log";
 import { StatisticType, updateStatistic } from "../models/statisticsSchema";
-import Colors from "src/Colors";
+import Colors from "../Colors";
 
 export const Kofi: Command = {
     name: "kofi",
