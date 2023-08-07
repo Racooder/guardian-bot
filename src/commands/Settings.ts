@@ -261,7 +261,7 @@ const handleQuoteLinkList = async (interaction: ChatInputCommandInteraction, cli
     linkedGuilds.forEach((linkedGuild) => {
         let guildName = linkedGuild.guildId;
         if (client.guilds.cache.has(linkedGuild.guildId)) {
-            guildName = client.guilds.cache.get(linkedGuild.guildId)!.name;
+            guildName = client.guilds.cache.get(linkedGuild.guildId)!.name + " (" + linkedGuild.guildId + ")";
         }
 
         embedBuilder.addFields({
