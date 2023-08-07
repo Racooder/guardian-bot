@@ -15,6 +15,7 @@ export const enum StatisticType {
             Command_Quote_New = "Command_Quote_New",
             Command_Quote_List = "Command_Quote_List",
             Command_Quote_Search = "Command_Quote_Search",
+            Command_Quote_Conversation = "Command_Quote_Conversation",
             Command_Quote_Edit = "Command_Quote_Edit",
         Command_QuoteGuesser = "Command_QuoteGuesser",
             Command_QuoteGuesser_Play = "Command_QuoteGuesser_Play",

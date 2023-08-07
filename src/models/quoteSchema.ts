@@ -8,16 +8,24 @@ import guildSchema, { guildSettings } from "./guildSchema";
  */
 export interface IQuote extends Document {
     guildId: string;
-    quote: string;
+    quote?: string;
+    conversation?: string[];
     timestamp: number;
     author?: IGuildMember["_id"];
+    conversationAuthors?: IGuildMember["_id"][];
     nonDiscordAuthor?: string;
+    conversationNonDiscordAuthors?: string[];
     creator: IGuildMember["_id"];
     /**
      * Gets the name of the author of the quote.
      * @returns The displayName or username of the author, the nonDiscordAuthor or "Unknown" if none of those are available.
      */
     authorName: Promise<string>;
+    /**
+     * Gets the names of the authors of the conversation.
+     * @returns The displayNames or usernames of the authors, the nonDiscordAuthors or "Unknown" if none of those are available.
+     */
+    conversationAuthorNames: Promise<string[]>;
 }
 
 /**
@@ -69,8 +77,10 @@ const quoteSchema = new Schema<IQuote, QuoteModel>({
         required: true
     },
     quote: {
-        type: String,
-        required: true
+        type: String
+    },
+    conversation: {
+        type: [String]
     },
     timestamp: {
         type: Number,
@@ -79,10 +89,16 @@ const quoteSchema = new Schema<IQuote, QuoteModel>({
     author: {
         type: Schema.Types.ObjectId,
         ref: "GuildMember",
-        required: true
+    },
+    conversationAuthors: {
+        type: [Schema.Types.ObjectId],
+        ref: "GuildMember"
     },
     nonDiscordAuthor: {
         type: String
+    },
+    conversationNonDiscordAuthors: {
+        type: [String]
     },
     creator: {
         type: Schema.Types.ObjectId,
@@ -105,6 +121,25 @@ quoteSchema.virtual("authorName").get(async function(this: IQuote): Promise<stri
     return "Unknown";
 })
 
+quoteSchema.virtual("conversationAuthorNames").get(async function(this: IQuote): Promise<string[]> {
+    await this.populate("conversationAuthors");
+    if (!this.conversation || this.conversation.length === 0) {
+        return [await this.authorName];
+    }
+    let authorNames: string[] = [];
+    for (let i = 0; i < this.conversation.length; i++) {
+        const author = this.conversationAuthors?.[i];
+        if (author) {
+            authorNames.push(author.displayName ?? author.username);
+        } else if (this.conversationNonDiscordAuthors?.[i]) {
+            authorNames.push(this.conversationNonDiscordAuthors[i]);
+        } else {
+            authorNames.push("Unknown");
+        }
+    }
+    return authorNames;
+})
+
 /**
  * Lists all quotes that match the given parameters.
  * @param guildId - The ID of the guild to search in.
@@ -123,7 +158,7 @@ quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: numb
     // Get all quotes from the guild
     let quoteDocuments = await this.find({
         guildId: { $in: quoteGuilds }
-    }).populate("author").populate("creator");
+    }).populate("author").populate("conversationAuthors").populate("creator");
 
     // Prepare the parameters
     content = content?.toLowerCase();
@@ -135,9 +170,17 @@ quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: numb
 
     // Filter the quotes
     quoteDocuments = quoteDocuments.filter((quoteDocument) => {
-        return (content === undefined || quoteDocument.quote.toLowerCase().includes(content)) &&
-        (author === undefined || quoteDocument.author?.userId === author) &&
-        (authorName === undefined || quoteDocument.author?.username.toLowerCase() === authorName || quoteDocument.author?.displayName.toLowerCase() === authorName || quoteDocument.nonDiscordAuthor?.toLowerCase() === authorName) &&
+        return (content === undefined || quoteDocument.quote?.toLowerCase().includes(content) || quoteDocument.conversation?.some((q) => {
+            return q.toLowerCase().includes(content!);
+        })) &&
+        (author === undefined || quoteDocument.author?.userId === author || quoteDocument.conversationAuthors?.some((a) => {
+            return a.userId === author;
+        })) &&
+        (authorName === undefined || quoteDocument.author?.username.toLowerCase() === authorName || quoteDocument.author?.displayName.toLowerCase() === authorName || quoteDocument.nonDiscordAuthor?.toLowerCase() === authorName || 
+        quoteDocument.conversationAuthors?.some((a) => {
+            return a.username.toLowerCase() === authorName || a.displayName.toLowerCase() === authorName;
+        }) ||
+        quoteDocument.conversationNonDiscordAuthors?.includes(authorName)) &&
         (creator === undefined || quoteDocument.creator.userId === creator) &&
         (creatorName === undefined || quoteDocument.creator.username.toLowerCase() === creatorName || quoteDocument.creator.displayName.toLowerCase() === creatorName) &&
         (timestamp === 0 || approximateEqual(quoteDocument.timestamp, timestamp, 60 * 60 * 24 * dateTolerance));
@@ -156,7 +199,8 @@ quoteSchema.statics.randomQuote = async function (guildId: string): Promise<IQuo
 
     const quoteDocuments = await this.find({
         guildId: { $in: quoteGuilds },
-    }).populate("author").populate("creator");
+        conversation: { $exists: false },
+    }).populate("author").populate("conversationAuthors").populate("creator");
     return randomElement<IQuote>(quoteDocuments);
 };
 
