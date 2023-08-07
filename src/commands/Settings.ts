@@ -222,11 +222,15 @@ const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<Int
 
 const handleQuoteLink = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     const linkedGuildId = interaction.options.getString("guild-id", true);
+    let guildName = linkedGuildId;
+    if (interaction.client.guilds.cache.has(linkedGuildId)) {
+        guildName = interaction.client.guilds.cache.get(linkedGuildId)!.name + " (" + linkedGuildId + ")";
+    }
 
     guildSchema.addLinkedGuild(interaction.guildId!, linkedGuildId);
 
     const embedBuilder = new EmbedBuilder()
-        .setTitle(`Linked guild ${linkedGuildId}`)
+        .setTitle(`Linked guild ${guildName}`)
         .setDescription("IMPORTANT: Guild linking is required from both guilds.\nQuote linking will start working once the other guild links to this guild.\nIf the other guild is already linked, quote linking will start working immediately.")
         .setColor(Colors.settingsEmbed);
 
@@ -238,11 +242,15 @@ const handleQuoteLink = async (interaction: ChatInputCommandInteraction): Promis
 
 const handleQuoteUnlink = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
     const linkedGuildId = interaction.options.getString("guild-id", true);
+    let guildName = linkedGuildId;
+    if (interaction.client.guilds.cache.has(linkedGuildId)) {
+        guildName = interaction.client.guilds.cache.get(linkedGuildId)!.name + " (" + linkedGuildId + ")";
+    }
 
     guildSchema.removeLinkedGuild(interaction.guildId!, linkedGuildId);
 
     const embedBuilder = new EmbedBuilder()
-        .setTitle(`Unlinked guild ${linkedGuildId}`)
+        .setTitle(`Unlinked guild ${guildName}`)
         .setDescription("IMPORTANT: Unlinking a guild will also prevent the other guild from accessing quotes from this guild.")
         .setColor(Colors.settingsEmbed);
 
