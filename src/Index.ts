@@ -93,7 +93,7 @@ const setupDiscordBot = () => {
     info("Starting Discord Bot...");
     
     const client = new Client({
-        intents: ["Guilds", "GuildMembers"]
+        intents: ["Guilds"]
     });
     
     debug("Starting event listeners...");

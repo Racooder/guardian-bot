@@ -44,6 +44,37 @@ export const Settings: Command = {
                     description: "The new value for the setting"
                 }
             ]
+        },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: "quote-link",
+            description: "Link this guild to another guild to share quotes",
+            options: [
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "guild-id",
+                    description: "The ID of the guild to link to",
+                    required: true
+                }
+            ]
+        },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: "quote-unlink",
+            description: "Unlink this server from another server",
+            options: [
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "guild-id",
+                    description: "The ID of the guild to unlink from",
+                    required: true
+                }
+            ]
+        },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: "quote-link-list",
+            description: "List all linked guilds"
         }
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
@@ -81,8 +112,23 @@ export const Settings: Command = {
                 key: "edit",
                 run: handleEdit,
                 stats: [StatisticType.Command_Settings_Edit]
+            },
+            {
+                key: "quote-link",
+                run: handleQuoteLink,
+                stats: [StatisticType.Command_Settings_QuoteLink]
+            },
+            {
+                key: "quote-unlink",
+                run: handleQuoteUnlink,
+                stats: [StatisticType.Command_Settings_QuoteUnlink]
+            },
+            {
+                key: "quote-link-list",
+                run: handleQuoteLinkList,
+                stats: [StatisticType.Command_Settings_QuoteLinkList]
             }
-        ], [StatisticType.Command_Settings]);
+        ], [StatisticType.Command_Settings], client);
     }
 }
 
@@ -121,7 +167,7 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
         } else if (setting === "quoteLinkedGuilds") {
             messageEmbed.addFields({
                 name: gSettings[setting]!.name,
-                value: "Use `/quoteLink list` to view linked guilds (WIP)"
+                value: "Use `/settings quote-link-list` to view linked guilds (WIP)"
             });
         } else {
             messageEmbed.addFields({
@@ -172,4 +218,68 @@ const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<Int
             error(`ChangeSettingResult "${result}" not found`, interaction.client);
             return generalError;
     }
+}
+
+const handleQuoteLink = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    const linkedGuildId = interaction.options.getString("guild-id", true);
+    let guildName = linkedGuildId;
+    if (interaction.client.guilds.cache.has(linkedGuildId)) {
+        guildName = interaction.client.guilds.cache.get(linkedGuildId)!.name + " (" + linkedGuildId + ")";
+    }
+
+    guildSchema.addLinkedGuild(interaction.guildId!, linkedGuildId);
+
+    const embedBuilder = new EmbedBuilder()
+        .setTitle(`Linked guild ${guildName}`)
+        .setDescription("IMPORTANT: Guild linking is required from both guilds.\nQuote linking will start working once the other guild links to this guild.\nIf the other guild is already linked, quote linking will start working immediately.")
+        .setColor(Colors.settingsEmbed);
+
+    return {
+        embeds: [embedBuilder],
+        ephemeral: true
+    };
+}
+
+const handleQuoteUnlink = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    const linkedGuildId = interaction.options.getString("guild-id", true);
+    let guildName = linkedGuildId;
+    if (interaction.client.guilds.cache.has(linkedGuildId)) {
+        guildName = interaction.client.guilds.cache.get(linkedGuildId)!.name + " (" + linkedGuildId + ")";
+    }
+
+    guildSchema.removeLinkedGuild(interaction.guildId!, linkedGuildId);
+
+    const embedBuilder = new EmbedBuilder()
+        .setTitle(`Unlinked guild ${guildName}`)
+        .setDescription("IMPORTANT: Unlinking a guild will also prevent the other guild from accessing quotes from this guild.")
+        .setColor(Colors.settingsEmbed);
+
+    return {
+        embeds: [embedBuilder],
+        ephemeral: true
+    };
+}
+
+const handleQuoteLinkList = async (interaction: ChatInputCommandInteraction, client: Client): Promise<InteractionReplyOptions> => {
+    const embedBuilder = new EmbedBuilder()
+        .setTitle(`Linked guilds`)
+        .setColor(Colors.settingsEmbed);
+    
+    const linkedGuilds = await guildSchema.listLinkedGuilds(interaction.guildId!);
+    linkedGuilds.forEach((linkedGuild) => {
+        let guildName = linkedGuild.guildId;
+        if (client.guilds.cache.has(linkedGuild.guildId)) {
+            guildName = client.guilds.cache.get(linkedGuild.guildId)!.name + " (" + linkedGuild.guildId + ")";
+        }
+
+        embedBuilder.addFields({
+            name: guildName,
+            value: linkedGuild.accepted ? "Accepted" : "Pending"
+        });
+    });
+
+    return {
+        embeds: [embedBuilder],
+        ephemeral: true
+    };
 }

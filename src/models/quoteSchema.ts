@@ -118,9 +118,11 @@ quoteSchema.virtual("authorName").get(async function(this: IQuote): Promise<stri
  * @returns The quotes that match the given parameters, split into pages.
  */
 quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: number, content?: string, author?: string, authorName?: string, creator?: string, creatorName?: string, date?: Date): Promise<IQuote[][]> {
+    const quoteGuilds = await guildSchema.getLinkedGuilds(guildId);
+    
     // Get all quotes from the guild
     let quoteDocuments = await this.find({
-        guildId: guildId,
+        guildId: { $in: quoteGuilds }
     }).populate("author").populate("creator");
 
     // Prepare the parameters
@@ -150,8 +152,10 @@ quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: numb
  * @returns The random quote.
  */
 quoteSchema.statics.randomQuote = async function (guildId: string): Promise<IQuote> {
+    const quoteGuilds = await guildSchema.getLinkedGuilds(guildId);
+
     const quoteDocuments = await this.find({
-        guildId: guildId,
+        guildId: { $in: quoteGuilds },
     }).populate("author").populate("creator");
     return randomElement<IQuote>(quoteDocuments);
 };
@@ -162,9 +166,11 @@ quoteSchema.statics.randomQuote = async function (guildId: string): Promise<IQuo
  * @returns The authors of the quotes.
  */
 quoteSchema.statics.allAuthors = async function (guildId: string): Promise<BaseUser[]> {
+    const quoteGuilds = await guildSchema.getLinkedGuilds(guildId);
+
     // Get all quotes from the guild
     const quoteDocuments = await this.find({
-        guildId: guildId,
+        guildId: { $in: quoteGuilds },
     }).populate("author");
 
     // Get all unique authors
