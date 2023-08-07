@@ -64,7 +64,7 @@ export const QuotePage: Button = {
         await quoteListDocument.save();
 
         debug("Creating message embed");
-        const messageEmbed = quoteListEmbed(quoteChunks, quoteListDocument.page);
+        const messageEmbed = await quoteListEmbed(quoteChunks, quoteListDocument.page);
 
         // Check if there are any buttons
         if (!interaction.message.components) {

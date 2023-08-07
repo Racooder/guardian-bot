@@ -1,4 +1,4 @@
-import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, GuildMember, ButtonStyle, InteractionReplyOptions } from "discord.js";
+import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, GuildMember, ButtonStyle, InteractionReplyOptions, APIEmbedField } from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import quoteSchema, { IQuote } from "../models/quoteSchema";
 import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
@@ -81,6 +81,89 @@ export const Quote: Command = {
                 }
             ]
         },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: "conversation",
+            description: "Create a quote from a conversation",
+            options: [
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "quote-1",
+                    description: "The first quote",
+                    required: true
+                },
+                {
+                    type: ApplicationCommandOptionType.User,
+                    name: "author-1",
+                    description: "The author of the first quote"
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "non-discord-author-1",
+                    description: "The author of the first quote if they are not a discord user"
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "quote-2",
+                    description: "The second quote"
+                },
+                {
+                    type: ApplicationCommandOptionType.User,
+                    name: "author-2",
+                    description: "The author of the second quote"
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "non-discord-author-2",
+                    description: "The author of the second quote if they are not a discord user"
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "quote-3",
+                    description: "The third quote"
+                },
+                {
+                    type: ApplicationCommandOptionType.User,
+                    name: "author-3",
+                    description: "The author of the third quote"
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "non-discord-author-3",
+                    description: "The author of the third quote if they are not a discord user"
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "quote-4",
+                    description: "The fourth quote"
+                },
+                {
+                    type: ApplicationCommandOptionType.User,
+                    name: "author-4",
+                    description: "The author of the fourth quote"
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "non-discord-author-4",
+                    description: "The author of the fourth quote if they are not a discord user"
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "quote-5",
+                    description: "The fifth quote"
+                },
+                {
+                    type: ApplicationCommandOptionType.User,
+                    name: "author-5",
+                    description: "The author of the fifth quote"
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "non-discord-author-5",
+                    description: "The author of the fifth quote if they are not a discord user"
+                }
+            ]
+        }
         // {
         //     type: ApplicationCommandOptionType.Subcommand,
         //     name: "edit",
@@ -118,6 +201,11 @@ export const Quote: Command = {
                 stats: [StatisticType.Command_Quote_Search]
             },
             {
+                key: "conversation",
+                run: handleConversation,
+                stats: [StatisticType.Command_Quote_Conversation]
+            },
+            {
                 key: "edit",
                 run: handleEditQuote,
                 stats: [StatisticType.Command_Quote_Edit]
@@ -152,7 +240,7 @@ const handleNewQuote = async (interaction: ChatInputCommandInteraction): Promise
     const creatorMember = interaction.member as GuildMember;
 
     debug("Updating creator and author names in the database");
-    const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, interaction.member as GuildMember);
+    const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, creatorMember);
     let authorDocument: IGuildMember | null = null;
     if (author !== null) {
         authorDocument = await guildMemberSchema.updateNames(interaction.guildId!, (await interaction.guild!.members.fetch(author.id)));
@@ -209,7 +297,7 @@ const handleListQuotes = async (interaction: ChatInputCommandInteraction): Promi
     })
 
     debug(`Building the embed and action row for quote list: ${quoteListDocument._id}`);
-    const messageEmbed = quoteListEmbed(quoteChunks, quoteListDocument.page);
+    const messageEmbed = await quoteListEmbed(quoteChunks, quoteListDocument.page);
     const row = new ActionRowBuilder()
         .addComponents(previousPageButton(quoteListDocument._id, quoteListDocument.page > 0), nextPageButton(quoteListDocument._id, quoteListDocument.page < quoteChunks.length - 1));
 
@@ -281,7 +369,7 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
 
     debug(`Building the embed and action row for quote list: ${quoteListDocument._id}`);
     const queryDescription = `Quotes matching the following criteria:\n${content ? `Content: ${content}\n` : ""}${author ? `Author: ${usernameString(author)}\n` : ""}${authorName ? `Author Name: ${authorName}\n` : ""}${creator ? `Creator: ${usernameString(creator)}\n` : ""}${creatorName ? `Creator Name: ${creatorName}\n` : ""}${date ? `Date: ${date.toISOString().split("T")[0]}\n` : ""}`;
-    const messageEmbed = quoteListEmbed(quoteChunks, quoteListDocument.page, queryDescription);
+    const messageEmbed = await quoteListEmbed(quoteChunks, quoteListDocument.page, queryDescription);
     const row = new ActionRowBuilder()
         .addComponents(previousPageButton(quoteListDocument._id, quoteListDocument.page > 0), nextPageButton(quoteListDocument._id, quoteListDocument.page < quoteChunks.length - 1));
 
@@ -289,6 +377,107 @@ const handleSearchQuotes = async (interaction: ChatInputCommandInteraction): Pro
         embeds: [messageEmbed],
         components: [row]
     } as InteractionReplyOptions;
+}
+
+const handleConversation = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+    debug("Conversation subcommand called");
+    
+    debug("Getting the option values");
+    var quotes = [
+        interaction.options.getString("quote-1", true),
+        interaction.options.getString("quote-2"),
+        interaction.options.getString("quote-3"),
+        interaction.options.getString("quote-4"),
+        interaction.options.getString("quote-5")
+    ];
+    var authors = [
+        interaction.options.getUser("author-1"),
+        interaction.options.getUser("author-2"),
+        interaction.options.getUser("author-3"),
+        interaction.options.getUser("author-4"),
+        interaction.options.getUser("author-5")
+    ];
+    var nonDiscordAuthors = [
+        interaction.options.getString("non-discord-author-1"),
+        interaction.options.getString("non-discord-author-2"),
+        interaction.options.getString("non-discord-author-3"),
+        interaction.options.getString("non-discord-author-4"),
+        interaction.options.getString("non-discord-author-5")
+    ];
+    let authorDocumentIds: any[] = [];
+
+    debug("Check if the options are valid and convert the authors to database guild members");
+    for (let i = 0; i < quotes.length; i++) {
+        if (quotes[i] === null) {
+            quotes.splice(i, quotes.length - i);
+            authors.splice(i, quotes.length - i);
+            nonDiscordAuthors.splice(i, quotes.length - i);
+            break;
+        }
+
+        if (authors[i] === null && nonDiscordAuthors[i] === null) {
+            debug("No author specified");
+            return {
+                content: `You must specify an author or non-discord author for quote ${i + 1}!`,
+                ephemeral: true
+            };
+        }
+        if (authors[i] !== null && nonDiscordAuthors[i] !== null) {
+            debug("Both author and non-discord author specified");
+            return {
+                content: `You must specify either an author or non-discord author for quote ${i + 1}, not both!`,
+                ephemeral: true
+            };
+        }
+        if (authors[i] !== null) {
+            debug(`Updating author ${i + 1} name in the database`);
+            const authorDocument = await guildMemberSchema.updateNames(interaction.guildId!, authors[i]!)
+            authorDocumentIds[i] = authorDocument._id;
+        }
+    }
+
+    if (quotes.length < 2) {
+        debug("Not enough quotes specified");
+        return {
+            content: "You must specify at least 2 quotes!",
+            ephemeral: true
+        };
+    }
+
+    const creatorMember = interaction.member as GuildMember;
+
+    debug("Updating creator name in the database");
+    const creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, creatorMember);
+
+    debug(`Creating conversation quote in guild: ${interaction.guild!.name}(${interaction.guildId})`);
+    const conversationDocument = await quoteSchema.create({
+        guildId: interaction.guildId!,
+        conversation: quotes,
+        timestamp: Math.floor(Date.now() / 1000),
+        conversationAuthors: authorDocumentIds,
+        conversationNonDiscordAuthors: nonDiscordAuthors,
+        creator: creatorDocument._id
+    });
+
+    debug("Getting the author names");
+    const authorNames = await conversationDocument.conversationAuthorNames;
+
+    debug("Building the embed");
+    const messageEmbed = new EmbedBuilder()
+        .setTitle(`Conversation`)
+        .setTimestamp(conversationDocument.timestamp * 1000)
+        .setAuthor({
+            name: creatorMember.displayName,
+            iconURL: interaction.user.displayAvatarURL()
+        })
+        .setColor(Colors.quoteEmbed)
+        .setDescription(quotes.map((quote, index) => {
+            return `"${quote}" - ${authorNames[index]}`;
+        }).join("\n"));
+
+    return {
+        embeds: [messageEmbed]
+    };
 }
 
 const handleEditQuote = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
@@ -307,7 +496,7 @@ const handleEditQuote = async (interaction: ChatInputCommandInteraction): Promis
  * @param description - The description of the embed
  * @returns The embed builder
  */
-export const quoteListEmbed = (pages: IQuote[][], page: number, description?: string): EmbedBuilder => {
+export const quoteListEmbed = async (pages: IQuote[][], page: number, description?: string): Promise<EmbedBuilder> => {
     debug(`Building quote list embed for page ${page + 1}/${pages.length}`);
 
     if (page >= pages.length) {
@@ -316,16 +505,34 @@ export const quoteListEmbed = (pages: IQuote[][], page: number, description?: st
         page = 0;
     }
 
-    return new EmbedBuilder()
+    let embedFields: APIEmbedField[] = [];
+    for (let i = 0; i < pages[page].length; i++) {
+        const quote = pages[page][i];
+        if (quote.conversation?.length) {
+            console.log(quote.conversation);
+            const authorNames = await quote.conversationAuthorNames;
+
+            embedFields.push({
+                name: `Conversation - Created by ${quote.creator.displayName} on <t:${quote.timestamp}:d>`,
+                value: quote.conversation!.map((q, index) => {
+                    return `"${q}" - ${authorNames[index]}`;
+                }).join("\n")
+            });
+        } else {
+            embedFields.push({
+                name: `"${quote.quote}" - ${await quote.authorName}`,
+                value: `Created by ${quote.creator.displayName} on <t:${quote.timestamp}:d>`
+            });
+        }
+    }
+
+    const embedBuilder = new EmbedBuilder()
         .setTitle(`Quotes (Page ${page + 1}/${pages.length})`)
         .setDescription(description ?? null)
         .setColor(Colors.quoteEmbed)
-        .addFields(pages[page].map((quote: IQuote) => {
-            return {
-                name: `"${quote.quote}" - ${quote.author?._id ? `${quote.author.displayName ?? quote.author.username}` : quote.nonDiscordAuthor}`,
-                value: `Created by ${quote.creator.displayName} on <t:${quote.timestamp}:d>`
-            }
-        }));
+        .addFields(embedFields);
+
+    return Promise.resolve(embedBuilder);
 }
 
 // Button builders

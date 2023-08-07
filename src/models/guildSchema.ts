@@ -257,9 +257,8 @@ guildSchema.statics.listLinkedGuilds = async function (guildId: string): Promise
  * @returns All linked guilds of the guild that have accepted the link. The last element is the guild itself.
  */
 guildSchema.statics.getLinkedGuilds = async function (guildId: string): Promise<string[]> {
-    return this.listLinkedGuilds(guildId).then((linkedGuilds) => {
-        return linkedGuilds.filter((linkedGuild) => linkedGuild.accepted).map((linkedGuild) => linkedGuild.guildId);
-    });
+    const linkedGuildList = await this.listLinkedGuilds(guildId);
+    return linkedGuildList.filter(linkedGuild => linkedGuild.accepted).map(linkedGuild => linkedGuild.guildId).concat(guildId);
 }
 
 /**
