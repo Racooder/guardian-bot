@@ -1,4 +1,4 @@
-import { Client } from "discord.js";
+import { ActivityType, Client } from "discord.js";
 import { Commands } from "../Interactions";
 import mongoose, { ConnectOptions } from "mongoose";
 import quoteListSchema from "../models/quoteListSchema";
@@ -30,6 +30,11 @@ export default (client: Client): void => {
 
         info("Registering commands...");
         await client.application.commands.set(Commands);
+
+        info("Setting activity...");
+        client.user.setActivity({
+            name: "Support me on Ko-fi!",
+        })
 
         success(`${client.user.username} is online`);
 

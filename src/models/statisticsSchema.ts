@@ -22,6 +22,7 @@ export const enum StatisticType {
         Command_Settings = "Command_Settings",
             Command_Settings_View = "Command_Settings_View",
             Command_Settings_Edit = "Command_Settings_Edit",
+        Command_Kofi = "Command_Kofi",
     Component = "Component",
         Component_QuotePage = "Component_QuotePage",
         Component_QuoteGuesser = "Component_QuoteGuesser",
