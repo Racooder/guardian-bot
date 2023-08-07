@@ -31,6 +31,11 @@ export type GuildSettings = {
     quoteGuesserSolutionTimeout?: GuildSetting<number>;
 }
 
+export type LinkedGuild = {
+    guildId: string;
+    accepted: boolean;
+}
+
 /**
  * Holds the functions for the guild schema.
  */
@@ -47,6 +52,24 @@ interface GuildModel extends Model<IGuild> {
      * @param settings - The new settings of the guild.
      */
     updateGuildSettings: (guildId: string, settings: GuildSettings) => Promise<void>;
+    /**
+     * Adds a linked guild to a guild.
+     * @param guildId - The ID of the guild.
+     * @param linkedGuildId - The ID of the linked guild.
+     */
+    addLinkedGuild: (guildId: string, linkedGuildId: string) => Promise<void>;
+    /**
+     * Removes a linked guild to a guild.
+     * @param guildId - The ID of the guild.
+     * @param linkedGuildId - The ID of the linked guild.
+     */
+    removeLinkedGuild: (guildId: string, linkedGuildId: string) => Promise<void>;
+    /**
+     * Gets all linked guilds of a guild.
+     * @param guildId - The ID of the guild.
+     * @returns All linked guilds of the guild.
+     */
+    listLinkedGuilds: (guildId: string) => Promise<LinkedGuild[]>;
 }
 
 /**
@@ -165,6 +188,61 @@ guildSchema.statics.updateGuildSettings = async function (guildId: string, setti
         },
         { upsert: true }
     );
+}
+
+/**
+ * Adds a linked guild to a guild.
+ * @param guildId - The ID of the guild.
+ * @param linkedGuildId - The ID of the linked guild.
+ */
+guildSchema.statics.addLinkedGuild = async function (guildId: string, linkedGuildId: string): Promise<void> {
+    await this.findOneAndUpdate(
+        { guildId: guildId },
+        { $addToSet: { quoteLinkedGuilds: linkedGuildId } },
+        { upsert: true }
+    );
+}
+
+/**
+ * Removes a linked guild to a guild.
+ * @param guildId - The ID of the guild.
+ * @param linkedGuildId - The ID of the linked guild.
+ */
+guildSchema.statics.removeLinkedGuild = async function (guildId: string, linkedGuildId: string): Promise<void> {
+    await this.findOneAndUpdate(
+        { guildId: guildId },
+        { $pull: { quoteLinkedGuilds: linkedGuildId } },
+        { upsert: true }
+    );
+}
+
+/**
+ * Gets all linked guilds of a guild.
+ * @param guildId - The ID of the guild.
+ * @returns All linked guilds of the guild.
+ */
+guildSchema.statics.listLinkedGuilds = async function (guildId: string): Promise<LinkedGuild[]> {
+    const guild = await this.findOne({ guildId: guildId });
+
+    if (guild) {
+        let linkedGuilds: LinkedGuild[] = [];
+        for (const linkedGuildId of guild.quoteLinkedGuilds) {
+            const linkedGuild = await this.findOne({ guildId: linkedGuildId });
+            let accepted = false;
+            if (linkedGuild && linkedGuild.quoteLinkedGuilds.includes(guildId)) {
+                accepted = true;
+            }
+
+            linkedGuilds.push({
+                guildId: linkedGuildId,
+                accepted: accepted
+            });
+        }
+
+        return linkedGuilds;
+    } else {
+        return [];
+    }
 }
 
 /**
