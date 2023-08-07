@@ -88,7 +88,7 @@ const save = (message: string) => {
 export const setupLog = async () => {
     existsSync(folderPath) || mkdirSync(folderPath);
     if (existsSync(latestPath)) {
-        const targetPath = `${folderPath}/${new Date().toISOString()}.txt.gz`;
+        const targetPath = `${folderPath}/${new Date().toISOString()}.txt.gz`.replace(/:/g, "-");
 
         // Compress the latest file
         return new Promise<void>((resolve, reject) => {
