@@ -65,11 +65,17 @@ interface GuildModel extends Model<IGuild> {
      */
     removeLinkedGuild: (guildId: string, linkedGuildId: string) => Promise<void>;
     /**
-     * Gets all linked guilds of a guild.
+     * Lists all linked guilds of a guild.
      * @param guildId - The ID of the guild.
      * @returns All linked guilds of the guild.
      */
     listLinkedGuilds: (guildId: string) => Promise<LinkedGuild[]>;
+    /**
+     * Gets all guilds that are linked to a guild and that have accepted the link including the guild itself.
+     * @param guildId - The ID of the guild.
+     * @returns All linked guilds of the guild that have accepted the link. The last element is the guild itself.
+     */
+    getLinkedGuilds: (guildId: string) => Promise<string[]>;
 }
 
 /**
@@ -217,7 +223,7 @@ guildSchema.statics.removeLinkedGuild = async function (guildId: string, linkedG
 }
 
 /**
- * Gets all linked guilds of a guild.
+ * Lists all linked guilds of a guild.
  * @param guildId - The ID of the guild.
  * @returns All linked guilds of the guild.
  */
@@ -243,6 +249,17 @@ guildSchema.statics.listLinkedGuilds = async function (guildId: string): Promise
     } else {
         return [];
     }
+}
+
+/**
+ * Gets all guilds that are linked to a guild and that have accepted the link including the guild itself.
+ * @param guildId - The ID of the guild.
+ * @returns All linked guilds of the guild that have accepted the link. The last element is the guild itself.
+ */
+guildSchema.statics.getLinkedGuilds = async function (guildId: string): Promise<string[]> {
+    return this.listLinkedGuilds(guildId).then((linkedGuilds) => {
+        return linkedGuilds.filter((linkedGuild) => linkedGuild.accepted).map((linkedGuild) => linkedGuild.guildId);
+    });
 }
 
 /**
