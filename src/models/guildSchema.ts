@@ -258,7 +258,9 @@ guildSchema.statics.listLinkedGuilds = async function (guildId: string): Promise
  */
 guildSchema.statics.getLinkedGuilds = async function (guildId: string): Promise<string[]> {
     const linkedGuildList = await this.listLinkedGuilds(guildId);
-    return linkedGuildList.filter(linkedGuild => linkedGuild.accepted).map(linkedGuild => linkedGuild.guildId).concat(guildId);
+    const linkedGuilds = linkedGuildList.filter(linkedGuild => linkedGuild.accepted).map(linkedGuild => linkedGuild.guildId).concat(guildId);
+    console.log(linkedGuilds);
+    return linkedGuilds;
 }
 
 /**
