@@ -42,31 +42,34 @@ interface FeedbackModel extends Model<IFeedback> {
 /**
  * The database schema for feedback.
  */
-const feedbackSchema = new Schema<IFeedback, FeedbackModel>({
-    type: {
-        type: String,
-        required: true
+const feedbackSchema = new Schema<IFeedback, FeedbackModel>(
+    {
+        type: {
+            type: String,
+            required: true,
+        },
+        description: {
+            type: String,
+            required: true,
+        },
+        creator: {
+            type: Schema.Types.ObjectId,
+            ref: "GuildMember",
+            required: false,
+        },
+        creatorId: {
+            type: String,
+            required: true,
+        },
+        creatorName: {
+            type: String,
+            required: true,
+        },
     },
-    description: {
-        type: String,
-        required: true
-    },
-    creator: {
-        type: Schema.Types.ObjectId,
-        ref: "GuildMember",
-        required: false
-    },
-    creatorId: {
-        type: String,
-        required: true
-    },
-    creatorName: {
-        type: String,
-        required: true
+    {
+        timestamps: true,
     }
-}, {
-    timestamps: true
-});
+);
 
 /**
  * Lists feedback.
@@ -77,30 +80,35 @@ feedbackSchema.statics.listFeedback = async function (): Promise<IFeedback[]> {
 };
 
 /**
-     * Gets all feedback entries between the given dates or all if no dates are given.
-     * @param from - The start date.
-     * @param to - The end date.
-     * @returns The feedback entries.
-     */
-feedbackSchema.statics.getAll = async function (from?: Date, to?: Date): Promise<APIFeedback[]> {
+ * Gets all feedback entries between the given dates or all if no dates are given.
+ * @param from - The start date.
+ * @param to - The end date.
+ * @returns The feedback entries.
+ */
+feedbackSchema.statics.getAll = async function (
+    from?: Date,
+    to?: Date
+): Promise<APIFeedback[]> {
     from = from || new Date(0);
     to = to || new Date();
-    
+
     const feedbackDocuments = await this.find({
         createdAt: {
             $gte: from,
-            $lte: to
-        }
+            $lte: to,
+        },
     });
 
-    const feedback: APIFeedback[] = feedbackDocuments.map((feedbackDocument) => {
-        return {
-            type: feedbackDocument.type,
-            description: feedbackDocument.description,
-            creatorId: feedbackDocument.creatorId,
-            creatorName: feedbackDocument.creatorName
-        };
-    });
+    const feedback: APIFeedback[] = feedbackDocuments.map(
+        (feedbackDocument) => {
+            return {
+                type: feedbackDocument.type,
+                description: feedbackDocument.description,
+                creatorId: feedbackDocument.creatorId,
+                creatorName: feedbackDocument.creatorName,
+            };
+        }
+    );
 
     return feedback;
 };
@@ -108,4 +116,7 @@ feedbackSchema.statics.getAll = async function (from?: Date, to?: Date): Promise
 /**
  * The guild model.
  */
-export default mongoose.model<IFeedback, FeedbackModel>("Feedback", feedbackSchema);
+export default mongoose.model<IFeedback, FeedbackModel>(
+    "Feedback",
+    feedbackSchema
+);

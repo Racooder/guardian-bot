@@ -1,18 +1,22 @@
-import { ButtonInteraction, Client } from 'discord.js';
-import { Button } from '../InteractionInterfaces';
-import { isGuildCommand } from '../Essentials';
-import { noGuildError } from '../InteractionReplies';
-import quoteGuesserSchema from '../models/quoteGuesserSchema';
-import { findCurrentRound } from '../models/quoteGuesserSchema';
-import { stopRound } from './StopQuoteGuesser';
-import { newGame } from '../commands/QuoteGuesser';
-import { debug } from '../Log';
-import { StatisticType, updateStatistic } from '../models/statisticsSchema';
+import { ButtonInteraction, Client } from "discord.js";
+import { Button } from "../InteractionInterfaces";
+import { isGuildCommand } from "../Essentials";
+import { noGuildError } from "../InteractionReplies";
+import quoteGuesserSchema from "../models/quoteGuesserSchema";
+import { findCurrentRound } from "../models/quoteGuesserSchema";
+import { stopRound } from "./StopQuoteGuesser";
+import { newGame } from "../commands/QuoteGuesser";
+import { debug } from "../Log";
+import { StatisticType, updateStatistic } from "../models/statisticsSchema";
 
 export const NextQuoteGuesser: Button = {
     name: "nextQuoteGuesser",
     isButton: true,
-    run: async (client: Client, interaction: ButtonInteraction, data: string[]) => {
+    run: async (
+        client: Client,
+        interaction: ButtonInteraction,
+        data: string[]
+    ) => {
         debug("Next quote guesser button interaction received");
 
         if (!isGuildCommand(interaction)) {
@@ -23,7 +27,12 @@ export const NextQuoteGuesser: Button = {
         // Get the token from the button data
         const token = data[0];
         // Get the new round number
-        const newRound = await findCurrentRound(quoteGuesserSchema, interaction.guildId!, token) + 1;
+        const newRound =
+            (await findCurrentRound(
+                quoteGuesserSchema,
+                interaction.guildId!,
+                token
+            )) + 1;
 
         debug("Stopping round");
         await stopRound(interaction, token);
@@ -34,6 +43,10 @@ export const NextQuoteGuesser: Button = {
         debug("Replying to user");
         interaction.followUp(answer);
 
-        updateStatistic([StatisticType.Component, StatisticType.Component_QuoteGuesser, StatisticType.Component_QuoteGuesser_Next]);
-    }
-}
+        updateStatistic([
+            StatisticType.Component,
+            StatisticType.Component_QuoteGuesser,
+            StatisticType.Component_QuoteGuesser_Next,
+        ]);
+    },
+};

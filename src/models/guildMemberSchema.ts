@@ -24,7 +24,10 @@ interface GuildMemberModel extends Model<IGuildMember> {
      * @param user - The user or member object.
      * @returns The updated guild member document.
      */
-    updateNames: (guildId: string, user: User | GuildMember) => Promise<IGuildMember>;
+    updateNames: (
+        guildId: string,
+        user: User | GuildMember
+    ) => Promise<IGuildMember>;
 }
 
 /**
@@ -33,26 +36,26 @@ interface GuildMemberModel extends Model<IGuildMember> {
 const guildMemberSchema = new Schema<IGuildMember, GuildMemberModel>({
     guildId: {
         type: String,
-        required: true
+        required: true,
     },
     userId: {
         type: String,
-        required: true
+        required: true,
     },
     username: {
         type: String,
-        required: true
+        required: true,
     },
     displayName: {
-        type: String
+        type: String,
     },
     discriminator: {
-        type: String
+        type: String,
     },
     quoteGuesserScore: {
         type: Number,
-        default: 0
-    }
+        default: 0,
+    },
 });
 
 /**
@@ -61,14 +64,18 @@ const guildMemberSchema = new Schema<IGuildMember, GuildMemberModel>({
  * @param user - The user or member object.
  * @returns The updated guild member document.
  */
-guildMemberSchema.statics.updateNames = function (guildId: string, user: User | GuildMember): Promise<IGuildMember> {
+guildMemberSchema.statics.updateNames = function (
+    guildId: string,
+    user: User | GuildMember
+): Promise<IGuildMember> {
     const userId = user.id;
 
     const baseUser = getBaseUser(user);
     const username = baseUser.username;
     const discriminator = baseUser.discriminator;
 
-    let displayName = user instanceof GuildMember ? user.displayName : undefined;
+    let displayName =
+        user instanceof GuildMember ? user.displayName : undefined;
 
     if (!displayName) displayName = username;
     return this.findOneAndUpdate(
@@ -81,4 +88,7 @@ guildMemberSchema.statics.updateNames = function (guildId: string, user: User | 
 /**
  * The guild member model.
  */
-export default mongoose.model<IGuildMember, GuildMemberModel>("GuildMember", guildMemberSchema);
+export default mongoose.model<IGuildMember, GuildMemberModel>(
+    "GuildMember",
+    guildMemberSchema
+);

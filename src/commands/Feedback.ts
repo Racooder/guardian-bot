@@ -1,8 +1,13 @@
-import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType } from "discord.js";
+import {
+    CommandInteraction,
+    Client,
+    ApplicationCommandType,
+    ApplicationCommandOptionType,
+} from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import { generalError } from "../InteractionReplies";
 import { handleSubcommands, isGuildCommand } from "../Essentials";
-import { debug, error } from '../Log';
+import { debug, error } from "../Log";
 import feedbackSchema from "../models/feedbackSchema";
 import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
 import { StatisticType } from "../models/statisticsSchema";
@@ -22,8 +27,8 @@ export const Feedback: Command = {
                     name: "description",
                     description: "The bug description",
                     required: true,
-                }
-            ]
+                },
+            ],
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
@@ -35,8 +40,8 @@ export const Feedback: Command = {
                     name: "description",
                     description: "The feature description",
                     required: true,
-                }
-            ]
+                },
+            ],
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
@@ -48,9 +53,9 @@ export const Feedback: Command = {
                     name: "description",
                     description: "The feedback description",
                     required: true,
-                }
-            ]
-        }
+                },
+            ],
+        },
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
         debug("Feedback command called");
@@ -63,12 +68,18 @@ export const Feedback: Command = {
 
         // Get the option values
         const feedbackType = interaction.options.getSubcommand();
-        const feedbackDescription = interaction.options.getString("description", true);
+        const feedbackDescription = interaction.options.getString(
+            "description",
+            true
+        );
 
         let creatorDocument: IGuildMember | null = null;
         if (isGuildCommand(interaction)) {
             debug("Updating creator name in the database");
-            creatorDocument = await guildMemberSchema.updateNames(interaction.guildId!, interaction.user);
+            creatorDocument = await guildMemberSchema.updateNames(
+                interaction.guildId!,
+                interaction.user
+            );
         }
 
         debug("Creating feedback document");
@@ -80,43 +91,49 @@ export const Feedback: Command = {
             creatorName: interaction.user.username,
         });
 
-        await handleSubcommands(interaction, feedbackType, [
-            {
-                key: "bug",
-                run: handleBug,
-                stats: [StatisticType.Command_Feedback_Bug]
-            },
-            {
-                key: "feature",
-                run: handleFeature,
-                stats: [StatisticType.Command_Feedback_Feature]
-            },
-            {
-                key: "other",
-                run: handleOther,
-                stats: [StatisticType.Command_Feedback_Other]
-            }
-        ], [StatisticType.Command_Feedback], feedbackDescription);
-    }
-}
+        await handleSubcommands(
+            interaction,
+            feedbackType,
+            [
+                {
+                    key: "bug",
+                    run: handleBug,
+                    stats: [StatisticType.Command_Feedback_Bug],
+                },
+                {
+                    key: "feature",
+                    run: handleFeature,
+                    stats: [StatisticType.Command_Feedback_Feature],
+                },
+                {
+                    key: "other",
+                    run: handleOther,
+                    stats: [StatisticType.Command_Feedback_Other],
+                },
+            ],
+            [StatisticType.Command_Feedback],
+            feedbackDescription
+        );
+    },
+};
 
 const handleBug = async (interaction: CommandInteraction, args: string) => {
     return {
         content: "Bug reported",
-        ephemeral: true
-    }
-}
+        ephemeral: true,
+    };
+};
 
 const handleFeature = async (interaction: CommandInteraction, args: string) => {
     return {
         content: "Feature requested",
-        ephemeral: true
-    }
-}
+        ephemeral: true,
+    };
+};
 
 const handleOther = async (interaction: CommandInteraction, args: string) => {
     return {
         content: "Feedback sent",
-        ephemeral: true
-    }
-}
+        ephemeral: true,
+    };
+};

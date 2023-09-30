@@ -43,7 +43,12 @@ interface QuoteGuesserModel extends Model<IQuoteGuesser> {
      * @param answer - The answer of the user.
      * @returns 1: The answer was correct, 2: The answer was wrong, 3: The game doesn't exist, 4: The user already answered correctly, 5: The user already answered wrong
      */
-    addAnswer: (guildId: string, token: string, user: GuildMember, answer: string) => Promise<number>;
+    addAnswer: (
+        guildId: string,
+        token: string,
+        user: GuildMember,
+        answer: string
+    ) => Promise<number>;
     /**
      * Clears all quote guesser games that are older than the quote guesser lifetime.
      */
@@ -59,7 +64,7 @@ interface QuoteGuesserModel extends Model<IQuoteGuesser> {
 
 type ResultTranslation = {
     [key: number]: string;
-}
+};
 
 /**
  * Translates the result code to a message
@@ -69,63 +74,66 @@ export const resultTranslation: ResultTranslation = {
     2: "Your answer was wrong!",
     3: "No game found with that token",
     4: "You have already answered correctly!\nYou can't change your answer",
-    5: "You have already answered incorrectly!\nYou can't change your answer"
-}
+    5: "You have already answered incorrectly!\nYou can't change your answer",
+};
 
 /**
  * The database schema for a quote guesser game.
  */
-const quoteGuesserSchema = new Schema<IQuoteGuesser, QuoteGuesserModel>({
-    guildId: {
-        type: String,
-        required: true
+const quoteGuesserSchema = new Schema<IQuoteGuesser, QuoteGuesserModel>(
+    {
+        guildId: {
+            type: String,
+            required: true,
+        },
+        token: {
+            type: String,
+            required: true,
+        },
+        quote: {
+            type: String,
+            required: true,
+        },
+        authorId: {
+            type: String,
+        },
+        authorName: {
+            type: String,
+            required: true,
+        },
+        authorAlias: {
+            type: String,
+        },
+        correctAnswerIds: {
+            type: [String],
+            required: true,
+            default: [],
+        },
+        wrongAnswerIds: {
+            type: [String],
+            required: true,
+            default: [],
+        },
+        correctAnswerNames: {
+            type: [String],
+            required: true,
+            default: [],
+        },
+        wrongAnswerNames: {
+            type: [String],
+            required: true,
+            default: [],
+        },
+        round: {
+            type: Number,
+            required: true,
+            default: 1,
+        },
     },
-    token: {
-        type: String,
-        required: true
-    },
-    quote: {
-        type: String,
-        required: true
-    },
-    authorId: {
-        type: String
-    },
-    authorName: {
-        type: String,
-        required: true
-    },
-    authorAlias: {
-        type: String
-    },
-    correctAnswerIds: {
-        type: [String],
-        required: true,
-        default: []
-    },
-    wrongAnswerIds: {
-        type: [String],
-        required: true,
-        default: []
-    },
-    correctAnswerNames: {
-        type: [String],
-        required: true,
-        default: []
-    },
-    wrongAnswerNames: {
-        type: [String],
-        required: true,
-        default: []
-    },
-    round: {
-        type: Number,
-        required: true,
-        default: 1
+    {
+        timestamps: true,
     }
-}, {
-    timestamps: true
-});
+);
 
 /**
  * Gets the current round of a quote guesser game.
@@ -134,18 +142,22 @@ const quoteGuesserSchema = new Schema<IQuoteGuesser, QuoteGuesserModel>({
  * @param token - The token of the quote guesser game.
  * @returns The current round.
  */
-export const findCurrentRound = async function (model: QuoteGuesserModel, guildId: string, token: string): Promise<number> {
+export const findCurrentRound = async function (
+    model: QuoteGuesserModel,
+    guildId: string,
+    token: string
+): Promise<number> {
     const quoteGuesser = await model.find({ guildId, token });
     let round = 0;
-    if (quoteGuesser && await model.exists({ token: token })) {
+    if (quoteGuesser && (await model.exists({ token: token }))) {
         let oldGames = await model.find({ guildId: guildId, token: token });
         if (oldGames.length > 1) {
             oldGames = oldGames.sort((a, b) => (b.round || 0) - (a.round || 0));
         }
-        round = (oldGames[0].round || 1);
+        round = oldGames[0].round || 1;
     }
     return round;
-}
+};
 
 /**
  * Gets the correct answer of the current round of a quote guesser game.
@@ -153,16 +165,19 @@ export const findCurrentRound = async function (model: QuoteGuesserModel, guildI
  * @param token - The token of the quote guesser game.
  * @returns The correct answer or null if the game doesn't exist.
  */
-quoteGuesserSchema.statics.getAnswer = async function (guildId: string, token: string): Promise<BaseUser | null> {
+quoteGuesserSchema.statics.getAnswer = async function (
+    guildId: string,
+    token: string
+): Promise<BaseUser | null> {
     const round = await findCurrentRound(this, guildId, token);
     const quoteGuesser = await this.findOne({ guildId, token, round });
-    
+
     if (!quoteGuesser) return null;
     return {
         id: quoteGuesser.authorId,
-        name: quoteGuesser.authorName
-    }
-}
+        name: quoteGuesser.authorName,
+    };
+};
 
 /**
  * Checks if the answer is correct.
@@ -170,15 +185,23 @@ quoteGuesserSchema.statics.getAnswer = async function (guildId: string, token: s
  * @param answer - The answer of the user.
  * @returns If the answer is correct.
  */
-export const checkAnswer = function (document: IQuoteGuesser, answer: string): boolean {
-    return (
-        (document.authorId && document.authorId === answer) ||
-        (document.authorName && document.authorName?.toLowerCase() === answer.toLowerCase()) ||
-        (document.authorAlias && document.authorAlias?.toLowerCase() === answer.toLowerCase())
-    ) as boolean;
-}
+export const checkAnswer = function (
+    document: IQuoteGuesser,
+    answer: string
+): boolean {
+    return ((document.authorId && document.authorId === answer) ||
+        (document.authorName &&
+            document.authorName?.toLowerCase() === answer.toLowerCase()) ||
+        (document.authorAlias &&
+            document.authorAlias?.toLowerCase() ===
+                answer.toLowerCase())) as boolean;
+};
 
-export const saveAnswer = async function (document: IQuoteGuesser, correct: boolean, user: GuildMember): Promise<void> {
+export const saveAnswer = async function (
+    document: IQuoteGuesser,
+    correct: boolean,
+    user: GuildMember
+): Promise<void> {
     if (correct) {
         document.correctAnswerIds.push(user.id);
         document.correctAnswerNames.push(usernameString(user));
@@ -187,7 +210,7 @@ export const saveAnswer = async function (document: IQuoteGuesser, correct: bool
         document.wrongAnswerNames.push(usernameString(user));
     }
     await document.save();
-}
+};
 
 /**
  * Adds an player answer to the current round of a quote guesser game.
@@ -197,7 +220,12 @@ export const saveAnswer = async function (document: IQuoteGuesser, correct: bool
  * @param answer - The answer of the user.
  * @returns 1: The answer was correct, 2: The answer was wrong, 3: The game doesn't exist, 4: The user already answered correctly, 5: The user already answered wrong
  */
-quoteGuesserSchema.statics.addAnswer = async function (guildId: string, token: string, user: GuildMember, answer: string): Promise<number> {
+quoteGuesserSchema.statics.addAnswer = async function (
+    guildId: string,
+    token: string,
+    user: GuildMember,
+    answer: string
+): Promise<number> {
     // Get the current round of the game
     const round = await findCurrentRound(this, guildId, token);
     const quoteGuesser = await this.findOne({ guildId, token, round });
@@ -205,27 +233,32 @@ quoteGuesserSchema.statics.addAnswer = async function (guildId: string, token: s
     if (!quoteGuesser) return 3; // The game doesn't exist
     if (quoteGuesser.correctAnswerIds.includes(user.id)) return 4; // The user already answered correctly
     if (quoteGuesser.wrongAnswerIds.includes(user.id)) return 5; // The user already answered wrong
-    
+
     // Check if the answer is correct
     if (checkAnswer(quoteGuesser, answer)) {
-            // Save the user as correct answerer
-            await saveAnswer(quoteGuesser, true, user);
-            // Increment the score of the user
-            guildMemberSchema.findOneAndUpdate({ guildId: guildId, userId: user.id }, { $inc: { quoteGuesserScore: 1 } }).exec();
+        // Save the user as correct answerer
+        await saveAnswer(quoteGuesser, true, user);
+        // Increment the score of the user
+        guildMemberSchema
+            .findOneAndUpdate(
+                { guildId: guildId, userId: user.id },
+                { $inc: { quoteGuesserScore: 1 } }
+            )
+            .exec();
 
-            return 1; // The answer was correct
+        return 1; // The answer was correct
     }
     // Save the user as wrong answerer
     await saveAnswer(quoteGuesser, false, user);
 
     return 2; // The answer was wrong
-}
+};
 
 /**
  * Clears all quote guesser games that are older than the quote guesser lifetime.
  */
 quoteGuesserSchema.statics.clearOld = async function () {
-    clearOld(this, (1000 * 60 * 60 * settings.quoteGuesserLifetime));
+    clearOld(this, 1000 * 60 * 60 * settings.quoteGuesserLifetime);
 };
 
 /**
@@ -234,15 +267,24 @@ quoteGuesserSchema.statics.clearOld = async function () {
  * @param token - The token of the quote guesser game.
  * @returns The number of answers.
  */
-quoteGuesserSchema.statics.getAnswerCount = async function (guildId: string, token: string): Promise<number> {
+quoteGuesserSchema.statics.getAnswerCount = async function (
+    guildId: string,
+    token: string
+): Promise<number> {
     const round = await findCurrentRound(this, guildId, token);
     const quoteGuesser = await this.findOne({ guildId, token, round });
 
     if (!quoteGuesser) return 0;
-    return quoteGuesser.correctAnswerIds.length + quoteGuesser.wrongAnswerIds.length;
-}
+    return (
+        quoteGuesser.correctAnswerIds.length +
+        quoteGuesser.wrongAnswerIds.length
+    );
+};
 
 /**
  * The quote guesser model.
  */
-export default mongoose.model<IQuoteGuesser, QuoteGuesserModel>("QuoteGuesser", quoteGuesserSchema);
+export default mongoose.model<IQuoteGuesser, QuoteGuesserModel>(
+    "QuoteGuesser",
+    quoteGuesserSchema
+);

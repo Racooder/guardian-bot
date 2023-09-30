@@ -1,5 +1,11 @@
 import { Client, EmbedBuilder } from "discord.js";
-import { createReadStream, createWriteStream, existsSync, mkdirSync, writeFileSync } from "fs";
+import {
+    createReadStream,
+    createWriteStream,
+    existsSync,
+    mkdirSync,
+    writeFileSync,
+} from "fs";
 import { createGzip } from "zlib";
 
 const format = {
@@ -29,8 +35,8 @@ const format = {
     BgMagenta: "\x1b[45m",
     BgCyan: "\x1b[46m",
     BgWhite: "\x1b[47m",
-    BgGray: "\x1b[100m"
-}
+    BgGray: "\x1b[100m",
+};
 
 const folderPath = "./logs";
 const latestPath = `${folderPath}/latest.txt`;
@@ -39,56 +45,62 @@ export const debug = (message: string) => {
     if (process.env.DEBUG === "true") {
         log(message, "[DEBUG]  ", format.FgGray);
     }
-}
+};
 
 export const info = (message: string) => {
     log(message, "[INFO]   ", format.FgWhite);
-}
+};
 
 export const success = (message: string) => {
     log(message, "[SUCCESS]", format.FgGreen);
-}
+};
 
 export const warn = (message: string) => {
     log(message, "[WARN]   ", format.FgYellow);
-}
+};
 
 export const error = (message: string, client?: Client) => {
     log(message, "[ERROR]  ", format.FgRed);
 
     const errorChannel = process.env.ERROR_CHANNEL;
     if (client && errorChannel) {
-        client.channels.fetch(errorChannel).then(channel => {
+        client.channels.fetch(errorChannel).then((channel) => {
             if (channel && channel.isTextBased()) {
                 const messageEmbed = new EmbedBuilder()
                     .setTitle("Error")
                     .setDescription(message)
-                    .setColor(0xAA0000);
+                    .setColor(0xaa0000);
                 channel.send({
                     content: "<@&" + process.env.ERROR_ROLE + ">",
-                    embeds: [messageEmbed]
+                    embeds: [messageEmbed],
                 });
             }
         });
     }
-}
+};
 
 const log = (message: string, prefix: string, color = "", doSave = true) => {
-    const msg = `${new Date().toLocaleString('en-GB', { timeZone: 'UTC' })} ${prefix} ${message}`;
+    const msg = `${new Date().toLocaleString("en-GB", {
+        timeZone: "UTC",
+    })} ${prefix} ${message}`;
     console.log(color, msg, format.Reset);
     if (doSave) {
         save(msg);
     }
-}
+};
 
 const save = (message: string) => {
     writeFileSync(latestPath, `${message}\n`, { flag: "a" });
-}
+};
 
 export const setupLog = async () => {
     existsSync(folderPath) || mkdirSync(folderPath);
     if (existsSync(latestPath)) {
-        const targetPath = `${folderPath}/${new Date().toISOString()}.txt.gz`.replace(/:/g, "-");
+        const targetPath =
+            `${folderPath}/${new Date().toISOString()}.txt.gz`.replace(
+                /:/g,
+                "-"
+            );
 
         // Compress the latest file
         return new Promise<void>((resolve, reject) => {
@@ -104,4 +116,4 @@ export const setupLog = async () => {
     } else {
         writeFileSync(latestPath, "");
     }
-}
+};

@@ -1,4 +1,9 @@
-import { CommandInteraction, Client, ApplicationCommandType, EmbedBuilder } from "discord.js";
+import {
+    CommandInteraction,
+    Client,
+    ApplicationCommandType,
+    EmbedBuilder,
+} from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import { debug } from "../Log";
 import { StatisticType, updateStatistic } from "../models/statisticsSchema";
@@ -19,26 +24,28 @@ export const Ping: Command = {
         const apiLatencyMessage = getLatencyMessage(apiLatency);
 
         debug("Building embed");
-        const messageEmbed = new EmbedBuilder()
-            .addFields(
-                {
-                    name: ":stopwatch: Latency",
-                    value: `${latency}ms ${latencyMessage}`
-                },
-                {
-                    name: ":heartbeat: API Latency",
-                    value: apiLatency < 0 ? "Could not be calculated" : `${apiLatency}ms ${apiLatencyMessage}`
-                }
-            )
+        const messageEmbed = new EmbedBuilder().addFields(
+            {
+                name: ":stopwatch: Latency",
+                value: `${latency}ms ${latencyMessage}`,
+            },
+            {
+                name: ":heartbeat: API Latency",
+                value:
+                    apiLatency < 0
+                        ? "Could not be calculated"
+                        : `${apiLatency}ms ${apiLatencyMessage}`,
+            }
+        );
 
         await interaction.reply({
             ephemeral: true,
-            embeds: [messageEmbed]
+            embeds: [messageEmbed],
         });
 
         updateStatistic([StatisticType.Command_Ping]);
-    }
-}
+    },
+};
 
 export const getLatencyMessage = (latency: number): String => {
     if (latency === 69) {
@@ -60,4 +67,4 @@ export const getLatencyMessage = (latency: number): String => {
         return "(That's a lot!)";
     }
     return "";
-}
+};

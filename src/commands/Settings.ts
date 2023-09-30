@@ -1,11 +1,25 @@
-import { CommandInteraction, Client, ApplicationCommandType, ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, PermissionsBitField, InteractionReplyOptions } from 'discord.js';
+import {
+    CommandInteraction,
+    Client,
+    ApplicationCommandType,
+    ApplicationCommandOptionType,
+    ChatInputCommandInteraction,
+    EmbedBuilder,
+    PermissionsBitField,
+    InteractionReplyOptions,
+} from "discord.js";
 import { Command } from "../InteractionInterfaces";
-import { ChangeSettingResult, changeSetting, handleSubcommands, isGuildCommand } from "../Essentials";
+import {
+    ChangeSettingResult,
+    changeSetting,
+    handleSubcommands,
+    isGuildCommand,
+} from "../Essentials";
 import { generalError, noGuildError } from "../InteractionReplies";
-import guildSchema, { GuildSettings } from '../models/guildSchema';
-import Colors from '../Colors';
-import { debug, error } from '../Log';
-import { StatisticType } from '../models/statisticsSchema';
+import guildSchema, { GuildSettings } from "../models/guildSchema";
+import Colors from "../Colors";
+import { debug, error } from "../Log";
+import { StatisticType } from "../models/statisticsSchema";
 
 export const Settings: Command = {
     name: "settings",
@@ -15,7 +29,7 @@ export const Settings: Command = {
         {
             type: ApplicationCommandOptionType.Subcommand,
             name: "view",
-            description: "View the settings for this server"
+            description: "View the settings for this server",
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
@@ -29,21 +43,21 @@ export const Settings: Command = {
                     choices: [
                         {
                             name: "Quote List Page Size (number)",
-                            value: "quoteListPageSize"
+                            value: "quoteListPageSize",
                         },
                         {
                             name: "Quote Search Date Tolerance (number)",
-                            value: "quoteSearchDateTolerance"
-                        }
+                            value: "quoteSearchDateTolerance",
+                        },
                     ],
-                    required: true
+                    required: true,
                 },
                 {
                     type: ApplicationCommandOptionType.Number,
                     name: "number-value",
-                    description: "The new value for the setting"
-                }
-            ]
+                    description: "The new value for the setting",
+                },
+            ],
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
@@ -54,9 +68,9 @@ export const Settings: Command = {
                     type: ApplicationCommandOptionType.String,
                     name: "guild-id",
                     description: "The ID of the guild to link to",
-                    required: true
-                }
-            ]
+                    required: true,
+                },
+            ],
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
@@ -67,15 +81,15 @@ export const Settings: Command = {
                     type: ApplicationCommandOptionType.String,
                     name: "guild-id",
                     description: "The ID of the guild to unlink from",
-                    required: true
-                }
-            ]
+                    required: true,
+                },
+            ],
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
             name: "quote-link-list",
-            description: "List all linked guilds"
-        }
+            description: "List all linked guilds",
+        },
     ],
     run: async (client: Client, interaction: CommandInteraction) => {
         debug("Settings command called");
@@ -92,45 +106,57 @@ export const Settings: Command = {
         }
 
         debug("Checking if user has permission to use this command");
-        const permissions = interaction.member!.permissions as PermissionsBitField;
-        if (!permissions.has(PermissionsBitField.Flags.ManageGuild | PermissionsBitField.Flags.Administrator)) {
+        const permissions = interaction.member!
+            .permissions as PermissionsBitField;
+        if (
+            !permissions.has(
+                PermissionsBitField.Flags.ManageGuild |
+                    PermissionsBitField.Flags.Administrator
+            )
+        ) {
             debug("User does not have permission to use this command");
             await interaction.reply({
                 content: "You do not have permission to use this command",
-                ephemeral: true
+                ephemeral: true,
             });
             return;
         }
 
-        await handleSubcommands(interaction, interaction.options.getSubcommand(), [
-            {
-                key: "view",
-                run: handleView,
-                stats: [StatisticType.Command_Settings_View]
-            },
-            {
-                key: "edit",
-                run: handleEdit,
-                stats: [StatisticType.Command_Settings_Edit]
-            },
-            {
-                key: "quote-link",
-                run: handleQuoteLink,
-                stats: [StatisticType.Command_Settings_QuoteLink]
-            },
-            {
-                key: "quote-unlink",
-                run: handleQuoteUnlink,
-                stats: [StatisticType.Command_Settings_QuoteUnlink]
-            },
-            {
-                key: "quote-link-list",
-                run: handleQuoteLinkList,
-                stats: [StatisticType.Command_Settings_QuoteLinkList]
-            }
-        ], [StatisticType.Command_Settings], client);
-    }
-}
+        await handleSubcommands(
+            interaction,
+            interaction.options.getSubcommand(),
+            [
+                {
+                    key: "view",
+                    run: handleView,
+                    stats: [StatisticType.Command_Settings_View],
+                },
+                {
+                    key: "edit",
+                    run: handleEdit,
+                    stats: [StatisticType.Command_Settings_Edit],
+                },
+                {
+                    key: "quote-link",
+                    run: handleQuoteLink,
+                    stats: [StatisticType.Command_Settings_QuoteLink],
+                },
+                {
+                    key: "quote-unlink",
+                    run: handleQuoteUnlink,
+                    stats: [StatisticType.Command_Settings_QuoteUnlink],
+                },
+                {
+                    key: "quote-link-list",
+                    run: handleQuoteLinkList,
+                    stats: [StatisticType.Command_Settings_QuoteLinkList],
+                },
+            ],
+            [StatisticType.Command_Settings],
+            client
+        );
+    },
+};
 
 // Subcommand handlers
 /**
@@ -138,17 +164,19 @@ export const Settings: Command = {
  * @param client
  * @param interaction
  */
-const handleView = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+const handleView = async (
+    interaction: ChatInputCommandInteraction
+): Promise<InteractionReplyOptions> => {
     debug("Settings view subcommand called");
 
     debug("Getting guild settings from database");
     const gSettings = await guildSchema.getGuildSettings(interaction.guildId!);
-    
+
     debug("Building embed");
     const messageEmbed = new EmbedBuilder()
         .setTitle("Settings")
         .setTimestamp(Date.now())
-        .setColor(Colors.settingsEmbed)
+        .setColor(Colors.settingsEmbed);
 
     debug("Adding settings fields to embed");
     let setting: keyof GuildSettings;
@@ -157,38 +185,42 @@ const handleView = async (interaction: ChatInputCommandInteraction): Promise<Int
         if (type === "number" || type === "string") {
             messageEmbed.addFields({
                 name: gSettings[setting]!.name,
-                value: `${gSettings[setting]!.value.toString()} ${gSettings[setting]!.unit ?? ""}`
+                value: `${gSettings[setting]!.value.toString()} ${
+                    gSettings[setting]!.unit ?? ""
+                }`,
             });
         } else if (type === "boolean") {
             messageEmbed.addFields({
                 name: gSettings[setting]!.name,
-                value: gSettings[setting]!.value ? "true" : "false"
+                value: gSettings[setting]!.value ? "true" : "false",
             });
         } else if (setting === "quoteLinkedGuilds") {
             messageEmbed.addFields({
                 name: gSettings[setting]!.name,
-                value: "Use `/settings quote-link-list` to view linked guilds (WIP)"
+                value: "Use `/settings quote-link-list` to view linked guilds (WIP)",
             });
         } else {
             messageEmbed.addFields({
                 name: gSettings[setting]!.name,
-                value: "Unknown type"
+                value: "Unknown type",
             });
         }
     }
 
     return {
         embeds: [messageEmbed],
-        ephemeral: true
+        ephemeral: true,
     };
-}
+};
 
 /**
  * Edit a setting for this guild
- * @param client 
+ * @param client
  * @param interaction
  */
-const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+const handleEdit = async (
+    interaction: ChatInputCommandInteraction
+): Promise<InteractionReplyOptions> => {
     debug("Settings edit subcommand called");
 
     // Get the option values
@@ -196,90 +228,122 @@ const handleEdit = async (interaction: ChatInputCommandInteraction): Promise<Int
     const numberValue = interaction.options.getNumber("number-value");
 
     debug("Changing setting");
-    const result = await changeSetting(interaction.guildId!, setting, numberValue);
+    const result = await changeSetting(
+        interaction.guildId!,
+        setting,
+        numberValue
+    );
 
     debug("Building reply");
     switch (result) {
         case ChangeSettingResult.Changed_Number:
             return {
                 content: "Updated setting " + setting + " to " + numberValue,
-                ephemeral: true
+                ephemeral: true,
             };
         case ChangeSettingResult.Missing_Number:
             return {
                 content: "Please provide a number value",
-                ephemeral: true
+                ephemeral: true,
             };
         case ChangeSettingResult.Invalid_Setting:
             return {
                 content: "Setting " + setting + " not found",
-            }
+            };
         default:
-            error(`ChangeSettingResult "${result}" not found`, interaction.client);
+            error(
+                `ChangeSettingResult "${result}" not found`,
+                interaction.client
+            );
             return generalError;
     }
-}
+};
 
-const handleQuoteLink = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+const handleQuoteLink = async (
+    interaction: ChatInputCommandInteraction
+): Promise<InteractionReplyOptions> => {
     const linkedGuildId = interaction.options.getString("guild-id", true);
     let guildName = linkedGuildId;
     if (interaction.client.guilds.cache.has(linkedGuildId)) {
-        guildName = interaction.client.guilds.cache.get(linkedGuildId)!.name + " (" + linkedGuildId + ")";
+        guildName =
+            interaction.client.guilds.cache.get(linkedGuildId)!.name +
+            " (" +
+            linkedGuildId +
+            ")";
     }
 
     guildSchema.addLinkedGuild(interaction.guildId!, linkedGuildId);
 
     const embedBuilder = new EmbedBuilder()
         .setTitle(`Linked guild ${guildName}`)
-        .setDescription("IMPORTANT: Guild linking is required from both guilds.\nQuote linking will start working once the other guild links to this guild.\nIf the other guild is already linked, quote linking will start working immediately.")
+        .setDescription(
+            "IMPORTANT: Guild linking is required from both guilds.\nQuote linking will start working once the other guild links to this guild.\nIf the other guild is already linked, quote linking will start working immediately."
+        )
         .setColor(Colors.settingsEmbed);
 
     return {
         embeds: [embedBuilder],
-        ephemeral: true
+        ephemeral: true,
     };
-}
+};
 
-const handleQuoteUnlink = async (interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> => {
+const handleQuoteUnlink = async (
+    interaction: ChatInputCommandInteraction
+): Promise<InteractionReplyOptions> => {
     const linkedGuildId = interaction.options.getString("guild-id", true);
     let guildName = linkedGuildId;
     if (interaction.client.guilds.cache.has(linkedGuildId)) {
-        guildName = interaction.client.guilds.cache.get(linkedGuildId)!.name + " (" + linkedGuildId + ")";
+        guildName =
+            interaction.client.guilds.cache.get(linkedGuildId)!.name +
+            " (" +
+            linkedGuildId +
+            ")";
     }
 
     guildSchema.removeLinkedGuild(interaction.guildId!, linkedGuildId);
 
     const embedBuilder = new EmbedBuilder()
         .setTitle(`Unlinked guild ${guildName}`)
-        .setDescription("IMPORTANT: Unlinking a guild will also prevent the other guild from accessing quotes from this guild.")
+        .setDescription(
+            "IMPORTANT: Unlinking a guild will also prevent the other guild from accessing quotes from this guild."
+        )
         .setColor(Colors.settingsEmbed);
 
     return {
         embeds: [embedBuilder],
-        ephemeral: true
+        ephemeral: true,
     };
-}
+};
 
-const handleQuoteLinkList = async (interaction: ChatInputCommandInteraction, client: Client): Promise<InteractionReplyOptions> => {
+const handleQuoteLinkList = async (
+    interaction: ChatInputCommandInteraction,
+    client: Client
+): Promise<InteractionReplyOptions> => {
     const embedBuilder = new EmbedBuilder()
         .setTitle(`Linked guilds`)
         .setColor(Colors.settingsEmbed);
-    
-    const linkedGuilds = await guildSchema.listLinkedGuilds(interaction.guildId!);
+
+    const linkedGuilds = await guildSchema.listLinkedGuilds(
+        interaction.guildId!
+    );
     linkedGuilds.forEach((linkedGuild) => {
         let guildName = linkedGuild.guildId;
         if (client.guilds.cache.has(linkedGuild.guildId)) {
-            guildName = client.guilds.cache.get(linkedGuild.guildId)!.name + " (" + linkedGuild.guildId + ")";
+            guildName =
+                client.guilds.cache.get(linkedGuild.guildId)!.name +
+                " (" +
+                linkedGuild.guildId +
+                ")";
         }
 
         embedBuilder.addFields({
             name: guildName,
-            value: linkedGuild.accepted ? "Accepted" : "Pending"
+            value: linkedGuild.accepted ? "Accepted" : "Pending",
         });
     });
 
     return {
         embeds: [embedBuilder],
-        ephemeral: true
+        ephemeral: true,
     };
-}
+};

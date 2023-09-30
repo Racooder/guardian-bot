@@ -19,7 +19,7 @@ export type GuildSetting<T> = {
     name: string;
     value: T;
     unit?: string;
-}
+};
 
 /**
  * Represents the settings of a guild.
@@ -29,12 +29,12 @@ export type GuildSettings = {
     quoteSearchDateTolerance?: GuildSetting<number>;
     quoteLinkedGuilds?: GuildSetting<string[]>;
     quoteGuesserSolutionTimeout?: GuildSetting<number>;
-}
+};
 
 export type LinkedGuild = {
     guildId: string;
     accepted: boolean;
-}
+};
 
 /**
  * Holds the functions for the guild schema.
@@ -51,7 +51,10 @@ interface GuildModel extends Model<IGuild> {
      * @param guildId - The ID of the guild.
      * @param settings - The new settings of the guild.
      */
-    updateGuildSettings: (guildId: string, settings: GuildSettings) => Promise<void>;
+    updateGuildSettings: (
+        guildId: string,
+        settings: GuildSettings
+    ) => Promise<void>;
     /**
      * Adds a linked guild to a guild.
      * @param guildId - The ID of the guild.
@@ -63,7 +66,10 @@ interface GuildModel extends Model<IGuild> {
      * @param guildId - The ID of the guild.
      * @param linkedGuildId - The ID of the linked guild.
      */
-    removeLinkedGuild: (guildId: string, linkedGuildId: string) => Promise<void>;
+    removeLinkedGuild: (
+        guildId: string,
+        linkedGuildId: string
+    ) => Promise<void>;
     /**
      * Lists all linked guilds of a guild.
      * @param guildId - The ID of the guild.
@@ -85,149 +91,189 @@ const guildSchema = new Schema<IGuild, GuildModel>({
     guildId: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
     },
     quoteListPageSize: {
         type: Number,
         required: true,
         default: settings.defaultGuildSettings.quoteListPageSize,
-        set: (value: number) => { return Math.floor(value); }
+        set: (value: number) => {
+            return Math.floor(value);
+        },
     },
     quoteSearchDateTolerance: {
         type: Number,
         required: true,
-        default: settings.defaultGuildSettings.quoteSearchDateTolerance
+        default: settings.defaultGuildSettings.quoteSearchDateTolerance,
     },
     quoteLinkedGuilds: {
         type: [String],
         required: true,
-        default: settings.defaultGuildSettings.quoteLinkedGuilds
+        default: settings.defaultGuildSettings.quoteLinkedGuilds,
     },
     quoteGuesserSolutionTimeout: {
         type: Number,
         required: true,
-        default: settings.defaultGuildSettings.quoteGuesserSolutionTimeout
-    }
+        default: settings.defaultGuildSettings.quoteGuesserSolutionTimeout,
+    },
 });
 
 export const guildSettings = {
-    quoteListPageSize: async (schema: GuildModel, guildId: string): Promise<number> => {
-        return (await schema.getGuildSettings(guildId)).quoteListPageSize!.value
+    quoteListPageSize: async (
+        schema: GuildModel,
+        guildId: string
+    ): Promise<number> => {
+        return (await schema.getGuildSettings(guildId)).quoteListPageSize!
+            .value;
     },
-    quoteSearchDateTolerance: async (schema: GuildModel, guildId: string): Promise<number> => {
-        return (await schema.getGuildSettings(guildId)).quoteSearchDateTolerance!.value
+    quoteSearchDateTolerance: async (
+        schema: GuildModel,
+        guildId: string
+    ): Promise<number> => {
+        return (await schema.getGuildSettings(guildId))
+            .quoteSearchDateTolerance!.value;
     },
-    quoteLinkedGuilds: async (schema: GuildModel, guildId: string): Promise<string[]> => {
-        return (await schema.getGuildSettings(guildId)).quoteLinkedGuilds!.value
+    quoteLinkedGuilds: async (
+        schema: GuildModel,
+        guildId: string
+    ): Promise<string[]> => {
+        return (await schema.getGuildSettings(guildId)).quoteLinkedGuilds!
+            .value;
     },
-    quoteGuesserSolutionTimeout: async (schema: GuildModel, guildId: string): Promise<number> => {
-        return (await schema.getGuildSettings(guildId)).quoteGuesserSolutionTimeout!.value
-    }
-}
+    quoteGuesserSolutionTimeout: async (
+        schema: GuildModel,
+        guildId: string
+    ): Promise<number> => {
+        return (await schema.getGuildSettings(guildId))
+            .quoteGuesserSolutionTimeout!.value;
+    },
+};
 
 /**
  * Gets the settings of a guild.
  * @param guildId - The ID of the guild.
  * @returns The settings of the guild or the default settings if the guild does not exist.
  */
-guildSchema.statics.getGuildSettings = async function (guildId: string): Promise<GuildSettings> {
+guildSchema.statics.getGuildSettings = async function (
+    guildId: string
+): Promise<GuildSettings> {
     const guild = await this.findOne({ guildId: guildId });
     if (guild) {
         return {
             quoteListPageSize: {
                 name: "Quote List Page Size (number)",
-                value: guild.quoteListPageSize || settings.defaultGuildSettings.quoteListPageSize,
-                unit: "pages"
+                value:
+                    guild.quoteListPageSize ||
+                    settings.defaultGuildSettings.quoteListPageSize,
+                unit: "pages",
             },
             quoteSearchDateTolerance: {
                 name: "Quote Search Date Tolerance (number)",
-                value: guild.quoteSearchDateTolerance || settings.defaultGuildSettings.quoteSearchDateTolerance,
-                unit: "days"
+                value:
+                    guild.quoteSearchDateTolerance ||
+                    settings.defaultGuildSettings.quoteSearchDateTolerance,
+                unit: "days",
             },
             quoteLinkedGuilds: {
                 name: "Quote Linked Guilds (array of guild IDs)",
-                value: guild.quoteLinkedGuilds || settings.defaultGuildSettings.quoteLinkedGuilds
+                value:
+                    guild.quoteLinkedGuilds ||
+                    settings.defaultGuildSettings.quoteLinkedGuilds,
             },
             quoteGuesserSolutionTimeout: {
                 name: "Quote Guesser Solution Timeout (number)",
-                value: guild.quoteGuesserSolutionTimeout || settings.defaultGuildSettings.quoteGuesserSolutionTimeout,
-                unit: "seconds"
-            }
-        }
+                value:
+                    guild.quoteGuesserSolutionTimeout ||
+                    settings.defaultGuildSettings.quoteGuesserSolutionTimeout,
+                unit: "seconds",
+            },
+        };
     } else {
         return {
             quoteListPageSize: {
                 name: "Quote List Page Size (number)",
                 value: settings.defaultGuildSettings.quoteListPageSize,
-                unit: "pages"
+                unit: "pages",
             },
             quoteSearchDateTolerance: {
                 name: "Quote Search Date Tolerance (number)",
                 value: settings.defaultGuildSettings.quoteSearchDateTolerance,
-                unit: "days"
+                unit: "days",
             },
             quoteLinkedGuilds: {
                 name: "Quote Linked Guilds (array of guild IDs)",
-                value: settings.defaultGuildSettings.quoteLinkedGuilds
+                value: settings.defaultGuildSettings.quoteLinkedGuilds,
             },
             quoteGuesserSolutionTimeout: {
                 name: "Quote Guesser Solution Timeout (number)",
-                value: settings.defaultGuildSettings.quoteGuesserSolutionTimeout,
-                unit: "seconds"
-            }
-        }
+                value: settings.defaultGuildSettings
+                    .quoteGuesserSolutionTimeout,
+                unit: "seconds",
+            },
+        };
     }
-}
+};
 
 /**
  * Updates the settings of a guild.
  * @param guildId - The ID of the guild.
  * @param settings - The new settings of the guild.
  */
-guildSchema.statics.updateGuildSettings = async function (guildId: string, settings: GuildSettings): Promise<void> {
+guildSchema.statics.updateGuildSettings = async function (
+    guildId: string,
+    settings: GuildSettings
+): Promise<void> {
     await this.findOneAndUpdate(
         { guildId: guildId },
         {
             quoteListPageSize: settings.quoteListPageSize?.value,
             quoteSearchDateTolerance: settings.quoteSearchDateTolerance?.value,
-            quoteLinkedGuilds: settings.quoteLinkedGuilds?.value
+            quoteLinkedGuilds: settings.quoteLinkedGuilds?.value,
         },
         { upsert: true }
     );
-}
+};
 
 /**
  * Adds a linked guild to a guild.
  * @param guildId - The ID of the guild.
  * @param linkedGuildId - The ID of the linked guild.
  */
-guildSchema.statics.addLinkedGuild = async function (guildId: string, linkedGuildId: string): Promise<void> {
+guildSchema.statics.addLinkedGuild = async function (
+    guildId: string,
+    linkedGuildId: string
+): Promise<void> {
     await this.findOneAndUpdate(
         { guildId: guildId },
         { $addToSet: { quoteLinkedGuilds: linkedGuildId } },
         { upsert: true }
     );
-}
+};
 
 /**
  * Removes a linked guild to a guild.
  * @param guildId - The ID of the guild.
  * @param linkedGuildId - The ID of the linked guild.
  */
-guildSchema.statics.removeLinkedGuild = async function (guildId: string, linkedGuildId: string): Promise<void> {
+guildSchema.statics.removeLinkedGuild = async function (
+    guildId: string,
+    linkedGuildId: string
+): Promise<void> {
     await this.findOneAndUpdate(
         { guildId: guildId },
         { $pull: { quoteLinkedGuilds: linkedGuildId } },
         { upsert: true }
     );
-}
+};
 
 /**
  * Lists all linked guilds of a guild.
  * @param guildId - The ID of the guild.
  * @returns All linked guilds of the guild.
  */
-guildSchema.statics.listLinkedGuilds = async function (guildId: string): Promise<LinkedGuild[]> {
+guildSchema.statics.listLinkedGuilds = async function (
+    guildId: string
+): Promise<LinkedGuild[]> {
     const guild = await this.findOne({ guildId: guildId });
 
     if (guild) {
@@ -235,13 +281,16 @@ guildSchema.statics.listLinkedGuilds = async function (guildId: string): Promise
         for (const linkedGuildId of guild.quoteLinkedGuilds) {
             const linkedGuild = await this.findOne({ guildId: linkedGuildId });
             let accepted = false;
-            if (linkedGuild && linkedGuild.quoteLinkedGuilds.includes(guildId)) {
+            if (
+                linkedGuild &&
+                linkedGuild.quoteLinkedGuilds.includes(guildId)
+            ) {
                 accepted = true;
             }
 
             linkedGuilds.push({
                 guildId: linkedGuildId,
-                accepted: accepted
+                accepted: accepted,
             });
         }
 
@@ -249,19 +298,24 @@ guildSchema.statics.listLinkedGuilds = async function (guildId: string): Promise
     } else {
         return [];
     }
-}
+};
 
 /**
  * Gets all guilds that are linked to a guild and that have accepted the link including the guild itself.
  * @param guildId - The ID of the guild.
  * @returns All linked guilds of the guild that have accepted the link. The last element is the guild itself.
  */
-guildSchema.statics.getLinkedGuilds = async function (guildId: string): Promise<string[]> {
+guildSchema.statics.getLinkedGuilds = async function (
+    guildId: string
+): Promise<string[]> {
     const linkedGuildList = await this.listLinkedGuilds(guildId);
-    const linkedGuilds = linkedGuildList.filter(linkedGuild => linkedGuild.accepted).map(linkedGuild => linkedGuild.guildId).concat(guildId);
+    const linkedGuilds = linkedGuildList
+        .filter((linkedGuild) => linkedGuild.accepted)
+        .map((linkedGuild) => linkedGuild.guildId)
+        .concat(guildId);
     console.log(linkedGuilds);
     return linkedGuilds;
-}
+};
 
 /**
  * The guild model.

@@ -1,4 +1,10 @@
-import { CommandInteraction, ChatInputApplicationCommandData, Client, ButtonInteraction, StringSelectMenuInteraction } from "discord.js";
+import {
+    CommandInteraction,
+    ChatInputApplicationCommandData,
+    Client,
+    ButtonInteraction,
+    StringSelectMenuInteraction,
+} from "discord.js";
 
 /**
  * A command that can be handled by the bot.
@@ -20,7 +26,11 @@ export interface Component {
  * A button that can be handled by the bot.
  */
 export interface Button extends Component {
-    run: (client: Client, interaction: ButtonInteraction, data: string[]) => void;
+    run: (
+        client: Client,
+        interaction: ButtonInteraction,
+        data: string[]
+    ) => void;
     isButton: true;
 }
 
@@ -28,6 +38,10 @@ export interface Button extends Component {
  * A string select menu that can be handled by the bot.
  */
 export interface StringSelectMenu extends Component {
-    run: (client: Client, interaction: StringSelectMenuInteraction, data: string[]) => void;
+    run: (
+        client: Client,
+        interaction: StringSelectMenuInteraction,
+        data: string[]
+    ) => void;
     isStringSelectMenu: true;
 }

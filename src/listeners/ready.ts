@@ -19,9 +19,9 @@ export default (client: Client): void => {
         }
 
         info("Connecting to MongoDB...");
-        await mongoose.connect(process.env.MONGO_URI || '', {
+        await mongoose.connect(process.env.MONGO_URI || "", {
             useNewUrlParser: true,
-            useUnifiedTopology: true
+            useUnifiedTopology: true,
         } as ConnectOptions);
 
         info("Clearing old database elements...");
@@ -34,10 +34,10 @@ export default (client: Client): void => {
         info("Setting activity...");
         client.user.setActivity({
             name: "Support me on Ko-fi!",
-        })
+        });
 
         success(`${client.user.username} is online`);
 
         updateStatistic([StatisticType.Event, StatisticType.Event_Ready]);
     });
-}
+};

@@ -1,15 +1,26 @@
-import { Client, EmbedBuilder, GuildMember, StringSelectMenuInteraction } from 'discord.js';
-import { StringSelectMenu } from '../InteractionInterfaces';
-import { isGuildCommand } from '../Essentials';
-import { noGuildError } from '../InteractionReplies';
-import quoteGuesserSchema, { resultTranslation } from '../models/quoteGuesserSchema';
-import { debug } from '../Log';
-import { StatisticType, updateStatistic } from '../models/statisticsSchema';
+import {
+    Client,
+    EmbedBuilder,
+    GuildMember,
+    StringSelectMenuInteraction,
+} from "discord.js";
+import { StringSelectMenu } from "../InteractionInterfaces";
+import { isGuildCommand } from "../Essentials";
+import { noGuildError } from "../InteractionReplies";
+import quoteGuesserSchema, {
+    resultTranslation,
+} from "../models/quoteGuesserSchema";
+import { debug } from "../Log";
+import { StatisticType, updateStatistic } from "../models/statisticsSchema";
 
 export const AnswerQuoteGuesser: StringSelectMenu = {
     name: "answerQuoteGuesser",
     isStringSelectMenu: true,
-    run: async (client: Client, interaction: StringSelectMenuInteraction, data: string[]) => {
+    run: async (
+        client: Client,
+        interaction: StringSelectMenuInteraction,
+        data: string[]
+    ) => {
         debug("Answer quote guesser select menu called");
 
         if (!isGuildCommand(interaction)) {
@@ -28,29 +39,51 @@ export const AnswerQuoteGuesser: StringSelectMenu = {
         }
 
         debug("Adding answer to database");
-        const result = await quoteGuesserSchema.addAnswer(interaction.guildId!, token, interaction.member as GuildMember, user);
+        const result = await quoteGuesserSchema.addAnswer(
+            interaction.guildId!,
+            token,
+            interaction.member as GuildMember,
+            user
+        );
 
         // Check if adding the answer was successful
         if (result === 1 || result === 2) {
             debug("Updating embed");
-            const embedBuilder = EmbedBuilder.from(interaction.message.embeds[0]);
-            const answerCount = await quoteGuesserSchema.getAnswerCount(interaction.guildId!, token);
+            const embedBuilder = EmbedBuilder.from(
+                interaction.message.embeds[0]
+            );
+            const answerCount = await quoteGuesserSchema.getAnswerCount(
+                interaction.guildId!,
+                token
+            );
             embedBuilder.setFooter({
-                text: `Answered by ${answerCount} player${answerCount === 1 ? "" : "s"}`,
+                text: `Answered by ${answerCount} player${
+                    answerCount === 1 ? "" : "s"
+                }`,
             });
 
             debug("Updating message");
             await interaction.update({
                 embeds: [embedBuilder],
             });
-        
-            debug("Replying to user");
-            interaction.followUp({ content: resultTranslation[result], ephemeral: true });
 
-            updateStatistic([StatisticType.Component, StatisticType.Component_QuoteGuesser, StatisticType.Component_QuoteGuesser_Answer]);
+            debug("Replying to user");
+            interaction.followUp({
+                content: resultTranslation[result],
+                ephemeral: true,
+            });
+
+            updateStatistic([
+                StatisticType.Component,
+                StatisticType.Component_QuoteGuesser,
+                StatisticType.Component_QuoteGuesser_Answer,
+            ]);
         } else {
             debug("Replying problem to user");
-            interaction.reply({ content: resultTranslation[result], ephemeral: true });
+            interaction.reply({
+                content: resultTranslation[result],
+                ephemeral: true,
+            });
         }
-    }
-}
+    },
+};

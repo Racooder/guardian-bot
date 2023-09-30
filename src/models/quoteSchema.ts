@@ -1,6 +1,10 @@
 import mongoose, { Model, Schema, Document } from "mongoose";
 import { IGuildMember } from "./guildMemberSchema";
-import { approximateEqual, randomElement, splitArrayIntoChunks } from "../Essentials";
+import {
+    approximateEqual,
+    randomElement,
+    splitArrayIntoChunks,
+} from "../Essentials";
 import guildSchema, { guildSettings } from "./guildSchema";
 
 /**
@@ -35,7 +39,7 @@ export interface IQuote extends Document {
 export type BaseUser = {
     id?: string;
     name?: string;
-}
+};
 
 /**
  * Holds the functions for the quote schema.
@@ -53,7 +57,16 @@ interface QuoteModel extends Model<IQuote> {
      * @param date - The date to search for.
      * @returns The quotes that match the given parameters, split into pages.
      */
-    listQuotes: (guildId: string, pageSize: number, content?: string, author?: string, authorName?: string, creator?: string, creatorName?: string, date?: Date) => Promise<IQuote[][]>;
+    listQuotes: (
+        guildId: string,
+        pageSize: number,
+        content?: string,
+        author?: string,
+        authorName?: string,
+        creator?: string,
+        creatorName?: string,
+        date?: Date
+    ) => Promise<IQuote[][]>;
     /**
      * Returns a random quote from a guild.
      * @param guildId - The ID of the guild to get the quote from.
@@ -74,17 +87,17 @@ interface QuoteModel extends Model<IQuote> {
 const quoteSchema = new Schema<IQuote, QuoteModel>({
     guildId: {
         type: String,
-        required: true
+        required: true,
     },
     quote: {
-        type: String
+        type: String,
     },
     conversation: {
-        type: [String]
+        type: [String],
     },
     timestamp: {
         type: Number,
-        required: true
+        required: true,
     },
     author: {
         type: Schema.Types.ObjectId,
@@ -92,53 +105,57 @@ const quoteSchema = new Schema<IQuote, QuoteModel>({
     },
     conversationAuthors: {
         type: [Schema.Types.ObjectId],
-        ref: "GuildMember"
+        ref: "GuildMember",
     },
     nonDiscordAuthor: {
-        type: String
+        type: String,
     },
     conversationNonDiscordAuthors: {
-        type: [String]
+        type: [String],
     },
     creator: {
         type: Schema.Types.ObjectId,
         ref: "GuildMember",
-        required: true
-    }
+        required: true,
+    },
 });
 
 /**
  * Gets the name of the author of the quote.
  * @returns The displayName or username of the author, the nonDiscordAuthor or "Unknown" if none of those are available.
  */
-quoteSchema.virtual("authorName").get(async function(this: IQuote): Promise<string> {
-    await this.populate("author");
-    if (this.author) {
-        return this.author.displayName ?? this.author.username;
-    } else if (this.nonDiscordAuthor) {
-        return this.nonDiscordAuthor;
-    }
-    return "Unknown";
-})
-
-quoteSchema.virtual("conversationAuthorNames").get(async function(this: IQuote): Promise<string[]> {
-    await this.populate("conversationAuthors");
-    if (!this.conversation || this.conversation.length === 0) {
-        return [await this.authorName];
-    }
-    let authorNames: string[] = [];
-    for (let i = 0; i < this.conversation.length; i++) {
-        const author = this.conversationAuthors?.[i];
-        if (author) {
-            authorNames.push(author.displayName ?? author.username);
-        } else if (this.conversationNonDiscordAuthors?.[i]) {
-            authorNames.push(this.conversationNonDiscordAuthors[i]);
-        } else {
-            authorNames.push("Unknown");
+quoteSchema
+    .virtual("authorName")
+    .get(async function (this: IQuote): Promise<string> {
+        await this.populate("author");
+        if (this.author) {
+            return this.author.displayName ?? this.author.username;
+        } else if (this.nonDiscordAuthor) {
+            return this.nonDiscordAuthor;
         }
-    }
-    return authorNames;
-})
+        return "Unknown";
+    });
+
+quoteSchema
+    .virtual("conversationAuthorNames")
+    .get(async function (this: IQuote): Promise<string[]> {
+        await this.populate("conversationAuthors");
+        if (!this.conversation || this.conversation.length === 0) {
+            return [await this.authorName];
+        }
+        let authorNames: string[] = [];
+        for (let i = 0; i < this.conversation.length; i++) {
+            const author = this.conversationAuthors?.[i];
+            if (author) {
+                authorNames.push(author.displayName ?? author.username);
+            } else if (this.conversationNonDiscordAuthors?.[i]) {
+                authorNames.push(this.conversationNonDiscordAuthors[i]);
+            } else {
+                authorNames.push("Unknown");
+            }
+        }
+        return authorNames;
+    });
 
 /**
  * Lists all quotes that match the given parameters.
@@ -152,13 +169,25 @@ quoteSchema.virtual("conversationAuthorNames").get(async function(this: IQuote):
  * @param date - The date to search for.
  * @returns The quotes that match the given parameters, split into pages.
  */
-quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: number, content?: string, author?: string, authorName?: string, creator?: string, creatorName?: string, date?: Date): Promise<IQuote[][]> {
+quoteSchema.statics.listQuotes = async function (
+    guildId: string,
+    pageSize: number,
+    content?: string,
+    author?: string,
+    authorName?: string,
+    creator?: string,
+    creatorName?: string,
+    date?: Date
+): Promise<IQuote[][]> {
     const quoteGuilds = await guildSchema.getLinkedGuilds(guildId);
-    
+
     // Get all quotes from the guild
     let quoteDocuments = await this.find({
-        guildId: { $in: quoteGuilds }
-    }).populate("author").populate("conversationAuthors").populate("creator");
+        guildId: { $in: quoteGuilds },
+    })
+        .populate("author")
+        .populate("conversationAuthors")
+        .populate("creator");
 
     // Prepare the parameters
     content = content?.toLowerCase();
@@ -166,24 +195,51 @@ quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: numb
     creatorName = creatorName?.toLowerCase();
     let timestamp = date?.getTime() ?? 0;
     timestamp = Math.floor(timestamp / 1000);
-    const dateTolerance = await guildSettings.quoteSearchDateTolerance(guildSchema, guildId)
+    const dateTolerance = await guildSettings.quoteSearchDateTolerance(
+        guildSchema,
+        guildId
+    );
 
     // Filter the quotes
     quoteDocuments = quoteDocuments.filter((quoteDocument) => {
-        return (content === undefined || quoteDocument.quote?.toLowerCase().includes(content) || quoteDocument.conversation?.some((q) => {
-            return q.toLowerCase().includes(content!);
-        })) &&
-        (author === undefined || quoteDocument.author?.userId === author || quoteDocument.conversationAuthors?.some((a) => {
-            return a.userId === author;
-        })) &&
-        (authorName === undefined || quoteDocument.author?.username.toLowerCase() === authorName || quoteDocument.author?.displayName.toLowerCase() === authorName || quoteDocument.nonDiscordAuthor?.toLowerCase() === authorName || 
-        quoteDocument.conversationAuthors?.some((a) => {
-            return a.username.toLowerCase() === authorName || a.displayName.toLowerCase() === authorName;
-        }) ||
-        quoteDocument.conversationNonDiscordAuthors?.includes(authorName)) &&
-        (creator === undefined || quoteDocument.creator.userId === creator) &&
-        (creatorName === undefined || quoteDocument.creator.username.toLowerCase() === creatorName || quoteDocument.creator.displayName.toLowerCase() === creatorName) &&
-        (timestamp === 0 || approximateEqual(quoteDocument.timestamp, timestamp, 60 * 60 * 24 * dateTolerance));
+        return (
+            (content === undefined ||
+                quoteDocument.quote?.toLowerCase().includes(content) ||
+                quoteDocument.conversation?.some((q) => {
+                    return q.toLowerCase().includes(content!);
+                })) &&
+            (author === undefined ||
+                quoteDocument.author?.userId === author ||
+                quoteDocument.conversationAuthors?.some((a) => {
+                    return a.userId === author;
+                })) &&
+            (authorName === undefined ||
+                quoteDocument.author?.username.toLowerCase() === authorName ||
+                quoteDocument.author?.displayName.toLowerCase() ===
+                    authorName ||
+                quoteDocument.nonDiscordAuthor?.toLowerCase() === authorName ||
+                quoteDocument.conversationAuthors?.some((a) => {
+                    return (
+                        a.username.toLowerCase() === authorName ||
+                        a.displayName.toLowerCase() === authorName
+                    );
+                }) ||
+                quoteDocument.conversationNonDiscordAuthors?.includes(
+                    authorName
+                )) &&
+            (creator === undefined ||
+                quoteDocument.creator.userId === creator) &&
+            (creatorName === undefined ||
+                quoteDocument.creator.username.toLowerCase() === creatorName ||
+                quoteDocument.creator.displayName.toLowerCase() ===
+                    creatorName) &&
+            (timestamp === 0 ||
+                approximateEqual(
+                    quoteDocument.timestamp,
+                    timestamp,
+                    60 * 60 * 24 * dateTolerance
+                ))
+        );
     });
 
     return splitArrayIntoChunks(quoteDocuments, pageSize);
@@ -194,13 +250,18 @@ quoteSchema.statics.listQuotes = async function (guildId: string, pageSize: numb
  * @param guildId - The ID of the guild to get the quote from.
  * @returns The random quote.
  */
-quoteSchema.statics.randomQuote = async function (guildId: string): Promise<IQuote> {
+quoteSchema.statics.randomQuote = async function (
+    guildId: string
+): Promise<IQuote> {
     const quoteGuilds = await guildSchema.getLinkedGuilds(guildId);
 
     const quoteDocuments = await this.find({
         guildId: { $in: quoteGuilds },
         conversation: { $exists: false },
-    }).populate("author").populate("conversationAuthors").populate("creator");
+    })
+        .populate("author")
+        .populate("conversationAuthors")
+        .populate("creator");
     return randomElement<IQuote>(quoteDocuments);
 };
 
@@ -209,7 +270,9 @@ quoteSchema.statics.randomQuote = async function (guildId: string): Promise<IQuo
  * @param guildId - The ID of the guild to get the authors from.
  * @returns The authors of the quotes.
  */
-quoteSchema.statics.allAuthors = async function (guildId: string): Promise<BaseUser[]> {
+quoteSchema.statics.allAuthors = async function (
+    guildId: string
+): Promise<BaseUser[]> {
     const quoteGuilds = await guildSchema.getLinkedGuilds(guildId);
 
     // Get all quotes from the guild
@@ -223,15 +286,17 @@ quoteSchema.statics.allAuthors = async function (guildId: string): Promise<BaseU
         if (quoteDocument.author) {
             authorMap.set(quoteDocument.author.userId, {
                 id: quoteDocument.author.userId,
-                name: quoteDocument.author.displayName ?? quoteDocument.author.username
+                name:
+                    quoteDocument.author.displayName ??
+                    quoteDocument.author.username,
             });
         } else if (quoteDocument.nonDiscordAuthor) {
             authorMap.set(quoteDocument.nonDiscordAuthor, {
-                name: quoteDocument.nonDiscordAuthor
+                name: quoteDocument.nonDiscordAuthor,
             });
         }
     }
-    
+
     return Array.from(authorMap.values());
 };
 

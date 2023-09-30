@@ -30,41 +30,47 @@ interface QuoteListModel extends Model<IQuoteList> {
 /**
  * The database schema for a quote list.
  */
-const quoteListSchema = new Schema<IQuoteList, QuoteListModel>({
-    page: {
-        type: Number,
-        required: true
+const quoteListSchema = new Schema<IQuoteList, QuoteListModel>(
+    {
+        page: {
+            type: Number,
+            required: true,
+        },
+        content: {
+            type: String,
+        },
+        authorId: {
+            type: String,
+        },
+        authorName: {
+            type: String,
+        },
+        creatorId: {
+            type: String,
+        },
+        creatorName: {
+            type: String,
+        },
+        date: {
+            type: Date,
+        },
     },
-    content: {
-        type: String
-    },
-    authorId: {
-        type: String
-    },
-    authorName: {
-        type: String
-    },
-    creatorId: {
-        type: String
-    },
-    creatorName: {
-        type: String
-    },
-    date: {
-        type: Date
-    },
-}, {
-    timestamps: true
-});
+    {
+        timestamps: true,
+    }
+);
 
 /**
  * Clears all quote lists that are older than the quote list lifetime.
  */
 quoteListSchema.statics.clearOld = async function (): Promise<void> {
-    clearOld(this, (1000 * 60 * 60 * 24 * settings.quoteListLifetime));
+    clearOld(this, 1000 * 60 * 60 * 24 * settings.quoteListLifetime);
 };
 
 /**
  * The quote list model.
  */
-export default mongoose.model<IQuoteList, QuoteListModel>("QuoteList", quoteListSchema);
+export default mongoose.model<IQuoteList, QuoteListModel>(
+    "QuoteList",
+    quoteListSchema
+);

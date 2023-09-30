@@ -28,16 +28,16 @@ interface CodenamesModel extends Model<ICodenames> {
 const codenamesSchema = new Schema<ICodenames, CodenamesModel>({
     guildId: {
         type: String,
-        required: true
+        required: true,
     },
     word: {
         type: String,
-        required: true
+        required: true,
     },
     creator: {
         type: Schema.Types.ObjectId,
         ref: "GuildMember",
-        required: true
+        required: true,
     },
 });
 
@@ -48,7 +48,9 @@ codenamesSchema.index({ guildId: 1, word: 1 }, { unique: true }); // Make sure t
  * @param guildId - The ID of the guild to search in.
  * @returns The codenames words of the given guild.
  */
-codenamesSchema.statics.listQuotes = async function (guildId: String): Promise<String[]> {
+codenamesSchema.statics.listQuotes = async function (
+    guildId: String
+): Promise<String[]> {
     // Get all quotes from the guild
     let codenamesDocuments = await this.find({
         guildId: guildId,
@@ -62,4 +64,7 @@ codenamesSchema.statics.listQuotes = async function (guildId: String): Promise<S
 /**
  * The guild model.
  */
-export default mongoose.model<ICodenames, CodenamesModel>("Codenames", codenamesSchema);
+export default mongoose.model<ICodenames, CodenamesModel>(
+    "Codenames",
+    codenamesSchema
+);

@@ -1,4 +1,3 @@
-
 ![Logo](./data/images/logo-wide.jpg#gh-dark-mode-only)
 ![Logo Light](./data/images/logo-wide-light.jpg#gh-light-mode-only)
 
@@ -21,7 +20,7 @@ The bot doesn't asks you for more permissions than he needs and will work in eve
 
 ## License
 
-The license applies only to the code in this repository. 
+The license applies only to the code in this repository.
 Images and other assets are explicitly excluded.
 The license for the code is the GNU General Public License Version 3.
 You can find more informations [here](./LICENSE)
