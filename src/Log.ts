@@ -41,25 +41,25 @@ const format = {
 const folderPath = "./logs";
 const latestPath = `${folderPath}/latest.txt`;
 
-export const debug = (message: string) => {
+export function debug(message: string) {
     if (process.env.DEBUG === "true") {
         log(message, "[DEBUG]  ", format.FgGray);
     }
-};
+}
 
-export const info = (message: string) => {
+export function info(message: string) {
     log(message, "[INFO]   ", format.FgWhite);
-};
+}
 
-export const success = (message: string) => {
+export function success(message: string) {
     log(message, "[SUCCESS]", format.FgGreen);
-};
+}
 
-export const warn = (message: string) => {
+export function warn(message: string) {
     log(message, "[WARN]   ", format.FgYellow);
-};
+}
 
-export const error = (message: string, client?: Client) => {
+export function error(message: string, client?: Client) {
     log(message, "[ERROR]  ", format.FgRed);
 
     const errorChannel = process.env.ERROR_CHANNEL;
@@ -77,9 +77,9 @@ export const error = (message: string, client?: Client) => {
             }
         });
     }
-};
+}
 
-const log = (message: string, prefix: string, color = "", doSave = true) => {
+function log(message: string, prefix: string, color = "", doSave = true) {
     const msg = `${new Date().toLocaleString("en-GB", {
         timeZone: "UTC",
     })} ${prefix} ${message}`;
@@ -87,13 +87,13 @@ const log = (message: string, prefix: string, color = "", doSave = true) => {
     if (doSave) {
         save(msg);
     }
-};
+}
 
-const save = (message: string) => {
+function save(message: string) {
     writeFileSync(latestPath, `${message}\n`, { flag: "a" });
-};
+}
 
-export const setupLog = async () => {
+export async function setupLog() {
     existsSync(folderPath) || mkdirSync(folderPath);
     if (existsSync(latestPath)) {
         const targetPath =
@@ -116,4 +116,4 @@ export const setupLog = async () => {
     } else {
         writeFileSync(latestPath, "");
     }
-};
+}

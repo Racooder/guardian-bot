@@ -78,9 +78,9 @@ export const Codenames: Command = {
  * Create a new game of quote guesser
  * @param interaction
  */
-const handleAddWord = async (
+async function handleAddWord(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug("Codenames add-word subcommand called");
 
     // Get the option values
@@ -121,15 +121,15 @@ const handleAddWord = async (
         content: `Added the word "${word}" to the server wordpack`,
         ephemeral: true,
     };
-};
+}
 
 /**
  * Display the leaderboard for quote guesser
  * @param interaction
  */
-const handleGetPack = async (
+async function handleGetPack(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug("Codenames wordpack subcommand called");
 
     debug("Generating wordpack buffer");
@@ -146,4 +146,4 @@ const handleGetPack = async (
         ],
         ephemeral: true,
     };
-};
+}

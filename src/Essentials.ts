@@ -16,13 +16,13 @@ import { StatisticType, updateStatistic } from "./models/statisticsSchema";
  * @param interaction - The interaction to check
  * @returns Whether or not the interaction is a guild command
  */
-export const isGuildCommand = (interaction: Interaction): boolean => {
+export function isGuildCommand(interaction: Interaction): boolean {
     return (
         interaction.guildId !== null &&
         interaction.member !== null &&
         interaction.member instanceof GuildMember
     );
-};
+}
 
 /**
  * Splits array into chunks of size `chunkSize`
@@ -30,32 +30,29 @@ export const isGuildCommand = (interaction: Interaction): boolean => {
  * @param chunkSize - The size of each chunk
  * @returns The array split into chunks
  */
-export const splitArrayIntoChunks = <T>(
-    array: T[],
-    chunkSize: number
-): T[][] => {
+export function splitArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {
     const chunks: T[][] = [];
     for (let i = 0; i < array.length; i += chunkSize) {
         chunks.push(array.slice(i, i + chunkSize));
     }
     return chunks;
-};
+}
 
 /**
  * Gets the base user of a user or guild member
  * @param user - The user to get the base user of
  * @returns The user object
  */
-export const getBaseUser = (user: User | GuildMember): User => {
+export function getBaseUser(user: User | GuildMember): User {
     return user instanceof GuildMember ? user.user : user;
-};
+}
 
 /**
  * Returns the display name or username of a user
  * @param user - The user to get the name of
  * @returns The name string
  */
-export const usernameString = (user: User | GuildMember): string => {
+export function usernameString(user: User | GuildMember): string {
     if (user instanceof GuildMember) {
         return user.displayName;
     } else {
@@ -70,11 +67,11 @@ export const usernameString = (user: User | GuildMember): string => {
  * @param epsilon - The maximum difference between the two numbers
  * @returns If the two numbers are approximately equal
  */
-export const approximateEqual = (
+export function approximateEqual(
     a: number,
     b: number,
     epsilon: number
-): boolean => {
+): boolean {
     return Math.abs(a - b) < epsilon;
 };
 
@@ -83,7 +80,7 @@ export const approximateEqual = (
  * @param model - The model to clear
  * @param lifetime - The lifetime of the documents in milliseconds
  */
-export const clearOld = async function (
+export async function clearOld(
     model: any,
     lifetime: number
 ): Promise<void> {
@@ -109,7 +106,7 @@ export const clearOld = async function (
  * @param array - The array to get a random element from
  * @returns The random element
  */
-export const randomElement = function <T>(array: T[]): T {
+export function randomElement<T>(array: T[]): T {
     return array[Math.floor(Math.random() * array.length)];
 };
 
@@ -118,7 +115,7 @@ export const randomElement = function <T>(array: T[]): T {
  * @param dateString - The date string to parse
  * @returns The parsed date or undefined if the date string is invalid
  */
-export const parseDate = function (
+export function parseDate(
     dateString: string | null
 ): Date | undefined {
     if (dateString !== null) {
@@ -146,7 +143,7 @@ export const enum ChangeSettingResult {
  * @param numberValue - The new value of the setting
  * @returns The result of the change
  */
-export const changeSetting = async function (
+export async function changeSetting (
     guildId: string,
     setting: string,
     numberValue: number | null
@@ -186,7 +183,7 @@ export type SubcommandHandlerData = {
     args?: any;
 };
 
-export const handleSubcommands = async function (
+export async function handleSubcommands (
     interaction: ChatInputCommandInteraction,
     key: string,
     subcommands: SubcommandHandlerData[],

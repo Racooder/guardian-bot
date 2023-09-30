@@ -16,7 +16,7 @@ setupLog().then(() => {
     setupDiscordBot();
 });
 
-const setupAPIServer = () => {
+function setupAPIServer() {
     info("Starting API Server...");
 
     const app: Express = express();
@@ -89,9 +89,9 @@ const setupAPIServer = () => {
     app.listen(process.env.API_PORT, () => {
         success(`API Server is listening on port ${process.env.API_PORT}`);
     });
-};
+}
 
-const setupDiscordBot = () => {
+function setupDiscordBot() {
     info("Starting Discord Bot...");
 
     const client = new Client({
@@ -104,4 +104,4 @@ const setupDiscordBot = () => {
 
     // Login
     client.login(process.env.TOKEN);
-};
+}

@@ -61,8 +61,9 @@ export const Settings: Command = {
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
-            name: "quote-link",
-            description: "Link this guild to another guild to share quotes",
+            name: "guild-link",
+            description:
+                "Link this guild to another guild to share quotes and codenames wordpacks",
             options: [
                 {
                     type: ApplicationCommandOptionType.String,
@@ -74,7 +75,7 @@ export const Settings: Command = {
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
-            name: "quote-unlink",
+            name: "guild-unlink",
             description: "Unlink this server from another server",
             options: [
                 {
@@ -87,11 +88,11 @@ export const Settings: Command = {
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
-            name: "quote-link-list",
+            name: "guild-link-list",
             description: "List all linked guilds",
         },
     ],
-    run: async (client: Client, interaction: CommandInteraction) => {
+    run: async function (client: Client, interaction: CommandInteraction) {
         debug("Settings command called");
 
         if (!interaction.isChatInputCommand()) {
@@ -137,19 +138,19 @@ export const Settings: Command = {
                     stats: [StatisticType.Command_Settings_Edit],
                 },
                 {
-                    key: "quote-link",
-                    run: handleQuoteLink,
-                    stats: [StatisticType.Command_Settings_QuoteLink],
+                    key: "guild-link",
+                    run: handleGuildLink,
+                    stats: [StatisticType.Command_Settings_GuildLink],
                 },
                 {
-                    key: "quote-unlink",
-                    run: handleQuoteUnlink,
-                    stats: [StatisticType.Command_Settings_QuoteUnlink],
+                    key: "guild-unlink",
+                    run: handleGuildUnlink,
+                    stats: [StatisticType.Command_Settings_GuildUnlink],
                 },
                 {
-                    key: "quote-link-list",
-                    run: handleQuoteLinkList,
-                    stats: [StatisticType.Command_Settings_QuoteLinkList],
+                    key: "guild-link-list",
+                    run: handleGuildLinkList,
+                    stats: [StatisticType.Command_Settings_GuildLinkList],
                 },
             ],
             [StatisticType.Command_Settings],
@@ -164,9 +165,9 @@ export const Settings: Command = {
  * @param client
  * @param interaction
  */
-const handleView = async (
+async function handleView(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug("Settings view subcommand called");
 
     debug("Getting guild settings from database");
@@ -211,16 +212,16 @@ const handleView = async (
         embeds: [messageEmbed],
         ephemeral: true,
     };
-};
+}
 
 /**
  * Edit a setting for this guild
  * @param client
  * @param interaction
  */
-const handleEdit = async (
+async function handleEdit(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug("Settings edit subcommand called");
 
     // Get the option values
@@ -257,11 +258,11 @@ const handleEdit = async (
             );
             return generalError;
     }
-};
+}
 
-const handleQuoteLink = async (
+async function handleGuildLink(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     const linkedGuildId = interaction.options.getString("guild-id", true);
     let guildName = linkedGuildId;
     if (interaction.client.guilds.cache.has(linkedGuildId)) {
@@ -285,11 +286,11 @@ const handleQuoteLink = async (
         embeds: [embedBuilder],
         ephemeral: true,
     };
-};
+}
 
-const handleQuoteUnlink = async (
+async function handleGuildUnlink(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     const linkedGuildId = interaction.options.getString("guild-id", true);
     let guildName = linkedGuildId;
     if (interaction.client.guilds.cache.has(linkedGuildId)) {
@@ -313,12 +314,12 @@ const handleQuoteUnlink = async (
         embeds: [embedBuilder],
         ephemeral: true,
     };
-};
+}
 
-const handleQuoteLinkList = async (
+async function handleGuildLinkList(
     interaction: ChatInputCommandInteraction,
     client: Client
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     const embedBuilder = new EmbedBuilder()
         .setTitle(`Linked guilds`)
         .setColor(Colors.settingsEmbed);
@@ -346,4 +347,4 @@ const handleQuoteLinkList = async (
         embeds: [embedBuilder],
         ephemeral: true,
     };
-};
+}

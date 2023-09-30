@@ -259,9 +259,9 @@ export const Quote: Command = {
  * @param client
  * @param interaction
  */
-const handleNewQuote = async (
+async function handleNewQuote(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug("New quote subcommand called");
 
     // Get the option values
@@ -327,16 +327,16 @@ const handleNewQuote = async (
     return {
         embeds: [messageEmbed],
     };
-};
+}
 
 /**
  * List all quotes on the guild
  * @param client
  * @param interaction
  */
-const handleListQuotes = async (
+async function handleListQuotes(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug("List quotes subcommand called");
 
     debug("Getting quotes from the database");
@@ -378,16 +378,16 @@ const handleListQuotes = async (
         embeds: [messageEmbed],
         components: [row],
     } as InteractionReplyOptions;
-};
+}
 
 /**
  * Search for quotes
  * @param client
  * @param interaction
  */
-const handleSearchQuotes = async (
+async function handleSearchQuotes(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug("Search quotes subcommand called");
 
     // Get the option values
@@ -482,11 +482,11 @@ const handleSearchQuotes = async (
         embeds: [messageEmbed],
         components: [row],
     } as InteractionReplyOptions;
-};
+}
 
-const handleConversation = async (
+async function handleConversation(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug("Conversation subcommand called");
 
     debug("Getting the option values");
@@ -605,17 +605,17 @@ const handleConversation = async (
     return {
         embeds: [messageEmbed],
     };
-};
+}
 
-const handleEditQuote = async (
+async function handleEditQuote(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug("Edit quote subcommand called");
     warn("Edit quote subcommand not implemented");
 
     return notImplementedError;
     // TODO: Implement
-};
+}
 
 // Embed builders
 /**
@@ -625,11 +625,11 @@ const handleEditQuote = async (
  * @param description - The description of the embed
  * @returns The embed builder
  */
-export const quoteListEmbed = async (
+export async function quoteListEmbed(
     pages: IQuote[][],
     page: number,
     description?: string
-): Promise<EmbedBuilder> => {
+): Promise<EmbedBuilder> {
     debug(`Building quote list embed for page ${page + 1}/${pages.length}`);
 
     if (page >= pages.length) {
@@ -668,7 +668,7 @@ export const quoteListEmbed = async (
         .addFields(embedFields);
 
     return Promise.resolve(embedBuilder);
-};
+}
 
 // Button builders
 /**
@@ -677,10 +677,10 @@ export const quoteListEmbed = async (
  * @param enabled - Whether the button is enabled
  * @returns The button builder
  */
-const previousPageButton = (
+function previousPageButton(
     quoteListId: string,
     enabled: boolean
-): ButtonBuilder => {
+): ButtonBuilder {
     debug(`Building previous page button`);
 
     return new ButtonBuilder()
@@ -688,7 +688,7 @@ const previousPageButton = (
         .setLabel("Previous Page")
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(!enabled);
-};
+}
 
 /**
  * The button builder for the next page button
@@ -696,10 +696,7 @@ const previousPageButton = (
  * @param enabled - Whether the button is enabled
  * @returns The button builder
  */
-const nextPageButton = (
-    quoteListId: string,
-    enabled: boolean
-): ButtonBuilder => {
+function nextPageButton(quoteListId: string, enabled: boolean): ButtonBuilder {
     debug(`Building next page button`);
 
     return new ButtonBuilder()
@@ -707,4 +704,4 @@ const nextPageButton = (
         .setLabel("Next Page")
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(!enabled);
-};
+}

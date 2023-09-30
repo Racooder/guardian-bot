@@ -83,9 +83,9 @@ export const QuoteGuesser: Command = {
  * Create a new game of quote guesser
  * @param interaction
  */
-const handlePlay = async (
+async function handlePlay(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug("Play quoteguesser subcommand called");
 
     const token = await newToken();
@@ -95,15 +95,15 @@ const handlePlay = async (
     }
 
     return await newGame(interaction, token, 1);
-};
+}
 
 /**
  * Display the leaderboard for quote guesser
  * @param interaction
  */
-const handleLeaderboard = async (
+async function handleLeaderboard(
     interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug("Quote guesser leaderboard subcommand called");
 
     const guildMembers = await guildMemberSchema.find({
@@ -128,7 +128,7 @@ const handleLeaderboard = async (
         );
 
     return { embeds: [embed] };
-};
+}
 
 // Game management
 /**
@@ -138,11 +138,11 @@ const handleLeaderboard = async (
  * @param round - The round number
  * @returns The game message
  */
-export const newGame = async (
+export async function newGame(
     interaction: ChatInputCommandInteraction | ButtonInteraction,
     token: string,
     round: number
-): Promise<InteractionReplyOptions> => {
+): Promise<InteractionReplyOptions> {
     debug(
         `Creating new game of quote guesser with token ${token} and round ${round}`
     );
@@ -204,13 +204,13 @@ export const newGame = async (
         embeds: [embed],
         components: [buttonRow, selectionRow],
     } as InteractionReplyOptions;
-};
+}
 
 /**
  * Generate a new token for a game
  * @returns The new token or undefined if no token could be generated
  */
-const newToken = async (): Promise<string | undefined> => {
+async function newToken(): Promise<string | undefined> {
     debug("Generating new token for quote guesser");
 
     const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -234,4 +234,4 @@ const newToken = async (): Promise<string | undefined> => {
         return undefined;
     }
     return token;
-};
+}

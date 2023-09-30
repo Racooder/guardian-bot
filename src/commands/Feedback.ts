@@ -57,7 +57,7 @@ export const Feedback: Command = {
             ],
         },
     ],
-    run: async (client: Client, interaction: CommandInteraction) => {
+    run: async function (client: Client, interaction: CommandInteraction) {
         debug("Feedback command called");
 
         if (!interaction.isChatInputCommand()) {
@@ -117,23 +117,23 @@ export const Feedback: Command = {
     },
 };
 
-const handleBug = async (interaction: CommandInteraction, args: string) => {
+async function handleBug(interaction: CommandInteraction, args: string) {
     return {
         content: "Bug reported",
         ephemeral: true,
     };
-};
+}
 
-const handleFeature = async (interaction: CommandInteraction, args: string) => {
+async function handleFeature(interaction: CommandInteraction, args: string) {
     return {
         content: "Feature requested",
         ephemeral: true,
     };
-};
+}
 
-const handleOther = async (interaction: CommandInteraction, args: string) => {
+async function handleOther(interaction: CommandInteraction, args: string) {
     return {
         content: "Feedback sent",
         ephemeral: true,
     };
-};
+}

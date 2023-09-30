@@ -87,10 +87,10 @@ export const StopQuoteGuesser: Button = {
  * @param interaction - The button interaction
  * @param token - The token of the game
  */
-export const stopRound = async (
+export async function stopRound(
     interaction: ButtonInteraction,
     token: string
-): Promise<void> => {
+): Promise<void> {
     debug(
         `Stopping quote guesser game ${token} in guild ${
             interaction.guild!.name
@@ -150,4 +150,4 @@ export const stopRound = async (
     setTimeout(async () => {
         interaction.deleteReply();
     }, (await guildSettings.quoteGuesserSolutionTimeout(guildSchema, interaction.guildId!)) * 1000);
-};
+}

@@ -35,10 +35,10 @@ export default (client: Client): void => {
  * @param client - The client
  * @param interaction - The interaction
  */
-const handleSlashCommand = async (
+async function handleSlashCommand(
     client: Client,
     interaction: CommandInteraction
-): Promise<void> => {
+): Promise<void> {
     debug("Slash command interaction received");
 
     // Get the command
@@ -62,17 +62,17 @@ const handleSlashCommand = async (
         StatisticType.Event_Interaction,
         StatisticType.Command,
     ]);
-};
+}
 
 /**
  * Handles a message component interaction.
  * @param client - The client
  * @param interaction - The interaction
  */
-const handleComponent = async (
+async function handleComponent(
     client: Client,
     interaction: MessageComponentInteraction
-): Promise<void> => {
+): Promise<void> {
     debug("Message component interaction received");
 
     // Get the interaction data from the custom ID
@@ -109,4 +109,4 @@ const handleComponent = async (
         StatisticType.Event_Interaction,
         StatisticType.Component,
     ]);
-};
+}
