@@ -6,6 +6,7 @@ import { debug, info, setupLog, success } from "./Log";
 import express, { Express, Request, Response } from "express";
 import statisticsSchema from "./models/statisticsSchema";
 import feedbackSchema from "./models/feedbackSchema";
+import cors from "cors";
 
 setupLog().then(() => {
     if (process.env.DEBUG === "true") {
@@ -23,6 +24,7 @@ function setupAPIServer() {
 
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(cors());
 
     debug("Setting up API routes...");
     app.get("/statistics", (req, res) => {
