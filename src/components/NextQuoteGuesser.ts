@@ -2,12 +2,10 @@ import { ButtonInteraction, Client } from "discord.js";
 import { Button } from "../InteractionInterfaces";
 import { isGuildCommand } from "../Essentials";
 import { noGuildError } from "../InteractionReplies";
-import quoteGuesserSchema from "../models/quoteGuesserSchema";
-import { findCurrentRound } from "../models/quoteGuesserSchema";
 import { stopRound } from "./StopQuoteGuesser";
 import { newGame } from "../commands/QuoteGuesser";
 import { debug } from "../Log";
-import { StatisticType, updateStatistic } from "../models/statisticsSchema";
+import { StatisticKey, updateStatistic } from "../models/statistic";
 
 export const NextQuoteGuesser: Button = {
     name: "nextQuoteGuesser",
@@ -43,10 +41,6 @@ export const NextQuoteGuesser: Button = {
         debug("Replying to user");
         interaction.followUp(answer);
 
-        updateStatistic([
-            StatisticType.Component,
-            StatisticType.Component_QuoteGuesser,
-            StatisticType.Component_QuoteGuesser_Next,
-        ]);
+        updateStatistic(StatisticKey.Component.QuoteGuesser.Next);
     },
 };

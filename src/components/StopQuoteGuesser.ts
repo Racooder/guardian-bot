@@ -2,17 +2,12 @@ import {
     ButtonInteraction,
     Client,
     EmbedBuilder,
-    InteractionUpdateOptions,
 } from "discord.js";
 import { Button } from "../InteractionInterfaces";
-import quoteGuesserSchema, {
-    findCurrentRound,
-} from "../models/quoteGuesserSchema";
 import { isGuildCommand } from "../Essentials";
 import { noGuildError } from "../InteractionReplies";
-import guildSchema, { guildSettings } from "../models/guildSchema";
 import { debug } from "../Log";
-import { StatisticType, updateStatistic } from "../models/statisticsSchema";
+import { StatisticKey, updateStatistic } from "../models/statistic";
 
 export const StopQuoteGuesser: Button = {
     name: "stopQuoteGuesser",
@@ -74,11 +69,7 @@ export const StopQuoteGuesser: Button = {
             token: token,
         });
 
-        updateStatistic([
-            StatisticType.Component,
-            StatisticType.Component_QuoteGuesser,
-            StatisticType.Component_QuoteGuesser_Stop,
-        ]);
+        updateStatistic(StatisticKey.Component.QuoteGuesser.Stop);
     },
 };
 

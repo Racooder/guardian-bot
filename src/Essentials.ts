@@ -179,7 +179,7 @@ export type SubcommandHandlerData = {
         interaction: ChatInputCommandInteraction,
         args?: any
     ) => Promise<InteractionReplyOptions>;
-    stats: StatisticType[];
+    statType: StatisticType;
     args?: any;
 };
 
@@ -187,7 +187,6 @@ export async function handleSubcommands (
     interaction: ChatInputCommandInteraction,
     key: string,
     subcommands: SubcommandHandlerData[],
-    commandStats: StatisticType[],
     args?: any
 ): Promise<boolean> {
     debug(`Handling subcommand ${key}`);
@@ -197,8 +196,7 @@ export async function handleSubcommands (
             interaction.reply(
                 await subcommand.run(interaction, subcommand.args || args)
             );
-            let stats = commandStats.concat(subcommand.stats);
-            updateStatistic(stats);
+            updateStatistic(subcommand.statType);
             return true;
         }
     }

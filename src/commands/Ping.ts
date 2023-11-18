@@ -6,7 +6,7 @@ import {
 } from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import { debug } from "../Log";
-import { StatisticType, updateStatistic } from "../models/statisticsSchema";
+import { updateStatistic, StatisticKey } from "../models/statistic";
 
 export const Ping: Command = {
     name: "ping",
@@ -43,7 +43,7 @@ export const Ping: Command = {
             embeds: [messageEmbed],
         });
 
-        updateStatistic([StatisticType.Command_Ping]);
+        updateStatistic(StatisticKey.Command.Ping);
     },
 };
 

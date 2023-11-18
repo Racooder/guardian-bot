@@ -10,10 +10,8 @@ import {
 import { Command } from "../InteractionInterfaces";
 import { generalError, noGuildError } from "../InteractionReplies";
 import { handleSubcommands, isGuildCommand } from "../Essentials";
-import codenamesSchema from "../models/codenamesSchema";
-import guildMemberSchema from "../models/guildMemberSchema";
 import { debug, error } from "../Log";
-import { StatisticType } from "../models/statisticsSchema";
+import { StatisticKey } from "../models/statistic";
 
 export const Codenames: Command = {
     name: "codenames",
@@ -60,15 +58,14 @@ export const Codenames: Command = {
                 {
                     key: "add-word",
                     run: handleAddWord,
-                    stats: [StatisticType.Command_Codenames_AddWord],
+                    statType: StatisticKey.Command.Codenames.AddWord,
                 },
                 {
                     key: "wordpack",
                     run: handleGetPack,
-                    stats: [StatisticType.Command_Codenames_Wordpack],
+                    statType: StatisticKey.Command.Codenames.Wordpack,
                 },
             ],
-            [StatisticType.Command_Codenames]
         );
     },
 };

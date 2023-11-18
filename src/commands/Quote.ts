@@ -10,9 +10,6 @@ import {
     APIEmbedField,
 } from "discord.js";
 import { Command } from "../InteractionInterfaces";
-import quoteSchema, { IQuote } from "../models/quoteSchema";
-import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
-import quoteListSchema from "../models/quoteListSchema";
 import {
     handleSubcommands,
     isGuildCommand,
@@ -31,10 +28,9 @@ import {
     notImplementedError,
     notMatchingSearchError,
 } from "../InteractionReplies";
-import guildSchema, { guildSettings } from "../models/guildSchema";
 import Colors from "../Colors";
 import { debug, error, warn } from "../Log";
-import { StatisticType } from "../models/statisticsSchema";
+import { StatisticKey } from "../models/statistic";
 
 export const Quote: Command = {
     name: "quote",
@@ -225,30 +221,29 @@ export const Quote: Command = {
                 {
                     key: "new",
                     run: handleNewQuote,
-                    stats: [StatisticType.Command_Quote_New],
+                    statType: StatisticKey.Command.Quote.New,
                 },
                 {
                     key: "list",
                     run: handleListQuotes,
-                    stats: [StatisticType.Command_Quote_List],
+                    statType: StatisticKey.Command.Quote.List,
                 },
                 {
                     key: "search",
                     run: handleSearchQuotes,
-                    stats: [StatisticType.Command_Quote_Search],
+                    statType: StatisticKey.Command.Quote.Search,
                 },
                 {
                     key: "conversation",
                     run: handleConversation,
-                    stats: [StatisticType.Command_Quote_Conversation],
+                    statType: StatisticKey.Command.Quote.Conversation,
                 },
                 {
                     key: "edit",
                     run: handleEditQuote,
-                    stats: [StatisticType.Command_Quote_Edit],
+                    statType: StatisticKey.Command.Quote.Edit,
                 },
             ],
-            [StatisticType.Command_Quote]
         );
     },
 };

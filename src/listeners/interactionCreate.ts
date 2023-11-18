@@ -10,7 +10,7 @@ import { Commands, Components } from "../Interactions";
 import { generalError } from "../InteractionReplies";
 import { Button, StringSelectMenu } from "../InteractionInterfaces";
 import { debug, error } from "../Log";
-import { StatisticType, updateStatistic } from "../models/statisticsSchema";
+import { StatisticKey, updateStatistic } from "../models/statistic";
 
 /**
  * A listener and handler for the interactionCreate event.
@@ -57,11 +57,7 @@ async function handleSlashCommand(
         error(e as string, client);
     }
 
-    updateStatistic([
-        StatisticType.Event,
-        StatisticType.Event_Interaction,
-        StatisticType.Command,
-    ]);
+    updateStatistic(StatisticKey.Event.Interaction);
 }
 
 /**
@@ -104,9 +100,5 @@ async function handleComponent(
         error(e as string, client);
     }
 
-    updateStatistic([
-        StatisticType.Event,
-        StatisticType.Event_Interaction,
-        StatisticType.Component,
-    ]);
+    updateStatistic(StatisticKey.Event.Interaction);
 }

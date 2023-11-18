@@ -6,8 +6,8 @@ import {
 } from "discord.js";
 import { Command } from "../InteractionInterfaces";
 import { debug } from "../Log";
-import { StatisticType, updateStatistic } from "../models/statisticsSchema";
 import Colors from "../Colors";
+import { StatisticKey, updateStatistic } from "../models/statistic";
 
 export const Kofi: Command = {
     name: "kofi",
@@ -33,6 +33,6 @@ export const Kofi: Command = {
             embeds: [messageEmbed],
         });
 
-        updateStatistic([StatisticType.Command_Kofi]);
+        updateStatistic(StatisticKey.Command.Kofi);
     },
 };

@@ -1,10 +1,8 @@
-import { ActivityType, Client } from "discord.js";
+import { Client } from "discord.js";
 import { Commands } from "../Interactions";
 import mongoose, { ConnectOptions } from "mongoose";
-import quoteListSchema from "../models/quoteListSchema";
-import quoteGuesserSchema from "../models/quoteGuesserSchema";
 import { info, success, debug } from "../Log";
-import { StatisticType, updateStatistic } from "../models/statisticsSchema";
+import { updateStatistic, StatisticKey } from "src/models/statistic";
 
 /**
  * A listener for the ready event.
@@ -38,6 +36,6 @@ export default (client: Client): void => {
 
         success(`${client.user.username} is online`);
 
-        updateStatistic([StatisticType.Event, StatisticType.Event_Ready]);
+        updateStatistic(StatisticKey.Event.Ready);
     });
 };

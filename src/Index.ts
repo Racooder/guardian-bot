@@ -5,7 +5,7 @@ import "dotenv/config";
 import { debug, info, setupLog, success } from "./Log";
 import express, { Express, Request, Response } from "express";
 import statisticsSchema from "./models/statisticsSchema";
-import feedbackSchema from "./models/feedbackSchema";
+import feedbackSchema from "./models/feedback";
 import cors from "cors";
 
 setupLog().then(() => {

@@ -7,14 +7,11 @@ import {
     InteractionUpdateOptions,
 } from "discord.js";
 import { Button } from "../InteractionInterfaces";
-import quoteSchema from "../models/quoteSchema";
 import { isGuildCommand } from "../Essentials";
-import quoteListSchema from "../models/quoteListSchema";
 import { quoteListEmbed } from "../commands/Quote";
-import guildSchema, { guildSettings } from "../models/guildSchema";
 import { noGuildError } from "../InteractionReplies";
 import { debug } from "../Log";
-import { StatisticType, updateStatistic } from "../models/statisticsSchema";
+import { StatisticKey, updateStatistic } from "../models/statistic";
 
 export const QuotePage: Button = {
     name: "quotePage",
@@ -120,9 +117,6 @@ export const QuotePage: Button = {
             components: [row],
         } as InteractionUpdateOptions);
 
-        updateStatistic([
-            StatisticType.Component,
-            StatisticType.Component_QuotePage,
-        ]);
+        updateStatistic(StatisticKey.Component.QuotePage);
     },
 };

@@ -8,9 +8,7 @@ import { Command } from "../InteractionInterfaces";
 import { generalError } from "../InteractionReplies";
 import { handleSubcommands, isGuildCommand } from "../Essentials";
 import { debug, error } from "../Log";
-import feedbackSchema from "../models/feedbackSchema";
-import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
-import { StatisticType } from "../models/statisticsSchema";
+import { StatisticKey } from "../models/statistic";
 
 export const Feedback: Command = {
     name: "feedback",
@@ -73,7 +71,7 @@ export const Feedback: Command = {
             true
         );
 
-        let creatorDocument: IGuildMember | null = null;
+        let creatorDocument: GuildMember | null = null;
         if (isGuildCommand(interaction)) {
             debug("Updating creator name in the database");
             creatorDocument = await guildMemberSchema.updateNames(
@@ -98,20 +96,19 @@ export const Feedback: Command = {
                 {
                     key: "bug",
                     run: handleBug,
-                    stats: [StatisticType.Command_Feedback_Bug],
+                    statType: StatisticKey.Command.Feedback.Bug,
                 },
                 {
                     key: "feature",
                     run: handleFeature,
-                    stats: [StatisticType.Command_Feedback_Feature],
+                    statType: StatisticKey.Command.Feedback.Feature,
                 },
                 {
                     key: "other",
                     run: handleOther,
-                    stats: [StatisticType.Command_Feedback_Other],
+                    statType: StatisticKey.Command.Feedback.Other,
                 },
             ],
-            [StatisticType.Command_Feedback],
             feedbackDescription
         );
     },

@@ -21,12 +21,9 @@ import {
     noQuotesError,
 } from "../InteractionReplies";
 import { handleSubcommands, isGuildCommand } from "../Essentials";
-import quoteSchema from "../models/quoteSchema";
-import quoteGuesserSchema from "../models/quoteGuesserSchema";
-import guildMemberSchema from "../models/guildMemberSchema";
 import settings from "../settings.json";
 import { debug, error } from "../Log";
-import { StatisticType } from "../models/statisticsSchema";
+import { StatisticKey } from "../models/statistic";
 
 export const QuoteGuesser: Command = {
     name: "quote-guesser",
@@ -65,15 +62,14 @@ export const QuoteGuesser: Command = {
                 {
                     key: "play",
                     run: handlePlay,
-                    stats: [StatisticType.Command_QuoteGuesser_Play],
+                    statType: StatisticKey.Command.QuoteGuesser.Play,
                 },
                 {
                     key: "leaderboard",
                     run: handleLeaderboard,
-                    stats: [StatisticType.Command_QuoteGuesser_Leaderboard],
+                    statType: StatisticKey.Command.QuoteGuesser.Leaderboard,
                 },
             ],
-            [StatisticType.Command_QuoteGuesser]
         );
     },
 };

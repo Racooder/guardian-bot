@@ -16,10 +16,9 @@ import {
     isGuildCommand,
 } from "../Essentials";
 import { generalError, noGuildError } from "../InteractionReplies";
-import guildSchema, { GuildSettings } from "../models/guildSchema";
 import Colors from "../Colors";
 import { debug, error } from "../Log";
-import { StatisticType } from "../models/statisticsSchema";
+import { StatisticKey } from "../models/statistic";
 
 export const Settings: Command = {
     name: "settings",
@@ -130,30 +129,29 @@ export const Settings: Command = {
                 {
                     key: "view",
                     run: handleView,
-                    stats: [StatisticType.Command_Settings_View],
+                    statType: StatisticKey.Command.Settings.View,
                 },
                 {
                     key: "edit",
                     run: handleEdit,
-                    stats: [StatisticType.Command_Settings_Edit],
+                    statType: StatisticKey.Command.Settings.Edit,
                 },
                 {
                     key: "guild-link",
                     run: handleGuildLink,
-                    stats: [StatisticType.Command_Settings_GuildLink],
+                    statType: StatisticKey.Command.Settings.GuildLink,
                 },
                 {
                     key: "guild-unlink",
                     run: handleGuildUnlink,
-                    stats: [StatisticType.Command_Settings_GuildUnlink],
+                    statType: StatisticKey.Command.Settings.GuildUnlink,
                 },
                 {
                     key: "guild-link-list",
                     run: handleGuildLinkList,
-                    stats: [StatisticType.Command_Settings_GuildLinkList],
+                    statType: StatisticKey.Command.Settings.GuildLinkList,
                 },
             ],
-            [StatisticType.Command_Settings],
             client
         );
     },

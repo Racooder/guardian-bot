@@ -7,11 +7,8 @@ import {
 import { StringSelectMenu } from "../InteractionInterfaces";
 import { isGuildCommand } from "../Essentials";
 import { noGuildError } from "../InteractionReplies";
-import quoteGuesserSchema, {
-    resultTranslation,
-} from "../models/quoteGuesserSchema";
 import { debug } from "../Log";
-import { StatisticType, updateStatistic } from "../models/statisticsSchema";
+import { StatisticKey, updateStatistic } from "../models/statistic";
 
 export const AnswerQuoteGuesser: StringSelectMenu = {
     name: "answerQuoteGuesser",
@@ -73,11 +70,7 @@ export const AnswerQuoteGuesser: StringSelectMenu = {
                 ephemeral: true,
             });
 
-            updateStatistic([
-                StatisticType.Component,
-                StatisticType.Component_QuoteGuesser,
-                StatisticType.Component_QuoteGuesser_Answer,
-            ]);
+            updateStatistic(StatisticKey.Component.QuoteGuesser.Answer);
         } else {
             debug("Replying problem to user");
             interaction.reply({
