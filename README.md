@@ -27,4 +27,4 @@ You can find more informations [here](./LICENSE)
 
 ## Credits
 
-Thanks to **gotura** for the logo
+Thanks to [gotura](https://github.com/gotura) for the logo
