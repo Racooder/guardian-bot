@@ -12,7 +12,7 @@
 
 The official discord bot of the Racoonia discord server.
 
-## Installation
+## Usage
 
 Just [invite](https://discord.com/api/oauth2/authorize?client_id=821713905692573708&permissions=2048&scope=applications.commands%20bot) the bot to your discord server and you're done.
 
