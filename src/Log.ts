@@ -80,9 +80,7 @@ export function error(message: string, client?: Client) {
 }
 
 function log(message: string, prefix: string, color = "", doSave = true) {
-    const msg = `${new Date().toLocaleString("en-GB", {
-        timeZone: "UTC",
-    })} ${prefix} ${message}`;
+    const msg = `${new Date().toLocaleString("en-GB")} ${prefix} ${message}`;
     console.log(color, msg, format.Reset);
     if (doSave) {
         save(msg);
