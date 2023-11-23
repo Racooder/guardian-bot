@@ -57,21 +57,25 @@ async function updateCheck() {
     }, 1000);
 }
 
-async function checkForUpdate() {
+async function fetchCommitHash(): Promise<string> {
     const response = await fetch(COMMIT_URL);
-            const data = await response.json();
-            const latestCommitHash = data.sha;
+    const data = await response.json();
+    return data.sha;
+}
 
-            let currentCommitHash = "";
-            if (existsSync(COMMIT_HASH_FILE)) {
-                currentCommitHash = readFileSync(COMMIT_HASH_FILE).toString();
-            }
+async function checkForUpdate(): Promise<boolean> {
+    const latestCommitHash = await fetchCommitHash();
 
-            if (currentCommitHash !== latestCommitHash) {
-                writeFileSync(COMMIT_HASH_FILE, latestCommitHash);
-                return true;
-            }
-            return false;
+    let currentCommitHash = "";
+    if (existsSync(COMMIT_HASH_FILE)) {
+        currentCommitHash = readFileSync(COMMIT_HASH_FILE).toString();
+    }
+
+    if (currentCommitHash !== latestCommitHash) {
+        writeFileSync(COMMIT_HASH_FILE, latestCommitHash);
+        return true;
+    }
+    return false;
 }
 
 async function setupAPIServer() {
