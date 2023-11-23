@@ -39,11 +39,12 @@ async function updateCheck() {
         return;
     }
 
-    info("Update checking is enabled (intervall: " + process.env.STOP_TIME + ")");
+    info("Update checking is enabled (intervall: " + process.env.UPDATE_CHECK_TIME + ")");
 
     setTimeout(() => {
         schedule.scheduleJob(process.env.UPDATE_CHECK_TIME!, async () => {
             if (await checkForUpdate()) {
+                info("Update found! Restarting...");
                 debug("Stopping API Server...");
                 apiServer.close();
                 debug("Stopping Discord Bot...");
@@ -51,6 +52,7 @@ async function updateCheck() {
                 debug("Stopping process...");
                 process.exit();
             }
+            debug("No update found");
         });
     }, 1000);
 }
