@@ -6,7 +6,7 @@ import {
     User,
 } from "discord.js";
 import { IQuoteGuesser } from "./models/quoteGuesserSchema";
-import guildSchema, { GuildSettings } from "./models/guildSchema";
+import guildSchema, { GuildSettings } from "./models/guild";
 import { generalError } from "./InteractionReplies";
 import { debug, error } from "./Log";
 import { StatisticType, updateStatistic } from "./models/statisticsSchema";

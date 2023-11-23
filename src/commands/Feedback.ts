@@ -9,6 +9,7 @@ import { generalError } from "../InteractionReplies";
 import { handleSubcommands, isGuildCommand } from "../Essentials";
 import { debug, error } from "../Log";
 import { StatisticKey } from "../models/statistic";
+import { IGuildMember } from "../models/guildMember";
 
 export const Feedback: Command = {
     name: "feedback",
@@ -71,7 +72,7 @@ export const Feedback: Command = {
             true
         );
 
-        let creatorDocument: GuildMember | null = null;
+        let creatorDocument: IGuildMember | null = null;
         if (isGuildCommand(interaction)) {
             debug("Updating creator name in the database");
             creatorDocument = await guildMemberSchema.updateNames(

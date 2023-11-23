@@ -12,6 +12,9 @@ import { generalError, noGuildError } from "../InteractionReplies";
 import { handleSubcommands, isGuildCommand } from "../Essentials";
 import { debug, error } from "../Log";
 import { StatisticKey } from "../models/statistic";
+import guildMemberModel from "../models/guildMember";
+import discordUserModel from "src/models/discordUser";
+import guildModel from "src/models/guild";
 
 export const Codenames: Command = {
     name: "codenames",
@@ -84,9 +87,10 @@ async function handleAddWord(
     const word = interaction.options.getString("word", true);
 
     debug("Updating creator name in the database");
-    const creatorDocument = await guildMemberSchema.updateNames(
-        interaction.guildId!,
-        interaction.member as GuildMember
+    const creatorDocument = await guildMemberModel.update(
+        await discordUserModel.update(interaction.user.id, interaction.user.username, interaction.user.discriminator),
+        await guildModel.update(interaction.guildId!),
+        (interaction.member as GuildMember).displayName
     );
 
     debug(
