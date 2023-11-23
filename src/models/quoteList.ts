@@ -1,9 +1,9 @@
 import { Model, Schema, Document, model } from "mongoose";
-import { Guild } from "./guildSchema";
 
-export interface QuoteList extends Document {
-    guild: string;
+export interface IQuoteList extends Document {
     page: number;
+    user: string;
+    guild?: string;
     content?: string;
     authorId?: string;
     authorName?: string;
@@ -14,18 +14,22 @@ export interface QuoteList extends Document {
     updatedAt: Date;
 }
 
-interface QuoteListModel extends Model<QuoteList> {}
+interface QuoteListModel extends Model<IQuoteList> {}
 
-const quoteListSchema = new Schema<QuoteList, QuoteListModel>(
+const quoteListSchema = new Schema<IQuoteList, QuoteListModel>(
     {
-        guild: {
-            type: String,
-            ref: "Guild",
-            required: true,
-        },
         page: {
             type: Number,
             required: true,
+        },
+        user: {
+            type: String,
+            ref: "DiscordUser",
+            required: true,
+        },
+        guild: {
+            type: String,
+            ref: "Guild",
         },
         content: {
             type: String,
@@ -51,6 +55,6 @@ const quoteListSchema = new Schema<QuoteList, QuoteListModel>(
     }
 );
 
-const quoteListModel = model<QuoteList, QuoteListModel>("QuoteList", quoteListSchema);
+const quoteListModel = model<IQuoteList, QuoteListModel>("QuoteList", quoteListSchema);
 
 export default quoteListModel;

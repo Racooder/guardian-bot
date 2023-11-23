@@ -1,24 +1,31 @@
 import { Model, Schema, Document, model } from "mongoose";
-import { PotentialGuildMember } from "./potentialGuildMember";
+import { IGuildMember } from "./guildMember";
 
-export interface QuoteUser extends Document {
-    user?: PotentialGuildMember["_id"];
+export interface IQuoteUser extends Document {
     name: string;
+    user?: IGuildMember["_id"];
+
+    // Virtuals
+    isDiscordUser: boolean;
 }
 
-interface QuoteUserModel extends Model<QuoteUser> {}
+interface QuoteUserModel extends Model<IQuoteUser> {}
 
-const quoteUserSchema = new Schema<QuoteUser, QuoteUserModel>({
-    user: {
-        type: Schema.Types.ObjectId,
-        ref: "PotentialGuildMember",
-    },
+const quoteUserSchema = new Schema<IQuoteUser, QuoteUserModel>({
     name: {
         type: String,
         required: true,
     },
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: "GuildMember",
+    },
 });
 
-const quoteUserModel = model<QuoteUser, QuoteUserModel>("QuoteUser", quoteUserSchema);
+quoteUserSchema.virtual("isDiscordUser").get(function (this: IQuoteUser) {
+    return this.user !== undefined;
+});
+
+const quoteUserModel = model<IQuoteUser, QuoteUserModel>("QuoteUser", quoteUserSchema);
 
 export default quoteUserModel;

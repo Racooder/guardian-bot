@@ -1,20 +1,20 @@
 import { Model, Schema, Document, model } from "mongoose";
-import { FeedbackUser } from "./feedbackUser";
+import { IDiscordUser } from "./discordUser";
 
 export type FeedbackType = "bug" | "feature" | "other";
 
-export interface Feedback extends Document {
+export interface IFeedback extends Document {
     type: FeedbackType;
     description: string;
-    creator: FeedbackUser["_id"];
+    creator: IDiscordUser["_id"];
     guild?: string;
     createdAt: Date;
     updatedAt: Date;
 }
 
-interface FeedbackModel extends Model<Feedback> {}
+interface FeedbackModel extends Model<IFeedback> {}
 
-const feedbackSchema = new Schema<Feedback, FeedbackModel>(
+const feedbackSchema = new Schema<IFeedback, FeedbackModel>(
     {
         type: {
             type: String,
@@ -26,8 +26,8 @@ const feedbackSchema = new Schema<Feedback, FeedbackModel>(
             required: true,
         },
         creator: {
-            type: Schema.Types.ObjectId,
-            ref: "FeedbackUser",
+            type: String,
+            ref: "DiscordUser",
             required: true,
         },
         guild: {
@@ -40,6 +40,6 @@ const feedbackSchema = new Schema<Feedback, FeedbackModel>(
     }
 );
 
-const feedbackModel = model<Feedback, FeedbackModel>("Feedback", feedbackSchema);
+const feedbackModel = model<IFeedback, FeedbackModel>("Feedback", feedbackSchema);
 
 export default feedbackModel;

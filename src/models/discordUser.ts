@@ -1,14 +1,20 @@
 import { Model, Schema, Document, model } from "mongoose";
 
-export interface DiscordUser extends Document {
+export interface IDiscordUser extends Document {
     _id: string;
     username: string;
     discriminator?: string;
 }
 
-interface DiscordUserModel extends Model<DiscordUser> {}
+interface DiscordUserModel extends Model<IDiscordUser> {
+    update(
+        userId: string,
+        username: string,
+        discriminator?: string
+    ): Promise<IDiscordUser>;
+}
 
-const discordUserSchema = new Schema<DiscordUser, DiscordUserModel>({
+const discordUserSchema = new Schema<IDiscordUser, DiscordUserModel>({
     _id: {
         type: String,
         required: true,
@@ -23,7 +29,11 @@ const discordUserSchema = new Schema<DiscordUser, DiscordUserModel>({
     },
 });
 
-const discordUserModel = model<DiscordUser, DiscordUserModel>(
+discordUserSchema.static("update", async function (userId: string, username: string, discriminator?: string) {
+    return this.findByIdAndUpdate(userId, { username, discriminator }, { upsert: true });
+});
+
+const discordUserModel = model<IDiscordUser, DiscordUserModel>(
     "DiscordUser",
     discordUserSchema
 );

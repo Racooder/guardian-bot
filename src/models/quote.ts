@@ -1,19 +1,19 @@
 import { Model, Schema, Document, model } from "mongoose";
-import { PotentialGuildMember } from "./potentialGuildMember";
-import { QuoteUser } from "./quoteUser";
+import { IQuoteUser } from "./quoteUser";
+import { IGuildMember } from "./guildMember";
 
-export interface Quote extends Document {
+export interface IQuote extends Document {
     guild: string;
-    creator: PotentialGuildMember["_id"];
-    authors: QuoteUser["_id"][];
+    creator: IGuildMember["_id"];
+    authors: IQuoteUser["_id"][];
     quotes: string[];
     createdAt: Date;
     updatedAt: Date;
 }
 
-interface QuoteModel extends Model<Quote> {}
+interface QuoteModel extends Model<IQuote> {}
 
-const quoteSchema = new Schema<Quote, QuoteModel>(
+const quoteSchema = new Schema<IQuote, QuoteModel>(
     {
         guild: {
             type: String,
@@ -22,7 +22,7 @@ const quoteSchema = new Schema<Quote, QuoteModel>(
         },
         creator: {
             type: Schema.Types.ObjectId,
-            ref: "PotentialGuildMember",
+            ref: "GuildMember",
             required: true,
         },
         authors: [
@@ -44,6 +44,6 @@ const quoteSchema = new Schema<Quote, QuoteModel>(
     }
 );
 
-const quoteModel = model<Quote, QuoteModel>("Quote", quoteSchema);
+const quoteModel = model<IQuote, QuoteModel>("Quote", quoteSchema);
 
 export default quoteModel;

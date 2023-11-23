@@ -46,15 +46,15 @@ export const StatisticKey = {
     },
 }
 
-export interface Statistic extends Document {
+export interface IStatistic extends Document {
     type: string;
     createdAt: Date;
     updatedAt: Date;
 }
 
-interface StatisticModel extends Model<Statistic> {}
+interface StatisticModel extends Model<IStatistic> {}
 
-const statisticSchema = new Schema<Statistic, StatisticModel>(
+const statisticSchema = new Schema<IStatistic, StatisticModel>(
     {
         type: {
             type: String,
@@ -66,7 +66,7 @@ const statisticSchema = new Schema<Statistic, StatisticModel>(
     }
 );
 
-const statisticModel = model<Statistic, StatisticModel>("Statistic", statisticSchema);
+const statisticModel = model<IStatistic, StatisticModel>("Statistic", statisticSchema);
 
 export default statisticModel;
 

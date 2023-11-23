@@ -1,15 +1,15 @@
 import { Model, Schema, Document, model } from "mongoose";
-import { CodenamesUser } from './codenamesUser';
+import { IGuildMember } from "./guildMember";
 
-export interface CodenamesWord extends Document {
+export interface ICodenamesWord extends Document {
     guild: string;
     word: string;
-    creator: CodenamesUser["_id"];
+    creator: IGuildMember["_id"];
 }
 
-interface CodenamesWordModel extends Model<CodenamesWord> {}
+interface CodenamesWordModel extends Model<ICodenamesWord> {}
 
-const codenamesWordSchema = new Schema<CodenamesWord, CodenamesWordModel>({
+const codenamesWordSchema = new Schema<ICodenamesWord, CodenamesWordModel>({
     guild: {
         type: String,
         ref: "Guild",
@@ -23,12 +23,12 @@ const codenamesWordSchema = new Schema<CodenamesWord, CodenamesWordModel>({
         type: Schema.Types.ObjectId,
         ref: "CodenamesUser",
         required: true,
-    }
+    },
 });
 
 codenamesWordSchema.index({ guild: 1, word: 1 }, { unique: true });
 
-const codenamesWordModel = model<CodenamesWord, CodenamesWordModel>(
+const codenamesWordModel = model<ICodenamesWord, CodenamesWordModel>(
     "CodenamesWord",
     codenamesWordSchema
 );
