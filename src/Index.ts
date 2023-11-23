@@ -1,23 +1,78 @@
+import schedule from "node-schedule";
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import express, { Express } from "express";
+import { Server } from "http";
+import cors from "cors";
 import { Client } from "discord.js";
+import { debug, error, info, setupLog, success } from "./Log";
 import interactionCreate from "./listeners/interactionCreate";
 import ready from "./listeners/ready";
-import "dotenv/config";
-import { debug, info, setupLog, success } from "./Log";
-import express, { Express, Request, Response } from "express";
 import statisticsSchema from "./models/statisticsSchema";
 import feedbackSchema from "./models/feedbackSchema";
-import cors from "cors";
+import "dotenv/config";
 
-setupLog().then(() => {
+const COMMIT_URL = "https://api.github.com/repos/Racooder/guardian-bot/commits/main";
+const COMMIT_HASH_FILE = "./commit-hash.txt";
+
+var apiServer: Server;
+var discordClient: Client;
+
+setupLog().then(async () => {
     if (process.env.DEBUG === "true") {
         info("Debug mode is enabled\n");
     }
 
     setupAPIServer();
     setupDiscordBot();
+
+    updateCheck();
 });
 
-function setupAPIServer() {
+async function updateCheck() {
+    if (!process.env.UPDATE_CHECK) {
+        info("Update checking is disabled");
+        return
+    }
+
+    if (process.env.UPDATE_CHECK_TIME === undefined) {
+        error("Update check time is not defined!");
+        return;
+    }
+
+    info("Update checking is enabled (intervall: " + process.env.STOP_TIME + ")");
+
+    setTimeout(() => {
+        schedule.scheduleJob(process.env.UPDATE_CHECK_TIME!, async () => {
+            if (await checkForUpdate()) {
+                debug("Stopping API Server...");
+                apiServer.close();
+                debug("Stopping Discord Bot...");
+                discordClient.destroy();
+                debug("Stopping process...");
+                process.exit();
+            }
+        });
+    }, 1000);
+}
+
+async function checkForUpdate() {
+    const response = await fetch(COMMIT_URL);
+            const data = await response.json();
+            const latestCommitHash = data.sha;
+
+            let currentCommitHash = "";
+            if (existsSync(COMMIT_HASH_FILE)) {
+                currentCommitHash = readFileSync(COMMIT_HASH_FILE).toString();
+            }
+
+            if (currentCommitHash !== latestCommitHash) {
+                writeFileSync(COMMIT_HASH_FILE, latestCommitHash);
+                return true;
+            }
+            return false;
+}
+
+async function setupAPIServer() {
     info("Starting API Server...");
 
     const app: Express = express();
@@ -88,22 +143,22 @@ function setupAPIServer() {
             });
     });
 
-    app.listen(process.env.API_PORT, () => {
+    apiServer = app.listen(process.env.API_PORT, () => {
         success(`API Server is listening on port ${process.env.API_PORT}`);
     });
 }
 
-function setupDiscordBot() {
+async function setupDiscordBot() {
     info("Starting Discord Bot...");
 
-    const client = new Client({
+    discordClient = new Client({
         intents: ["Guilds"],
     });
 
     debug("Starting event listeners...");
-    ready(client);
-    interactionCreate(client);
+    ready(discordClient);
+    interactionCreate(discordClient);
 
     // Login
-    client.login(process.env.TOKEN);
+    discordClient.login(process.env.TOKEN);
 }

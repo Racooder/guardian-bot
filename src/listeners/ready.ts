@@ -1,4 +1,4 @@
-import { ActivityType, Client } from "discord.js";
+import { Client } from "discord.js";
 import { Commands } from "../Interactions";
 import mongoose, { ConnectOptions } from "mongoose";
 import quoteListSchema from "../models/quoteListSchema";
