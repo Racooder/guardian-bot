@@ -4,7 +4,7 @@
 <div align="center">
   <p>
     <a href="https://discord.gg/9Y8BE2A6cj"><img src="https://img.shields.io/discord/651800564966883328?label=Chat&logo=discord&logoColor=white" alt="Discord server"/></a>
-    <a href="https://github.com/Racooder/Racoonia-Guardian"><img src="https://img.shields.io/badge/Version-1.0.4-orange" alt="version"/></a>
+    <a href="https://github.com/Racooder/Racoonia-Guardian"><img src="https://img.shields.io/badge/Version-2.1.0-orange" alt="version"/></a>
     <a href="https://discord.com/api/oauth2/authorize?client_id=821713905692573708&permissions=2048&scope=applications.commands%20bot"><img src="https://img.shields.io/badge/Invite-Guardian-blue" alt="Discord server"/></a>
 </div>
 
