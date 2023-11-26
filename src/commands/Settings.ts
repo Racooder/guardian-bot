@@ -17,7 +17,7 @@ import {
 } from "../Essentials";
 import { generalError, noGuildError } from "../InteractionReplies";
 import guildSchema, { GuildSettings } from "../models/guildSchema";
-import Colors from "../Colors";
+import EmbedColors from "../EmbedColors";
 import { debug, error } from "../Log";
 import { StatisticType } from "../models/statisticsSchema";
 
@@ -177,7 +177,7 @@ async function handleView(
     const messageEmbed = new EmbedBuilder()
         .setTitle("Settings")
         .setTimestamp(Date.now())
-        .setColor(Colors.settingsEmbed);
+        .setColor(EmbedColors.settingsEmbed);
 
     debug("Adding settings fields to embed");
     let setting: keyof GuildSettings;
@@ -280,7 +280,7 @@ async function handleGuildLink(
         .setDescription(
             "IMPORTANT: Guild linking is required from both guilds.\nQuote linking will start working once the other guild links to this guild.\nIf the other guild is already linked, quote linking will start working immediately."
         )
-        .setColor(Colors.settingsEmbed);
+        .setColor(EmbedColors.settingsEmbed);
 
     return {
         embeds: [embedBuilder],
@@ -308,7 +308,7 @@ async function handleGuildUnlink(
         .setDescription(
             "IMPORTANT: Unlinking a guild will also prevent the other guild from accessing quotes from this guild."
         )
-        .setColor(Colors.settingsEmbed);
+        .setColor(EmbedColors.settingsEmbed);
 
     return {
         embeds: [embedBuilder],
@@ -322,7 +322,7 @@ async function handleGuildLinkList(
 ): Promise<InteractionReplyOptions> {
     const embedBuilder = new EmbedBuilder()
         .setTitle(`Linked guilds`)
-        .setColor(Colors.settingsEmbed);
+        .setColor(EmbedColors.settingsEmbed);
 
     const linkedGuilds = await guildSchema.listLinkedGuilds(
         interaction.guildId!

@@ -32,7 +32,7 @@ import {
     notMatchingSearchError,
 } from "../InteractionReplies";
 import guildSchema, { guildSettings } from "../models/guildSchema";
-import Colors from "../Colors";
+import EmbedColors from "../EmbedColors";
 import { debug, error, warn } from "../Log";
 import { StatisticType } from "../models/statisticsSchema";
 
@@ -322,7 +322,7 @@ async function handleNewQuote(
             name: creatorMember.displayName,
             iconURL: interaction.user.displayAvatarURL(),
         })
-        .setColor(Colors.quoteEmbed);
+        .setColor(EmbedColors.quoteEmbed);
 
     return {
         embeds: [messageEmbed],
@@ -593,7 +593,7 @@ async function handleConversation(
             name: creatorMember.displayName,
             iconURL: interaction.user.displayAvatarURL(),
         })
-        .setColor(Colors.quoteEmbed)
+        .setColor(EmbedColors.quoteEmbed)
         .setDescription(
             quotes
                 .map((quote, index) => {
@@ -664,7 +664,7 @@ export async function quoteListEmbed(
     const embedBuilder = new EmbedBuilder()
         .setTitle(`Quotes (Page ${page + 1}/${pages.length})`)
         .setDescription(description ?? null)
-        .setColor(Colors.quoteEmbed)
+        .setColor(EmbedColors.quoteEmbed)
         .addFields(embedFields);
 
     return Promise.resolve(embedBuilder);

@@ -7,7 +7,7 @@ import {
 import { Command } from "../InteractionInterfaces";
 import { debug } from "../Log";
 import { StatisticType, updateStatistic } from "../models/statisticsSchema";
-import Colors from "../Colors";
+import EmbedColors from "../EmbedColors";
 
 export const Kofi: Command = {
     name: "kofi",
@@ -23,7 +23,7 @@ export const Kofi: Command = {
                 "Consider supporting me on Ko-Fi at https://ko-fi.com/racooder"
             )
             .setURL("https://ko-fi.com/racooder")
-            .setColor(Colors.kofiEmbed)
+            .setColor(EmbedColors.kofiEmbed)
             .setThumbnail(
                 "https://storage.ko-fi.com/cdn/brandasset/kofi_s_logo_nolabel.png?_gl=1*1vvq19e*_ga*NjQ5OTU3ODE0LjE2OTAyMDY1NjY.*_ga_M13FZ7VQ2C*MTY5MTQyNDc2Mi45LjEuMTY5MTQyNjA4NC41Ni4wLjA."
             );
