@@ -1,0 +1,23 @@
+{
+  "name": "guardian-bot",
+  "version": "3.0.1",
+  "description": "Official racoonia discord bot.",
+  "main": "src/app.ts",
+  "repository": "https://github.com/Racooder/guardian-bot.git",
+  "author": "Racooder <76227605+Racooder@users.noreply.github.com>",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./dist/App.js",
+    "dev": "ts-node ./src/App.ts"
+  },
+  "dependencies": {
+    "@types/node": "^20.10.0",
+    "discord.js": "^14.14.1",
+    "typescript": "^5.3.2",
+    "zlib": "^1.0.5"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1"
+  }
+}
