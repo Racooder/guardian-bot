@@ -3,6 +3,6 @@
     "api_port": 3000,
     "do_update_check": true,
     "update_check_cron": "0 * * * *",
-    "log_channel": "error",
-    "log_role": "error",
+    "log_channel": "",
+    "log_role": "",
 }
