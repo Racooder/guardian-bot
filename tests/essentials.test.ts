@@ -1,4 +1,3 @@
-import { info } from "../src/Log";
 import { approximateEqual, parseDate, randomElement, splitArrayIntoChunks } from "../src/Essentials";
 
 describe('Essentials - isGuildCommand', () => {
