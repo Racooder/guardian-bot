@@ -1,0 +1,10 @@
+{
+    "test.1": "This is a test",
+    "test.2": "This is another test",
+    "error.general": "An error has occured",
+    "error.feature_not_implemented": "This feature is not yet implemented",
+    "error.invalid_date_format": "Invalid date format! Please use the format (YYYY-MM-DD)",
+    "error.no_quotes_found": "There are no quotes matching your search criteria",
+    "error.guild_has_no_quotes": "There are no quotes on this server",
+    "error.failed_creating_game": "Failed to create a new game"
+}
