@@ -12,7 +12,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/App.js",
-    "dev": "ts-node ./src/App.ts"
+    "dev": "ts-node ./src/App.ts",
+    "test": "jest"
   },
   "dependencies": {
     "@types/node": "^20.10.0",
