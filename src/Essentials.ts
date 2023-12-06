@@ -1,3 +1,5 @@
+import { GuildMember, Interaction } from "discord.js";
+
 /**
  * Checks for `guildId` and `member` properties
  * @param interaction - The interaction to check
