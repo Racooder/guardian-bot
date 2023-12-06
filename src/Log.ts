@@ -91,9 +91,10 @@ export async function logToDiscord(client: Client, embed: EmbedBuilder) {
 
 function log(message: string, prefix: string, color = "", doSave = true) {
     const localTime = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
-    const msg = `${localTime} ${prefix} ${message}`;
-    console.log(color, msg, format.Reset);
+    console.log(color, localTime, prefix, message, format.Reset);
+
     if (doSave) {
+        const msg = `${localTime} ${prefix} ${message}`;
         save(msg);
     }
 }
