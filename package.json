@@ -14,10 +14,10 @@
   "dependencies": {
     "@types/node": "^20.10.0",
     "discord.js": "^14.14.1",
-    "typescript": "^5.3.2",
     "zlib": "^1.0.5"
   },
   "devDependencies": {
     "ts-node": "^10.9.1"
+    "typescript": "^5.3.2"
   }
 }
