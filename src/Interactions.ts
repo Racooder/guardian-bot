@@ -13,17 +13,16 @@ export enum ComponentType {
     StringSelectMenu,
 }
 
-export interface Component {
+export interface Component<InteractionType = MessageComponentInteraction> {
     name: string;
     type: ComponentType;
+    run: (client: Client, interaction: InteractionType, data: string[]) => void;
 }
 
-export interface ButtonComponent extends Component {
+export interface ButtonComponent extends Component<ButtonInteraction> {
     type: ComponentType.Button;
-    run: (client: Client, interaction: ButtonInteraction, data: string[]) => void;
 }
 
-export interface StringSelectMenuComponent extends Component {
+export interface StringSelectMenuComponent extends Component<StringSelectMenuInteraction> {
     type: ComponentType.StringSelectMenu;
-    run: (client: Client, interaction: StringSelectMenuInteraction, data: string[]) => void;
 }
