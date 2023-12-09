@@ -16,14 +16,14 @@ export class Failure {
         return localize(this.localizationKey, language);
     }
 
-    discordEmbed(language: string) {
+    discordEmbed(language: string): EmbedBuilder {
         return new EmbedBuilder()
             .setTitle("Failure")
             .setDescription(this.localizedString(language))
             .setColor(EMBED_COLOR);
     }
 
-    toString() {
+    toString(): string {
         return `${this.type}: ${this.localizedString("en-us")}`;
     }
 }

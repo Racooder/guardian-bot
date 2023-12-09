@@ -99,11 +99,11 @@ function log(message: string, prefix: string, color = "", doSave = true) {
     }
 }
 
-function save(message: string) {
+function save(message: string): void {
     writeFileSync(latestPath, `${message}\n`, { flag: "a" });
 }
 
-export async function setupLog() {
+export async function setupLog(): Promise<void> {
     existsSync(folderPath) || mkdirSync(folderPath);
     if (existsSync(latestPath)) {
         const targetPath = `${folderPath}/${new Date().toISOString()}.txt.gz`.replace(/:/g, "-");
