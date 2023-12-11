@@ -16,6 +16,15 @@ The official discord bot of the Racoonia discord server.
 
 Just [invite](https://discord.com/api/oauth2/authorize?client_id=821713905692573708&permissions=2048&scope=applications.commands%20bot) the bot to your discord server and you're done.
 
+## Build
+
+1. Run `yarn build` in the original directory
+2. Copy the contents of `dist` to the target directory
+3. Copy the `package.json` to the target directory
+4. Copy the `config.json` and `.env` to the target directory and fill out all the fields
+5. Run `npm install` in the target directory
+6. Run `npm run start` in the target directory
+
 ## License
 
 The license applies only to the code in this repository.

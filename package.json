@@ -11,7 +11,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "build": "tsc",
-    "start": "node ./dist/App.js",
+    "start": "node ./src/App.js",
     "dev": "ts-node ./src/App.ts",
     "test": "jest --silent"
   },
