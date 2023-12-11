@@ -7,3 +7,4 @@ config.json
 .env
 .todo
 commit-hash.txt
+yarn-error.log
