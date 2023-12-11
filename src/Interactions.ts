@@ -1,6 +1,7 @@
 import { ButtonInteraction, ChatInputApplicationCommandData, Client, CommandInteraction, InteractionReplyOptions, MessageComponentInteraction, StringSelectMenuInteraction } from "discord.js";
+import { Ping } from "./commands/Ping";
 
-export const Commands: Command[] = [];
+export const Commands: Command[] = [Ping];
 
 export const Components: Component[] = [];
 
