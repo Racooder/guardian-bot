@@ -29,7 +29,7 @@ export interface StringSelectMenuComponent extends Component<StringSelectMenuInt
 }
 
 export interface SlashCommandResponse extends InteractionReplyOptions {
-    // For future use
+    initial: boolean;
 }
 
 export interface ComponentResponse extends InteractionReplyOptions {

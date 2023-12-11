@@ -24,8 +24,9 @@ export class Failure {
             .setColor(EMBED_COLOR);
     }
 
-    slashCommandResponse(language: string): SlashCommandResponse {
+    slashCommandResponse(language: string, initial: boolean): SlashCommandResponse {
         return {
+            initial: initial,
             ephemeral: true,
             content: "",
             embeds: [this.discordEmbed(language)],

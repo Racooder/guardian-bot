@@ -1,6 +1,6 @@
 import { debug, error } from "../Log";
 import { EventListener } from "../EventListeners";
-import { ButtonInteraction, Client, CommandInteraction, InteractionReplyOptions, MessageComponentInteraction } from "discord.js";
+import { ButtonInteraction, Client, CommandInteraction, MessageComponentInteraction } from "discord.js";
 import { Commands, ComponentResponse, ComponentType, Components, SlashCommandResponse } from "../Interactions";
 import { CommandNotFoundFailure, ComponentNotFoundFailure, UnknownComponentTypeFailure } from "../Failure";
 
@@ -11,7 +11,11 @@ export const InteractionCreate: EventListener = {
 
             if (interaction.isCommand()) {
                 const interactionReply = await handleSlashCommand(client, interaction);
-                interaction.followUp(interactionReply);
+                if (interactionReply.initial) {
+                    interaction.reply(interactionReply);
+                } else {
+                    interaction.followUp(interactionReply);
+                }
             } else if (interaction.isMessageComponent()) {
                 handleMessageComponent(client, interaction);
             }
@@ -29,7 +33,7 @@ async function handleSlashCommand(client: Client, interaction: CommandInteractio
 
     if (!commandHandler) {
         error("Command not found");
-        return new CommandNotFoundFailure().slashCommandResponse("en"); // TODO: Get language from user
+        return new CommandNotFoundFailure().slashCommandResponse("en", true); // TODO: Get language from user
     }
 
     // TODO: Update statistics
