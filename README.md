@@ -21,7 +21,7 @@ Just [invite](https://discord.com/api/oauth2/authorize?client_id=821713905692573
 1. Run `yarn build` in the original directory
 2. Copy the contents of `dist` to the target directory
 3. Copy the `package.json` to the target directory
-4. Copy the `config.json` and `.env` to the target directory and fill out all the fields
+4. Copy the `config.json.template` and `.env.template` as `config.json` and `.env` to the target directory and fill out all the fields
 5. Run `npm install` in the target directory
 6. Run `npm run start` in the target directory
 
