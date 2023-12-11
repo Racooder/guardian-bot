@@ -37,6 +37,5 @@ jobs:
       with:
         name: production-artifacts
         path: |
-          dist/*
-          package.json
-          config.json
+          dist
+          test-report.json

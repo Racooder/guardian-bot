@@ -6,3 +6,4 @@
 .env
 github-latest-release.txt
 yarn-error.log
+test-report.json
