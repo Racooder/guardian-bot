@@ -1,7 +1,8 @@
 import { ButtonInteraction, ChatInputApplicationCommandData, Client, CommandInteraction, InteractionReplyOptions, MessageComponentInteraction, StringSelectMenuInteraction } from "discord.js";
 import { Ping } from "./commands/Ping";
+import { Kofi } from "./commands/Kofi";
 
-export const Commands: Command[] = [Ping];
+export const Commands: Command[] = [Ping, Kofi];
 
 export const Components: Component[] = [];
 
