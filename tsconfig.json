@@ -20,6 +20,9 @@
         "sourceMap": false,
         "baseUrl": "./"
     },
+    "files": [
+        "./src/custom.d.ts",
+    ],
     "include": [
         "./**/*.ts"
     ],
