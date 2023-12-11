@@ -30,7 +30,7 @@ jobs:
     - name: yarn install, build and test
       run: |
         yarn --frozen-lockfile
-        yarn build --if-present
+        yarn build
         yarn test
     - name: Archive production artifacts
       uses: actions/upload-artifact@v3
