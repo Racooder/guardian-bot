@@ -1,4 +1,4 @@
-import { EventListener } from "../EventsListeners";
+import { EventListener } from "../EventListeners";
 import { Commands } from "../Interactions";
 import { debug, error, info, success } from "../Log";
 

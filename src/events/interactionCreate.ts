@@ -1,5 +1,5 @@
 import { debug, error } from "../Log";
-import { EventListener } from "../EventsListeners";
+import { EventListener } from "../EventListeners";
 import { ButtonInteraction, Client, CommandInteraction, InteractionReplyOptions, MessageComponentInteraction } from "discord.js";
 import { Commands, ComponentResponse, ComponentType, Components, SlashCommandResponse } from "../Interactions";
 import { CommandNotFoundFailure, ComponentNotFoundFailure, UnknownComponentTypeFailure } from "../Failure";

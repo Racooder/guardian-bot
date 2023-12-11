@@ -1,6 +1,6 @@
 import { Client } from "discord.js";
 import { debug, info } from "./Log";
-import { Listeners } from "./EventsListeners";
+import { Listeners } from "./EventListeners";
 
 export async function setupDiscordBot(): Promise<Client> {
     info("Starting Discord bot...");
