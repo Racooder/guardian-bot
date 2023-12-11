@@ -1,5 +1,6 @@
 import { EmbedBuilder } from "discord.js";
 import { localize } from "./Localization";
+import { ComponentResponse, SlashCommandResponse } from "./Interactions";
 
 const EMBED_COLOR = 0xaa0000;
 
@@ -23,8 +24,51 @@ export class Failure {
             .setColor(EMBED_COLOR);
     }
 
+    slashCommandResponse(language: string): SlashCommandResponse {
+        return {
+            ephemeral: true,
+            content: "",
+            embeds: [this.discordEmbed(language)],
+            components: [],
+        };
+    }
+
+    componentResponse(language: string): ComponentResponse {
+        return {
+            update: false,
+            ephemeral: true,
+            content: "",
+            embeds: [this.discordEmbed(language)],
+            components: [],
+        };
+    }
+
     toString(): string {
         return `${this.type}: ${this.localizedString("en-us")}`;
+    }
+}
+
+export class CommandNotFoundFailure extends Failure {
+    constructor() {
+        super();
+        this.type = "CommandNotFound";
+        this.localizationKey = "error.command_not_found"; // TODO: Add english localization
+    }
+}
+
+export class ComponentNotFoundFailure extends Failure {
+    constructor() {
+        super();
+        this.type = "ComponentNotFound";
+        this.localizationKey = "error.component_not_found"; // TODO: Add english localization
+    }
+}
+
+export class UnknownComponentTypeFailure extends Failure {
+    constructor() {
+        super();
+        this.type = "UnknownComponentType";
+        this.localizationKey = "error.unknown_component_type";
     }
 }
 

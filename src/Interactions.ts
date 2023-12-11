@@ -1,11 +1,11 @@
-import { ButtonInteraction, ChatInputApplicationCommandData, Client, CommandInteraction, MessageComponentInteraction, StringSelectMenuInteraction } from "discord.js";
+import { ButtonInteraction, ChatInputApplicationCommandData, Client, CommandInteraction, InteractionReplyOptions, MessageComponentInteraction, StringSelectMenuInteraction } from "discord.js";
 
 export const Commands: Command[] = [];
 
 export const Components: Component[] = [];
 
 export interface Command extends ChatInputApplicationCommandData {
-    run: (client: Client, interaction: CommandInteraction) => void;
+    run: (client: Client, interaction: CommandInteraction) => Promise<SlashCommandResponse>;
 }
 
 export enum ComponentType {
@@ -16,7 +16,7 @@ export enum ComponentType {
 export interface Component<InteractionType = MessageComponentInteraction> {
     name: string;
     type: ComponentType;
-    run: (client: Client, interaction: InteractionType, data: string[]) => void;
+    run: (client: Client, interaction: InteractionType, data: string[]) => Promise<ComponentResponse>;
 }
 
 export interface ButtonComponent extends Component<ButtonInteraction> {
@@ -25,4 +25,12 @@ export interface ButtonComponent extends Component<ButtonInteraction> {
 
 export interface StringSelectMenuComponent extends Component<StringSelectMenuInteraction> {
     type: ComponentType.StringSelectMenu;
+}
+
+export interface SlashCommandResponse extends InteractionReplyOptions {
+    // For future use
+}
+
+export interface ComponentResponse extends InteractionReplyOptions {
+    update: boolean;
 }

@@ -6,5 +6,5 @@
 config.json
 .env
 .todo
-commit-hash.txt
+github-latest-release.txt
 yarn-error.log
