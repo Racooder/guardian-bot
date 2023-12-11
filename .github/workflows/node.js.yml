@@ -39,5 +39,5 @@ jobs:
         path: |
           dist
           package.json
-          config.json.template
+          config.json
           .env.template
