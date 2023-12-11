@@ -1,7 +1,9 @@
-import { debug, error, info, success, warn } from "../src/Log";
+import { debug, error, info, setupLog, success, warn } from "../src/Log";
 
 describe('Log - loggers', () => {
     const logSpy = jest.spyOn(console, 'log');
+
+    setupLog();
 
     test('debug should log the message with the correct prefix and color', () => {
         debug("test");
