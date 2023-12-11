@@ -5,6 +5,5 @@
 
 config.json
 .env
-.todo
 github-latest-release.txt
 yarn-error.log
