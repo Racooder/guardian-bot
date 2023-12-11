@@ -7,6 +7,7 @@ import { Client } from "discord.js";
 import schedule from 'node-schedule';
 import { Octokit } from "octokit";
 import { existsSync, readFileSync, writeFileSync } from "fs";
+import "dotenv/config";
 
 const GITHUB_REPO_OWNER = "Racooder";
 const GITHUB_REPO_NAME = "guardian-bot";
