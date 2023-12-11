@@ -3,7 +3,6 @@
 /logs/
 /.vscode/
 
-config.json
 .env
 github-latest-release.txt
 yarn-error.log
