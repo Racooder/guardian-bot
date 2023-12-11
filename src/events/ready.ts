@@ -18,6 +18,7 @@ export const Ready: EventListener = {
 
             info("Registering commands...");
             await client.application.commands.set(Commands);
+            debug("Registered commands: (" + Commands.map((command) => command.name).join(", ") + ")");
 
             info("Setting activity...");
             client.user.setActivity({
