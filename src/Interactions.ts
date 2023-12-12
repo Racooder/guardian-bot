@@ -1,13 +1,14 @@
 import { ButtonInteraction, ChatInputApplicationCommandData, Client, CommandInteraction, InteractionReplyOptions, MessageComponentInteraction, StringSelectMenuInteraction } from "discord.js";
 import { Ping } from "./commands/Ping";
 import { Kofi } from "./commands/Kofi";
+import { RawStatistic, Statistic } from "./models/statistic";
 
 export const Commands: Command[] = [Ping, Kofi];
 
 export const Components: Component[] = [];
 
 export interface Command extends ChatInputApplicationCommandData {
-    run: (client: Client, interaction: CommandInteraction) => Promise<SlashCommandResponse>;
+    run: (client: Client, interaction: CommandInteraction) => Promise<{response: SlashCommandResponse, statistic: RawStatistic}>;
 }
 
 export enum ComponentType {

@@ -66,3 +66,12 @@ export function parseDate(dateString: string | null): Date | undefined {
         }
     }
 }
+
+/**
+ * Converts a unix timestamp to a date
+ * @param timestamp - The timestamp to convert
+ * @returns The date
+ */
+export function unixToDate(timestamp: number): Date {
+    return new Date(timestamp * 1000);
+}

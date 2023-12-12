@@ -1,0 +1,32 @@
+{
+    "bot": {
+        "event": {
+            "ready": "bot.event.ready",
+            "interaction": {
+                "command": {
+                    "codenames": "bot.event.interaction.command.codenames",
+                    "feedback": "bot.event.interaction.command.feedback",
+                    "kofi": "bot.event.interaction.command.kofi",
+                    "ping": "bot.event.interaction.command.ping",
+                    "quote": "bot.event.interaction.command.quote",
+                    "quoteGuesser": "bot.event.interaction.command.quoteGuesser",
+                    "settings": "bot.event.interaction.command.settings"
+                }
+            }
+        }
+    },
+    "api": {
+        "request": "api.request"
+    },
+    "failure": {
+        "general": "failure.general",
+        "commandNotFound": "failure.commandNotFound",
+        "componentNotFound": "failure.componentNotFound",
+        "unknownComponentType": "failure.unknownComponentType",
+        "featureNotImplemented": "failure.featureNotImplemented",
+        "invalidDateFormat": "failure.invalidDateFormat",
+        "noQuotesFound": "failure.noQuotesFound",
+        "guildHasNoQuotes": "failure.guildHasNoQuotes",
+        "gameCreation": "failure.gameCreation"
+    }
+}

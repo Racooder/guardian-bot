@@ -3,6 +3,9 @@ import express, { Express, Request, Response, NextFunction } from "express";
 import { Server } from "http";
 import { debug, info, success } from "./Log";
 import config from "../config.json";
+import { StatisticFilter, getGlobalStatistics, getStatistics, getUserStatistics, insertStatistic } from "./models/statistic";
+import statisticKeys from "../data/statistic-keys.json"
+import { unixToDate } from "./Essentials";
 
 export async function setupRestApi(): Promise<Server> {
     info("Starting REST API...");
@@ -44,6 +47,16 @@ function setupValidation(app: Express) {
                 message: 'Invalid access token provided.'
             });
         }
+
+        // TODO: Check if the token is valid.
+
+        // TODO: Get token permissions.
+
+        insertStatistic({
+            global: true,
+            key: statisticKeys.api.request,
+            user: undefined,
+        });
 
         req.token = token;
         next();
@@ -87,30 +100,99 @@ function setupRoutes(app: Express) {
         res.status(501).send({ error: "Not implemented" });
     });
 
-    app.get('/api/statistics', function (req: Request, res: Response) {
+    app.get('/api/statistics', async function (req: Request, res: Response) {
         const from = req.query['from'];
         const to = req.query['to'];
+        const keys = req.query['keys'];
+
+        console.log(from, to, keys);
+
+        let filter: StatisticFilter = { };
+        if (typeof from === 'string' && from.match(/^\d+$/)) {
+            filter.from = unixToDate(parseInt(from));
+        }
+        if (typeof to === 'string' && to.match(/^\d+$/)) {
+            filter.to = unixToDate(parseInt(to));
+        }
+        if (typeof keys === 'string') {
+            filter.keys = keys.split(',');
+            if (filter.keys.length === 0) {
+                filter.keys = undefined;
+            }
+        }
 
         // TODO: Check if the user is allowed to access this data.
 
-        // TODO: Get general statistics from the database.
+        // TODO: Filter the statistics by the key.
 
-        // TODO: Return the statistics.
+        const stats = await getStatistics(filter);
 
-        res.status(501).send({ error: "Not implemented" });
+        // TODO: Format the statistics.
+
+        res.status(200).send(stats);
+    });
+
+    app.get('/api/statistics/global', async function (req: Request, res: Response) {
+        const from = req.query['from'];
+        const to = req.query['to'];
+        const keys = req.query['keys'];
+
+        let filter: StatisticFilter = { };
+        if (typeof from === 'string' && from.match(/^\d+$/)) {
+            filter.from = unixToDate(parseInt(from));
+        }
+        if (typeof to === 'string' && to.match(/^\d+$/)) {
+            filter.to = unixToDate(parseInt(to));
+        }
+        if (typeof keys === 'string') {
+            filter.keys = keys.split(',');
+            if (filter.keys.length === 0) {
+                filter.keys = undefined;
+            }
+        }
+
+        // TODO: Check if the user is allowed to access this data.
+
+        // TODO: Filter the statistics by the key.
+
+        const stats = await getGlobalStatistics(filter);
+
+        // TODO: Format the statistics.
+
+        res.status(200).send(stats);
     });
 
     app.get('/api/statistics/:user', function (req: Request, res: Response) {
+        const user = req.params['user'];
         const from = req.query['from'];
         const to = req.query['to'];
+        const keys = req.query['keys'];
+
+        let filter: StatisticFilter = { };
+        if (typeof from === 'string' && from.match(/^\d+$/)) {
+            filter.from = unixToDate(parseInt(from));
+        }
+        if (typeof to === 'string' && to.match(/^\d+$/)) {
+            filter.to = unixToDate(parseInt(to));
+        }
+        if (typeof keys === 'string') {
+            filter.keys = keys.split(',');
+            if (filter.keys.length === 0) {
+                filter.keys = undefined;
+            }
+        }
+
+        // TODO: Check if the provided user is valid. (Return not allowed to access this data if not. The user might be trying to find out if a user exists.)
 
         // TODO: Check if the user is allowed to access this data.
 
-        // TODO: Get user statistics from the database.
+        // TODO: Filter the statistics by date and key.
 
-        // TODO: Return the statistics.
+        const stats = getUserStatistics(user, filter);
 
-        res.status(501).send({ error: "Not implemented" });
+        // TODO: Format the statistics.
+
+        res.status(200).send(stats);
     });
 }
 

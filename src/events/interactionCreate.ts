@@ -3,27 +3,35 @@ import { EventListener } from "../EventListeners";
 import { ButtonInteraction, Client, CommandInteraction, MessageComponentInteraction } from "discord.js";
 import { Commands, ComponentResponse, ComponentType, Components, SlashCommandResponse } from "../Interactions";
 import { CommandNotFoundFailure, ComponentNotFoundFailure, UnknownComponentTypeFailure } from "../Failure";
+import { RawStatistic, insertStatistic } from "../models/statistic";
 
 export const InteractionCreate: EventListener = {
     start: (client) => {
         client.on("interactionCreate", async (interaction) => {
             debug("Interaction event triggered");
 
+            const stats: RawStatistic[] = [];
             if (interaction.isCommand()) {
-                const interactionReply = await handleSlashCommand(client, interaction);
-                if (interactionReply.initial) {
-                    interaction.reply(interactionReply);
+                const {response, statistic} = await handleSlashCommand(client, interaction);
+                stats.push(statistic);
+
+                if (response.initial) {
+                    interaction.reply(response);
                 } else {
-                    interaction.followUp(interactionReply);
+                    interaction.followUp(response);
                 }
             } else if (interaction.isMessageComponent()) {
                 handleMessageComponent(client, interaction);
             }
+
+            stats.forEach(s => {
+                insertStatistic(s);
+            });
         });
     }
 }
 
-async function handleSlashCommand(client: Client, interaction: CommandInteraction): Promise<SlashCommandResponse> {
+async function handleSlashCommand(client: Client, interaction: CommandInteraction): Promise<{response: SlashCommandResponse, statistic: RawStatistic}> {
     debug("Slash command interaction recieved");
 
     debug("Getting command");

@@ -1,7 +1,9 @@
+import { insertStatistic } from "../models/statistic";
 import { EventListener } from "../EventListeners";
 import { Commands } from "../Interactions";
 import { debug, error, info, success } from "../Log";
 import mongoose from "mongoose";
+import statisticKeys from "../../data/statistic-keys.json"
 import config from "../../config.json";
 
 export const Ready: EventListener = {
@@ -33,7 +35,10 @@ export const Ready: EventListener = {
 
             success(`${client.user.tag} is online`);
 
-            // TODO: Update Statistics
+            insertStatistic({
+                global: true,
+                key: statisticKeys.bot.event.ready,
+            });
         });
     }
 }
