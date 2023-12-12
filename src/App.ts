@@ -3,7 +3,7 @@ import config from "../config.json";
 import { setupRestApi } from "./RestApi";
 import { setupDiscordBot } from "./Bot";
 import { Server } from "http";
-import { Client } from "discord.js";
+import { Client, HTTPError } from "discord.js";
 import schedule from 'node-schedule';
 import { Octokit } from "octokit";
 import { existsSync, readFileSync, writeFileSync } from "fs";
@@ -31,7 +31,16 @@ async function updateAvailable(): Promise<boolean> {
     const response = await octokit.request("GET /repos/{owner}/{repo}/releases/latest", {
         owner: GITHUB_REPO_OWNER,
         repo: GITHUB_REPO_NAME,
+    }).catch((e: HTTPError) => {
+        if (e.status === 404) {
+            error("GitHub API returned 404, repository not found");
+        } else {
+            error("GitHub API returned " + e.status);
+        }
     });
+    if (response === undefined || response.status === 200) {
+        return false;
+    }
     const latestRelease = response.data.tag_name;
 
     let currentRelease: string;
