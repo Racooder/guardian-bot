@@ -18,6 +18,6 @@ const codenameSchema = new Schema<Codename, CodenameModel>({
 
 codenameSchema.index({ user: 1, word: 1 }, { unique: true });
 
-const codenameModel = model<Codename, CodenameModel>('Codename', codenameSchema);
+const codenameModel = model<Codename, CodenameModel>('Codenames', codenameSchema);
 
 export default codenameModel;

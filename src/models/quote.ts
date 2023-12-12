@@ -18,6 +18,6 @@ const quoteSchema = new Schema<Quote, QuoteModel>({
     authors: [{ type: Schema.Types.ObjectId, ref: 'DiscordUser', required: true }],
 });
 
-const quoteModel = model<Quote, QuoteModel>('Quote', quoteSchema);
+const quoteModel = model<Quote, QuoteModel>('Quotes', quoteSchema);
 
 export default quoteModel;

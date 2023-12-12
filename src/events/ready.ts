@@ -1,6 +1,8 @@
 import { EventListener } from "../EventListeners";
 import { Commands } from "../Interactions";
 import { debug, error, info, success } from "../Log";
+import mongoose from "mongoose";
+import config from "../../config.json";
 
 export const Ready: EventListener = {
     start: (client) =>{
@@ -12,7 +14,11 @@ export const Ready: EventListener = {
                 return;
             }
 
-            // TODO: Connect to database
+            info("Setting up database...");
+            await mongoose.connect(process.env.MONGO_URI || "", {
+                dbName: config.database_name
+            });
+            success("Database connected");
 
             // TODO: Clear expired database entries
 

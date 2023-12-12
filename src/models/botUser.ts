@@ -19,6 +19,6 @@ const botUserSchema = new Schema<BotUser, BotUserModel>({
     apiUser: { type: String },
 });
 
-const botUserModel = model<BotUser, BotUserModel>('BotUser', botUserSchema);
+const botUserModel = model<BotUser, BotUserModel>('BotUsers', botUserSchema);
 
 export default botUserModel;

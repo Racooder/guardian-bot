@@ -18,6 +18,6 @@ const apiUserSchema = new Schema<ApiUser, ApiUserModel>({
     permissions: { type: [Object], required: true},
 });
 
-const apiUserModel = model<ApiUser, ApiUserModel>('ApiUser', apiUserSchema);
+const apiUserModel = model<ApiUser, ApiUserModel>('ApiUsers', apiUserSchema);
 
 export default apiUserModel;
