@@ -1,4 +1,4 @@
-import { approximateEqual, parseDate, randomElement, splitArrayIntoChunks } from "../src/Essentials";
+import { approximateEqual, parseDate, randomElement, splitArrayIntoChunks, unixToDate } from "../src/Essentials";
 
 describe('Essentials - isGuildCommand', () => {
     test('DM interaction should result in false', () => {
@@ -63,5 +63,11 @@ describe('Essentials - parseDate', () => {
     });
     test('A null date string should result in undefined', () => {
         expect(parseDate(null)).toBeUndefined();
+    });
+});
+
+describe('Essentials - unixToDate', () => {
+    test('A valid unix timestamp should result in a date', () => {
+        expect(unixToDate(1609459200)).toBeInstanceOf(Date);
     });
 });
