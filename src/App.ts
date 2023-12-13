@@ -17,7 +17,7 @@ var restApi: Server;
 var discordClient: Client;
 
 const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN,
+    auth: process.env.API_GITHUB_TOKEN,
     userAgent: "guardian-bot",
     log: {
         debug: debug,
