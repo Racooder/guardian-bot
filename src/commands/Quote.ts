@@ -5,7 +5,7 @@ import { SubcommandExecutionFailure } from "../Failure";
 import { RawStatistic } from "../models/statistic";
 import statisticKeys from "../../data/statistic-keys.json";
 import { QuoteList, createQuoteList, getQuoteListQuery } from '../models/quoteList';
-import { parseDate, splitArrayIntoChunks } from "../Essentials";
+import { EmbedWithButtons, hasPermission, parseDate, splitArrayIntoChunks } from "../Essentials";
 import { RawDiscordUser } from "../models/discordUser";
 import { Quote as QuoteType, createQuote, getQuoteByToken } from "../models/quote";
 
@@ -200,18 +200,30 @@ export const Quote: Command = {
             let quotes: string[] = [];
             let authors: RawDiscordUser[] = [];
             for (let i = 1; i <= MAX_CONVERSATION_LENGTH; i++) {
-                let optionIndex = i.toString();
+                let optionSuffix;
                 if (i === 1) {
-                    optionIndex = "";
+                    optionSuffix = "";
+                } else {
+                    optionSuffix = "-" + i.toString();
                 }
 
-                const quote = interaction.options.getString(`quote${optionIndex}`, false);
+                const quote = interaction.options.getString(`quote${optionSuffix}`, false);
                 if (quote === null) {
+                    for (let j = i + 1; j <= MAX_CONVERSATION_LENGTH; j++) {
+                        if (interaction.options.getString(`quote-${j}`, false) !== null) {
+                            const response: Response = {
+                                replyType: ReplyType.Reply,
+                                ephemeral: true,
+                                content: `You defined quote ${j} but the quotes ${i} to ${j - 1} are missing.`,
+                            };
+                            return { response, statistic };
+                        }
+                    }
                     break;
                 }
 
-                const discordAuthor = interaction.options.getUser(`author${optionIndex}`, false);
-                const nonDiscordAuthor = interaction.options.getString(`non-discord-author${optionIndex}`, false);
+                const discordAuthor = interaction.options.getUser(`author${optionSuffix}`, false);
+                const nonDiscordAuthor = interaction.options.getString(`non-discord-author${optionSuffix}`, false);
                 if (discordAuthor === null && nonDiscordAuthor === null) {
                     const response: Response = {
                         replyType: ReplyType.Reply,
@@ -224,7 +236,7 @@ export const Quote: Command = {
                     const response: Response = {
                         replyType: ReplyType.Reply,
                         ephemeral: true,
-                        content: `Quote ${i} has both a discord and non-discord author.`,
+                        content: `Quote ${i} can only have a discord or a non-discord author not both.`,
                     };
                     return { response, statistic };
                 }
@@ -386,4 +398,30 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
         .addComponents(previousButton, nextButton);
 
     return { embedBuilder, actionRow };
+}
+
+async function quoteEmbedField(quote: QuoteType, client: Client) {
+    if (quote.authors.length !== quote.statements.length) {
+        logToDiscord(client, error(`Quote ${quote.token} has a mismatch between the number of authors and statements or can't be populated correctly.`));
+        return {
+            name: "Error",
+            value: "An error occurred while formatting this quote",
+            inline: false,
+        }
+    }
+    let description = "";
+    for (let i = 0; i < quote.statements.length; i++) {
+        const statement = quote.statements[i];
+        const author = quote.authors[i];
+        if (author.name === null) {
+            description += `"${statement}" - ???\n`;
+            continue;
+        }
+        description += `"${statement}" - ${author.name}\n`;
+    }
+    return {
+        name: `Created by ${quote.creator.name} (Token: \`${quote.token}\`)`,
+        value: description,
+        inline: false,
+    }
 }
