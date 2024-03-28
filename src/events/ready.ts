@@ -12,7 +12,7 @@ export const Ready: EventListener = {
             debug("Ready event triggered");
 
             if (client.user === null || client.application === null) {
-                error("Discord client not ready");
+                error("Ready event triggered but client or application is not available");
                 return;
             }
 
