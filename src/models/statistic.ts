@@ -1,9 +1,9 @@
 import { Document, Model, Schema, model } from 'mongoose';
-import { BotUser } from './botUser';
+import { BotUser, getOrCreateBotUser } from './botUser';
 
 export type StatisticFilter = {
     global?: boolean;
-    user?: BotUser['_id'];
+    userId?: string;
     from?: Date;
     to?: Date;
     keys?: string[];
@@ -12,7 +12,7 @@ export type StatisticFilter = {
 export interface RawStatistic {
     global: boolean;
     key: string;
-    user?: BotUser['_id'];
+    userId?: string;
 }
 
 export interface Statistic extends RawStatistic, Document {
@@ -25,16 +25,21 @@ interface StatisticModel extends Model<Statistic> { }
 const statisticSchema = new Schema<Statistic, StatisticModel>({
     global: { type: Boolean, required: true },
     key: { type: String, required: true },
-    user: { type: String, ref: 'BotUser' },
+    userId: { type: Schema.Types.ObjectId, ref: 'BotUser' },
 }, { timestamps: true });
 
 const statisticModel = model<Statistic, StatisticModel>('Statistics', statisticSchema);
 
-export function insertStatistic(stats: RawStatistic) {
-    statisticModel.create(stats);
+export async function insertStatistic(stats: RawStatistic): Promise<Statistic> {
+    if (stats.userId === undefined) {
+        return await statisticModel.create(stats);
+    }
+
+    const botUser = await getOrCreateBotUser(stats.userId);
+    return await statisticModel.create({ ...stats, userId: botUser._id });
 }
 
-export function getStatistics(filter?: StatisticFilter) {
+export async function getStatistics(filter?: StatisticFilter): Promise<Statistic[]> {
     const query: {
         global?: boolean;
         user?: BotUser['_id'];
@@ -50,8 +55,8 @@ export function getStatistics(filter?: StatisticFilter) {
     if (filter?.global !== undefined) {
         query['global'] = filter.global;
     }
-    if (filter?.user !== undefined) {
-        query['user'] = filter.user;
+    if (filter?.userId !== undefined) {
+        query['user'] = filter.userId;
     }
     if (filter?.from !== undefined || filter?.to !== undefined) {
         query['createdAt'] = { };
@@ -65,18 +70,20 @@ export function getStatistics(filter?: StatisticFilter) {
     if (filter?.keys !== undefined) {
         query['key'] = { $in: filter.keys };
     }
+    if (filter?.userId !== undefined) {
+        const botUser = await getOrCreateBotUser(filter.userId);
+        query['user'] = botUser._id;
+    }
 
-    console.log(query);
-
-    return statisticModel.find(query);
+    return await statisticModel.find(query);
 }
 
-export function getGlobalStatistics(filter?: StatisticFilter) {
-    return getStatistics({ ...filter, global: true });
+export async function getGlobalStatistics(filter?: StatisticFilter) {
+    return await getStatistics({ ...filter, global: true });
 }
 
-export function getUserStatistics(user: BotUser['_id'], filter?: StatisticFilter) {
-    return getStatistics({ ...filter, user: user });
+export async function getUserStatistics(user: BotUser['_id'], filter?: StatisticFilter) {
+    return await getStatistics({ ...filter, userId: user });
 }
 
 export default statisticModel;
