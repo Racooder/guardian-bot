@@ -1,39 +1,36 @@
-import { ButtonInteraction, ChatInputApplicationCommandData, Client, CommandInteraction, InteractionReplyOptions, MessageComponentInteraction, StringSelectMenuInteraction } from "discord.js";
+import { ChatInputApplicationCommandData, ChatInputCommandInteraction, Client, CommandInteraction, ComponentType, InteractionReplyOptions, MessageComponentInteraction } from "discord.js";
 import { Ping } from "./commands/Ping";
 import { Donate } from "./commands/Donate";
-import { RawStatistic, Statistic } from "./models/statistic";
+import { RawStatistic } from "./models/statistic";
+import { BotUser } from './models/botUser';
+import { Failure } from "./Failure";
 
 export const Commands: Command[] = [Donate, Ping];
 
 export const Components: Component[] = [];
 
-export interface Command extends ChatInputApplicationCommandData {
-    run: (client: Client, interaction: CommandInteraction) => Promise<{response: SlashCommandResponse, statistic: RawStatistic}>;
+export type SlashCommandReturnType = {response: Response, statistic: RawStatistic};
+export type ComponentReturnType = {response: Response, statistic: RawStatistic};
+
+export enum ReplyType {
+    Reply,
+    FollowUp,
+    Update,
 }
 
-export enum ComponentType {
-    Button,
-    StringSelectMenu,
+export interface Command extends ChatInputApplicationCommandData {
+    run: (client: Client, interaction: CommandInteraction, botUser: BotUser) => Promise<SlashCommandReturnType | Failure>;
+    subcommands?: {
+        [key: string]: (client: Client, interaction: ChatInputCommandInteraction, botUser: BotUser) => Promise<SlashCommandReturnType | Failure>;
+    }
 }
 
 export interface Component<InteractionType = MessageComponentInteraction> {
     name: string;
     type: ComponentType;
-    run: (client: Client, interaction: InteractionType, data: string[]) => Promise<ComponentResponse>;
+    run: (client: Client, interaction: InteractionType, botUser: BotUser, data: string[]) => Promise<ComponentReturnType | Failure>;
 }
 
-export interface ButtonComponent extends Component<ButtonInteraction> {
-    type: ComponentType.Button;
-}
-
-export interface StringSelectMenuComponent extends Component<StringSelectMenuInteraction> {
-    type: ComponentType.StringSelectMenu;
-}
-
-export interface SlashCommandResponse extends InteractionReplyOptions {
-    initial: boolean;
-}
-
-export interface ComponentResponse extends InteractionReplyOptions {
-    update: boolean;
+export interface Response extends InteractionReplyOptions {
+    replyType: ReplyType;
 }

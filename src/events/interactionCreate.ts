@@ -1,37 +1,67 @@
 import { debug, error } from "../Log";
 import { EventListener } from "../EventListeners";
-import { ButtonInteraction, Client, CommandInteraction, MessageComponentInteraction } from "discord.js";
-import { Commands, ComponentResponse, ComponentType, Components, SlashCommandResponse } from "../Interactions";
-import { CommandNotFoundFailure, ComponentNotFoundFailure, UnknownComponentTypeFailure } from "../Failure";
+import { ButtonInteraction, Client, CommandInteraction, ComponentType, MessageComponentInteraction } from "discord.js";
+import { Commands, ComponentReturnType, Components, ReplyType, SlashCommandReturnType } from '../Interactions';
+import { BotUserNotFoundFailure, CommandNotFoundFailure, ComponentNotFoundFailure, Failure, UnknownComponentTypeFailure } from "../Failure";
 import { RawStatistic, insertStatistic } from "../models/statistic";
+import { BotUser, getOrCreateBotUser } from "../models/botUser";
+import mongoose from "mongoose";
 
 export const InteractionCreate: EventListener = {
     start: (client) => {
         client.on("interactionCreate", async (interaction) => {
             debug("Interaction event triggered");
 
-            const stats: RawStatistic[] = [];
+            let result: SlashCommandReturnType | ComponentReturnType | Failure;
             if (interaction.isCommand()) {
-                const {response, statistic} = await handleSlashCommand(client, interaction);
-                stats.push(statistic);
-
-                if (response.initial) {
-                    interaction.reply(response);
-                } else {
-                    interaction.followUp(response);
-                }
+                result = await handleSlashCommand(client, interaction);
             } else if (interaction.isMessageComponent()) {
-                handleMessageComponent(client, interaction);
+                result = await handleMessageComponent(client, interaction);
+            } else {
+                error("Unknown interaction type");
+                return;
             }
 
-            stats.forEach(s => {
-                insertStatistic(s);
-            });
+            await updateStatistics(result);
+            await replyToInteraction(interaction, result);
         });
     }
 }
 
-async function handleSlashCommand(client: Client, interaction: CommandInteraction): Promise<{response: SlashCommandResponse, statistic: RawStatistic}> {
+async function updateStatistics(response: SlashCommandReturnType | ComponentReturnType | Failure) {
+    let statistic: RawStatistic;
+    if (response instanceof Failure) {
+        statistic = response.statistic();
+    } else {
+        statistic = response.statistic;
+    }
+    insertStatistic(statistic);
+}
+
+async function replyToInteraction(interaction: CommandInteraction | MessageComponentInteraction, response: SlashCommandReturnType | ComponentReturnType | Failure) {
+    if (response instanceof Failure) {
+        interaction.reply(response.slashCommandResponse("en", true)); // TODO: Get language from user
+        return;
+    }
+
+    const reply = response.response;
+
+    // TODO: Localization
+
+    switch (reply.replyType) {
+        case ReplyType.Reply:
+            interaction.reply(reply);
+            break;
+        case ReplyType.FollowUp:
+            interaction.reply(reply);
+            break;
+        case ReplyType.Update:
+            interaction.editReply(reply);
+            break;
+    }
+}
+
+async function handleSlashCommand(client: Client, interaction: CommandInteraction): Promise<SlashCommandReturnType | Failure> {
     debug("Slash command interaction recieved");
 
     debug("Getting command");
@@ -41,16 +71,37 @@ async function handleSlashCommand(client: Client, interaction: CommandInteractio
 
     if (!commandHandler) {
         error("Command not found");
-        return new CommandNotFoundFailure().slashCommandResponse("en", true); // TODO: Get language from user
+        return new CommandNotFoundFailure();
     }
 
-    // TODO: Update statistics
+    let botUser: BotUser | undefined;
+    if (interaction.inGuild()) {
+        botUser = await getOrCreateBotUser(interaction.guildId!) || undefined;
+    } else {
+        botUser = await getOrCreateBotUser(interaction.user.id) || undefined;
+    }
+    if (botUser === undefined) {
+        return new BotUserNotFoundFailure();
+    }
 
     debug("Running command");
-    return commandHandler.run(client, interaction);
+    const commandReturn = await commandHandler.run(client, interaction, botUser);
+
+    if (!interaction.isChatInputCommand()) {
+        return commandReturn;
+    }
+
+    const subcommand = interaction.options.getSubcommand(false);
+
+    if (subcommand === null || commandHandler.subcommands === undefined) {
+        return commandReturn;
+    }
+
+    const subcommandHandler = commandHandler.subcommands[subcommand];
+    return subcommandHandler(client, interaction, botUser);
 }
 
-async function handleMessageComponent(client: Client, interaction: MessageComponentInteraction): Promise<ComponentResponse> {
+async function handleMessageComponent(client: Client, interaction: MessageComponentInteraction): Promise<ComponentReturnType | Failure> {
     debug("Message component interaction recieved");
 
     let componentData = interaction.customId.split(":");
@@ -63,18 +114,26 @@ async function handleMessageComponent(client: Client, interaction: MessageCompon
 
     if (!componentHandler) {
         error("Component not found");
-        return new ComponentNotFoundFailure().componentResponse("en"); // TODO: Get language from user
+        return new ComponentNotFoundFailure();
     }
 
-    // TODO: Update statistics
+    let botUser: BotUser | undefined;
+    if (interaction.inGuild()) {
+        botUser = await getOrCreateBotUser(interaction.guildId!) || undefined;
+    } else {
+        botUser = await getOrCreateBotUser(interaction.user.id) || undefined;
+    }
+    if (botUser === undefined) {
+        return new BotUserNotFoundFailure();
+    }
 
     debug("Running component");
     switch (componentHandler.type) {
         case ComponentType.Button:
-            return componentHandler.run(client, interaction as ButtonInteraction, componentData);
-        case ComponentType.StringSelectMenu:
-            return componentHandler.run(client, interaction as MessageComponentInteraction, componentData);
+            return componentHandler.run(client, interaction as ButtonInteraction, botUser, componentData);
+        case ComponentType.StringSelect:
+            return componentHandler.run(client, interaction as MessageComponentInteraction, botUser, componentData);
         default:
-            return new UnknownComponentTypeFailure().componentResponse("en"); // TODO: Get language from user
+            return new UnknownComponentTypeFailure();
     }
 }

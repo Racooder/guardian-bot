@@ -1,5 +1,5 @@
 import { ApplicationCommandType, EmbedBuilder } from "discord.js";
-import { Command, SlashCommandResponse } from "../Interactions";
+import { Command, ReplyType, Response } from "../Interactions";
 import { debug } from "../Log";
 import statisticKeys from "../../data/statistic-keys.json";
 import { RawStatistic } from "../models/statistic";
@@ -8,7 +8,7 @@ export const Ping: Command = {
     name: "ping",
     description: "A ping command",
     type: ApplicationCommandType.ChatInput,
-    run: async (client, interaction) => {
+    run: async (client, interaction, botUser) => {
         debug("Ping command called");
 
         const latency = Date.now() - interaction.createdTimestamp;
@@ -30,18 +30,17 @@ export const Ping: Command = {
             }
         );
 
-        // TODO: Update statistics
-
-        const response: SlashCommandResponse = {
-            initial: true,
+        const response: Response = {
+            replyType: ReplyType.Reply,
             embeds: [embed],
             ephemeral: true,
         };
         const statistic: RawStatistic = {
             global: false,
             key: statisticKeys.bot.event.interaction.command.ping,
-            user: undefined, // TODO: User
+            userId: botUser.id,
         };
+
         return { response, statistic };
     },
 };
