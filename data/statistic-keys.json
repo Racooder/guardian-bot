@@ -44,6 +44,8 @@
         "removeWord": "failure.removeWord",
         "isChatInputCommand": "failure.isChatInputCommand",
         "subcommandExecution": "failure.subcommandExecution",
-        "unknownQuotePageData": "failure.unknownQuotePageData"
+        "unknownQuotePageData": "failure.unknownQuotePageData",
+        "slashCommandExecution": "failure.slashCommandExecution",
+        "messageComponentExecution": "failure.componentExecution"
     }
 }
