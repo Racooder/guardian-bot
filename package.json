@@ -2,7 +2,7 @@
   "name": "guardian-bot",
   "version": "3.0.1",
   "description": "Official racoonia discord bot.",
-  "main": "src/app.ts",
+  "main": "src/App.ts",
   "directories": {
     "test": "tests"
   },
