@@ -1,6 +1,6 @@
-import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, PermissionsBitField } from "discord.js";
 import { Command, ReplyType, Response } from "../Interactions";
-import { debug } from "../Log";
+import { debug, error, logToDiscord } from "../Log";
 import { SubcommandExecutionFailure } from "../Failure";
 import { RawStatistic } from "../models/statistic";
 import statisticKeys from "../../data/statistic-keys.json";
@@ -144,8 +144,8 @@ export const Quote: Command = {
                     required: false,
                 },
                 {
-                    name: "author",
-                    description: "The author of the quotes to list.",
+                    name: "discord-author",
+                    description: "The discord author of the quotes to list.",
                     type: ApplicationCommandOptionType.User,
                     required: false,
                 },
@@ -285,7 +285,7 @@ export const Quote: Command = {
             };
 
             const content = interaction.options.getString("content", false) ?? undefined;
-            const authorUser = interaction.options.getUser("author", false) ?? undefined;
+            const authorUser = interaction.options.getUser("discord-author", false) ?? undefined;
             const authorName = interaction.options.getString("author-name", false) ?? undefined;
             const context = interaction.options.getString("context", false) ?? undefined;
             const creatorUser = interaction.options.getUser("creator", false) ?? undefined;
@@ -332,7 +332,7 @@ export const Quote: Command = {
                 return { response, statistic };
             }
 
-            const { embedBuilder, actionRow } = quoteListMessage(list, quotes);
+            const { embedBuilder, actionRow } = await quoteListMessage(list, quotes, client);
 
             const response: Response = {
                 replyType: ReplyType.Reply,
@@ -345,33 +345,23 @@ export const Quote: Command = {
     },
 };
 
-export function quoteListMessage(list: QuoteList, quotes: QuoteType[]): { embedBuilder: EmbedBuilder, actionRow: ActionRowBuilder<ButtonBuilder> } {
+export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], client: Client): Promise<EmbedWithButtons> {
     const query = getQuoteListQuery(list);
-    const chunkSize = 40; // TODO: Make this configurable
+    const chunkSize = 15; // TODO: Make this configurable
     const quoteChunks = splitArrayIntoChunks(quotes, chunkSize);
     const page = quoteChunks[list.page];
 
-    let embedDescription = `Showing ${chunkSize} quotes`;
+    let embedDescription = `Showing ${page.length} quotes`;
     if (query !== "") {
         embedDescription += ` matching:\n${query}`;
     }
 
+    const embedFields = await Promise.all(page.map((quote) => quoteEmbedField(quote, client)));
+
     const embedBuilder = new EmbedBuilder()
         .setTitle(`Quotes (Page ${list.page + 1}/${quoteChunks.length})`)
         .setDescription(embedDescription)
-        .addFields(page.map((quote) => {
-            let description = "";
-            for (let i = 0; i < quote.statements.length; i++) {
-                const statement = quote.statements[i];
-                const author = quote.authors[i];
-                description += `"${statement}" - ${author.name}\n`;
-            }
-            return {
-                name: `Created by ${quote.creator.name} (Token: \`${quote.token}\`)`,
-                value: description,
-                inline: false,
-            }
-        }));
+        .addFields(embedFields);
 
     const previousButton = new ButtonBuilder()
         .setCustomId(`quote-page:previous:${list._id}`)

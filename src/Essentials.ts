@@ -31,3 +31,5 @@ export function parseDate(dateString?: string): Date | undefined {
 export function unixToDate(timestamp: number): Date {
     return new Date(timestamp * 1000);
 }
+
+export type EmbedWithButtons = { embedBuilder: EmbedBuilder, actionRow: ActionRowBuilder<ButtonBuilder> }
