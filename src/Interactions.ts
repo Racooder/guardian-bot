@@ -3,9 +3,14 @@ import { Ping } from "./commands/Ping";
 import { Donate } from "./commands/Donate";
 import { RawStatistic } from "./models/statistic";
 import { BotUser } from './models/botUser';
+import { Codenames } from "./commands/Codenames";
+import { Feedback } from "./commands/Feedback";
+import { Quote } from "./commands/Quote";
+import { QuoteGuesser } from "./commands/QuoteGuesser";
+import { Settings } from "./commands/Settings";
 import { Failure } from "./Failure";
 
-export const Commands: Command[] = [Donate, Ping];
+export const Commands: Command[] = [Codenames, Feedback, Donate, Ping, Quote, QuoteGuesser, Settings];
 
 export const Components: Component[] = [];
 

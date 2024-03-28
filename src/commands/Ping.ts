@@ -11,7 +11,7 @@ export const Ping: Command = {
     run: async (client, interaction, botUser) => {
         debug("Ping command called");
 
-        const latency = Date.now() - interaction.createdTimestamp;
+        const latency = Math.abs(Date.now() - interaction.createdTimestamp);
         const apiLatency = client.ws.ping;
 
         const latencySuffix = getLatencySuffix(latency);
