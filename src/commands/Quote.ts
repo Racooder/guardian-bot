@@ -262,7 +262,16 @@ export const Quote: Command = {
                 const response: Response = {
                     replyType: ReplyType.Reply,
                     ephemeral: true,
-                    content: `Quote not found.`,
+                    content: "Quote not found.",
+                };
+                return { response, statistic };
+            }
+
+            if (document.creator.id !== interaction.user.id) { // && !hasPermission(interaction.member, PermissionsBitField.Flags.ManageMessages)
+                const response: Response = {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: "You do not have permission to remove this quote.",
                 };
                 return { response, statistic };
             }
