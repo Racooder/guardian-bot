@@ -254,7 +254,7 @@ export const Quote: Command = {
             const response: Response = {
                 replyType: ReplyType.Reply,
                 ephemeral: true,
-                content: `Your quote was added.`,
+                content: "Your quote was added.",
             };
 
             return { response, statistic };
@@ -292,7 +292,7 @@ export const Quote: Command = {
             const response: Response = {
                 replyType: ReplyType.Reply,
                 ephemeral: true,
-                content: `Quote removed.`,
+                content: "Quote removed.",
             };
             return { response, statistic };
         },
@@ -317,7 +317,7 @@ export const Quote: Command = {
                 const response: Response = {
                     replyType: ReplyType.Reply,
                     ephemeral: true,
-                    content: `You cannot specify both an author and an author name.`,
+                    content: "You cannot specify both an author and an author name.",
                 };
                 return { response, statistic };
             }
@@ -325,7 +325,7 @@ export const Quote: Command = {
                 const response: Response = {
                     replyType: ReplyType.Reply,
                     ephemeral: true,
-                    content: `You cannot specify both a creator and a creator name.`,
+                    content: "You cannot specify both a creator and a creator name.",
                 };
                 return { response, statistic };
             }
@@ -338,7 +338,7 @@ export const Quote: Command = {
                 const response: Response = {
                     replyType: ReplyType.Reply,
                     ephemeral: true,
-                    content: `Invalid date format. The correct format is YYYY-MM-DD.`,
+                    content: "Invalid date format. The correct format is YYYY-MM-DD.",
                 };
                 return { response, statistic };
             }
@@ -348,7 +348,7 @@ export const Quote: Command = {
                 const response: Response = {
                     replyType: ReplyType.Reply,
                     ephemeral: true,
-                    content: `No quotes found.`,
+                    content: "No quotes found.",
                 };
                 return { response, statistic };
             }
