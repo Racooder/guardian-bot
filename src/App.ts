@@ -1,4 +1,4 @@
-import { debug, error, info, setupLog, warn } from "./Log";
+import { debug, error, info, logToDiscord, setupLog, warn } from "./Log";
 import config from "../config.json";
 import { setupRestApi } from "./RestApi";
 import { setupDiscordBot } from "./Bot";
@@ -27,15 +27,15 @@ const octokit = new Octokit({
     },
 });
 
-async function updateAvailable(): Promise<boolean> {
+async function updateAvailable(discordClient: Client): Promise<boolean> {
     const response = await octokit.request("GET /repos/{owner}/{repo}/releases/latest", {
         owner: GITHUB_REPO_OWNER,
         repo: GITHUB_REPO_NAME,
     }).catch((e: HTTPError) => {
         if (e.status === 404) {
-            error("GitHub API returned 404, release not found");
+            logToDiscord(discordClient, error("GitHub API returned 404, release not found"));
         } else {
-            error("GitHub API returned " + e.status);
+            logToDiscord(discordClient, error("GitHub API returned " + e.status));
         }
     });
     if (response === undefined || response.status === 200) {
@@ -58,13 +58,13 @@ async function updateAvailable(): Promise<boolean> {
     return true;
 }
 
-async function updateCheck(): Promise<void> {
+async function updateCheck(discordClient: Client): Promise<void> {
     if (!config.do_update_check) {
         info("Update checking disabled");
         return;
     }
     if (config.update_check_cron === undefined || config.update_check_cron === "") {
-        error("Update checking enabled but no cron expression provided");
+        logToDiscord(discordClient, error("Update checking enabled but no cron expression provided"));
         return;
     }
 
@@ -73,7 +73,7 @@ async function updateCheck(): Promise<void> {
     setTimeout(() => {
         schedule.scheduleJob(config.update_check_cron, async () => {
             debug("Checking for updates");
-            if (await updateAvailable()) {
+            if (await updateAvailable(discordClient)) {
                 info("Update available, restarting");
                 stopApplication();
             }
@@ -92,9 +92,9 @@ function stopApplication(): void {
     process.exit(0);
 }
 
-function ready(): void {
+function ready(discordClient: Client): void {
     info("Application ready");
-    updateCheck();
+    updateCheck(discordClient);
 }
 
 async function setupApp(): Promise<void> {
@@ -108,7 +108,7 @@ async function setupApp(): Promise<void> {
 
     restApi = await server;
     discordClient = await client;
-    ready();
+    ready(discordClient);
 }
 
 setupApp();
