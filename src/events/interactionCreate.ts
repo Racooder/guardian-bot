@@ -58,7 +58,11 @@ async function replyToInteraction(interaction: CommandInteraction | MessageCompo
             interaction.reply(reply);
             break;
         case ReplyType.Update:
-            interaction.editReply(reply);
+            if (interaction.isMessageComponent() ) {
+                interaction.update(reply as InteractionUpdateOptions);
+            } else {
+                interaction.editReply(reply);
+            }
             break;
     }
 }
