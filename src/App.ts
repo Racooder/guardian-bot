@@ -33,7 +33,7 @@ async function updateAvailable(): Promise<boolean> {
         repo: GITHUB_REPO_NAME,
     }).catch((e: HTTPError) => {
         if (e.status === 404) {
-            error("GitHub API returned 404, repository not found");
+            error("GitHub API returned 404, release not found");
         } else {
             error("GitHub API returned " + e.status);
         }
@@ -81,7 +81,7 @@ async function updateCheck(): Promise<void> {
     });
 }
 
-async function stopApplication(): Promise<void> {
+function stopApplication(): void {
     if (restApi === undefined || discordClient === undefined) {
         error("Application not running");
         return;
@@ -92,7 +92,7 @@ async function stopApplication(): Promise<void> {
     process.exit(0);
 }
 
-async function ready(): Promise<void> {
+function ready(): void {
     info("Application ready");
     updateCheck();
 }
@@ -103,13 +103,11 @@ async function setupApp(): Promise<void> {
         info("Debug mode enabled");
     }
 
-    setupRestApi().then((server) => {
-        restApi = server;
-    });
-    setupDiscordBot().then((client) => {
-        discordClient = client;
-    });
+    const server = setupRestApi();
+    const client = setupDiscordBot();
 
+    restApi = await server;
+    discordClient = await client;
     ready();
 }
 
