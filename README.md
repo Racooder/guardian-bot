@@ -6,6 +6,8 @@
     <a href="https://discord.gg/9Y8BE2A6cj"><img src="https://img.shields.io/discord/651800564966883328?label=Chat&logo=discord&logoColor=white" alt="Discord server"/></a>
     <a href="https://github.com/Racooder/Racoonia-Guardian"><img src="https://img.shields.io/badge/Version-3.0.0-orange" alt="version"/></a>
     <a href="https://discord.com/api/oauth2/authorize?client_id=821713905692573708&permissions=2048&scope=applications.commands%20bot"><img src="https://img.shields.io/badge/Invite-Guardian-blue" alt="Discord server"/></a>
+    <a href="https://github.com/Racooder/guardian-bot/actions/workflows/build.yml"><img src="https://github.com/github/docs/actions/workflows/test.yml/badge.svg" alt="Test Action">
+    <a href="https://github.com/Racooder/guardian-bot/actions/workflows/build.yml"><img src="https://github.com/github/docs/actions/workflows/build.yml/badge.svg" alt="Build Action">
 </div>
 
 # Guardian
