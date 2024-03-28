@@ -1,11 +1,5 @@
 import { approximateEqual, parseDate, randomElement, splitArrayIntoChunks, unixToDate } from "../src/Essentials";
 
-describe('Essentials - isGuildCommand', () => {
-    test('DM interaction should result in false', () => {
-        expect(true).toBe(true); //TODO: Implement
-    });
-});
-
 describe('Essentials - splitArrayIntoChunks', () => {
     test('Empty array should result in empty array', () => {
         expect(splitArrayIntoChunks([], 1)).toStrictEqual([]);
@@ -61,8 +55,8 @@ describe('Essentials - parseDate', () => {
         expect(parseDate("01-01-2021")).toBeUndefined();
         expect(parseDate("test")).toBeUndefined();
     });
-    test('A null date string should result in undefined', () => {
-        expect(parseDate(null)).toBeUndefined();
+    test('A undefined date string should result in undefined', () => {
+        expect(parseDate()).toBeUndefined();
     });
 });
 
