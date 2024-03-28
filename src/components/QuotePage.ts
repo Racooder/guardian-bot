@@ -8,7 +8,7 @@ import { quoteListMessage } from "../commands/Quote";
 import { RawStatistic } from "../models/statistic";
 import statisticKeys from "../../data/statistic-keys.json";
 
-export const QuoteListNext: Component<ButtonInteraction> = {
+export const QuotePage: Component<ButtonInteraction> = {
     name: "quote-page",
     type: ComponentType.Button,
     run: async (client, interaction, botUser, data) => {
@@ -42,7 +42,7 @@ export const QuoteListNext: Component<ButtonInteraction> = {
                 return new UnknownQuotePageDataFailure();
         }
 
-        const { embedBuilder, actionRow } = quoteListMessage(quoteList, quotes);
+        const { embedBuilder, actionRow } = await quoteListMessage(quoteList, quotes, client);
 
         const response: Response = {
             replyType: ReplyType.Update,

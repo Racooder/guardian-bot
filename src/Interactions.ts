@@ -9,10 +9,11 @@ import { Quote } from "./commands/Quote";
 import { QuoteGuesser } from "./commands/QuoteGuesser";
 import { Settings } from "./commands/Settings";
 import { Failure } from "./Failure";
+import { QuotePage } from "./components/QuotePage";
 
 export const Commands: Command[] = [Codenames, Feedback, Donate, Ping, Quote, QuoteGuesser, Settings];
 
-export const Components: Component[] = [];
+export const Components: Component<any>[] = [QuotePage];
 
 export type SlashCommandReturnType = {response: Response, statistic: RawStatistic};
 export type ComponentReturnType = {response: Response, statistic: RawStatistic};
