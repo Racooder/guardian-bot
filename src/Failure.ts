@@ -1,6 +1,6 @@
 import { EmbedBuilder } from "discord.js";
 import { localize } from "./Localization";
-import { ComponentResponse, SlashCommandResponse } from "./Interactions";
+import { ReplyType, Response } from "./Interactions";
 import { RawStatistic } from "./models/statistic";
 import statisticKeys from "../data/statistic-keys.json"
 
@@ -10,11 +10,13 @@ export class Failure {
     type: string;
     localizationKey: string;
     statisticKey: string;
+    replyType: ReplyType;
 
-    constructor() {
+    constructor(replyType: ReplyType = ReplyType.Reply) {
         this.type = "Failure";
-        this.localizationKey = "error.general";
+        this.localizationKey = "failure.general";
         this.statisticKey = statisticKeys.failure.general;
+        this.replyType = replyType;
     }
 
     localizedString(language: string): string {
@@ -28,36 +30,33 @@ export class Failure {
             .setColor(EMBED_COLOR);
     }
 
-    slashCommandResponse(language: string, initial: boolean): {response: SlashCommandResponse, statistic: RawStatistic} {
-        const resonse: SlashCommandResponse = {
-            initial: initial,
-            ephemeral: true,
-            content: "",
-            embeds: [this.discordEmbed(language)],
-            components: [],
-        };
-        const statistic: RawStatistic = {
+    statistic(): RawStatistic {
+        return {
             global: true,
             key: this.statisticKey,
         };
+    }
+
+    slashCommandResponse(language: string, initial: boolean): Response {
         return {
-            response: resonse,
-            statistic: statistic,
+            replyType: this.replyType,
+            ephemeral: true,
+            embeds: [this.discordEmbed(language)],
+            components: [],
         };
     }
 
-    componentResponse(language: string): ComponentResponse {
+    componentResponse(language: string): Response {
         return {
-            update: false,
+            replyType: this.replyType,
             ephemeral: true,
-            content: "",
             embeds: [this.discordEmbed(language)],
             components: [],
         };
     }
 
     toString(): string {
-        return `${this.type}: ${this.localizedString("en-us")}`;
+        return `${this.type}: ${this.localizedString("en")}`;
     }
 }
 
@@ -65,7 +64,7 @@ export class CommandNotFoundFailure extends Failure {
     constructor() {
         super();
         this.type = "CommandNotFound";
-        this.localizationKey = "error.command_not_found"; // TODO: Add english localization
+        this.localizationKey = "failure.command_not_found";
         this.statisticKey = statisticKeys.failure.commandNotFound;
     }
 }
@@ -74,7 +73,7 @@ export class ComponentNotFoundFailure extends Failure {
     constructor() {
         super();
         this.type = "ComponentNotFound";
-        this.localizationKey = "error.component_not_found"; // TODO: Add english localization
+        this.localizationKey = "failure.component_not_found";
         this.statisticKey = statisticKeys.failure.componentNotFound;
     }
 }
@@ -83,7 +82,7 @@ export class UnknownComponentTypeFailure extends Failure {
     constructor() {
         super();
         this.type = "UnknownComponentType";
-        this.localizationKey = "error.unknown_component_type"; // TODO: Add english localization
+        this.localizationKey = "failure.unknown_component_type";
         this.statisticKey = statisticKeys.failure.unknownComponentType;
     }
 }
@@ -92,43 +91,52 @@ export class FeatureNotImplementedFailure extends Failure {
     constructor() {
         super();
         this.type = "FeatureNotImplemented";
-        this.localizationKey = "error.feature_not_implemented"; // TODO: Add english localization
+        this.localizationKey = "failure.feature_not_implemented";
         this.statisticKey = statisticKeys.failure.featureNotImplemented;
     }
 }
 
-export class InvalidDateFormatFailure extends Failure {
+export class BotUserNotFoundFailure extends Failure {
     constructor() {
         super();
-        this.type = "InvalidDateFormat";
-        this.localizationKey = "error.invalid_date_format"; // TODO: Add english localization
-        this.statisticKey = statisticKeys.failure.invalidDateFormat;
+        this.type = "BotUserNotFound";
+        this.localizationKey = "failure.bot_user_not_found";
+        this.statisticKey = statisticKeys.failure.botUserNotFound;
     }
 }
 
-export class NoQuotesFoundFailure extends Failure {
+export class RemoveWordFailure extends Failure {
     constructor() {
         super();
-        this.type = "NoQuotesFound";
-        this.localizationKey = "error.no_quotes_found"; // TODO: Add english localization
-        this.statisticKey = statisticKeys.failure.noQuotesFound;
+        this.type = "RemoveWordFailure";
+        this.localizationKey = "failure.remove_word";
+        this.statisticKey = statisticKeys.failure.removeWord;
     }
 }
 
-export class GuildHasNoQuotesFailure extends Failure {
+export class IsChatInputCommandFailure extends Failure {
     constructor() {
         super();
-        this.type = "GuildHasNoQuotes";
-        this.localizationKey = "error.guild_has_no_quotes"; // TODO: Add english localization
-        this.statisticKey = statisticKeys.failure.guildHasNoQuotes;
+        this.type = "IsChatInputCommandFailure";
+        this.localizationKey = "failure.is_chat_input_command";
+        this.statisticKey = statisticKeys.failure.isChatInputCommand;
     }
 }
 
-export class GameCreationFailure extends Failure {
+export class SubcommandExecutionFailure extends Failure {
     constructor() {
         super();
-        this.type = "FailedCreatingGame";
-        this.localizationKey = "error.failed_creating_game"; // TODO: Add english localization
-        this.statisticKey = statisticKeys.failure.gameCreation;
+        this.type = "SubcommandExecutionFailure";
+        this.localizationKey = "failure.subcommand_execution";
+        this.statisticKey = statisticKeys.failure.subcommandExecution;
+    }
+}
+
+export class UnknownQuotePageDataFailure extends Failure {
+    constructor() {
+        super();
+        this.type = "UnknownQuotePageDateFailure";
+        this.localizationKey = "failure.unknown_quote_page_data";
+        this.statisticKey = statisticKeys.failure.unknownQuotePageData;
     }
 }

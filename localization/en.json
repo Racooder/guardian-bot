@@ -1,10 +1,13 @@
 {
     "test.1": "This is a test",
     "test.2": "This is another test",
-    "error.general": "An error has occured",
-    "error.feature_not_implemented": "This feature is not yet implemented",
-    "error.invalid_date_format": "Invalid date format! Please use the format (YYYY-MM-DD)",
-    "error.no_quotes_found": "There are no quotes matching your search criteria",
-    "error.guild_has_no_quotes": "There are no quotes on this server",
-    "error.failed_creating_game": "Failed to create a new game"
+    "failure.general": "The error has occured",
+    "failure.command_not_found": "Command not found",
+    "failure.unknown_component_type": "Unknown component type",
+    "failure.feature_not_implemented": "Feature not implemented yet",
+    "failure.bot_user_not_found": "Bot user not found",
+    "failure.remove_word": "Failed to remove word",
+    "failure.is_chat_input_command": "This command is only available as a chat input command",
+    "failure.subcommand_execution": "This command can only be executed as a subcommand, however that failed",
+    "failure.unknown_quote_page_data": "Unknown quote page data"
 }
