@@ -6,7 +6,7 @@
                 "command": {
                     "codenames": "bot.event.interaction.command.codenames",
                     "feedback": "bot.event.interaction.command.feedback",
-                    "kofi": "bot.event.interaction.command.kofi",
+                    "donate": "bot.event.interaction.command.donate",
                     "ping": "bot.event.interaction.command.ping",
                     "quote": "bot.event.interaction.command.quote",
                     "quoteGuesser": "bot.event.interaction.command.quoteGuesser",

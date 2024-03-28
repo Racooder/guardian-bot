@@ -1,9 +1,9 @@
 import { ButtonInteraction, ChatInputApplicationCommandData, Client, CommandInteraction, InteractionReplyOptions, MessageComponentInteraction, StringSelectMenuInteraction } from "discord.js";
 import { Ping } from "./commands/Ping";
-import { Kofi } from "./commands/Kofi";
+import { Donate } from "./commands/Donate";
 import { RawStatistic, Statistic } from "./models/statistic";
 
-export const Commands: Command[] = [Ping, Kofi];
+export const Commands: Command[] = [Donate, Ping];
 
 export const Components: Component[] = [];
 
