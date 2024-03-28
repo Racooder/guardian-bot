@@ -24,7 +24,7 @@ const discordUserSchema = new Schema<DiscordUser, DiscordUserModel>({
     userId: { type: String },
 });
 
-discordUserSchema.index({ username: 1, type: 1 }, { unique: true });
+discordUserSchema.index({ name: 1, type: 1 }, { unique: true });
 
 const discordUserModel = model<DiscordUser, DiscordUserModel>('DiscordUsers', discordUserSchema);
 

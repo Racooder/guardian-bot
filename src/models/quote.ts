@@ -54,7 +54,7 @@ export async function getQuotes(botUser: BotUser): Promise<Quote[]> {
 }
 
 export async function getQuoteByToken(botUser: BotUser, token: string): Promise<Quote | null> {
-    const document = await quoteModel.findOne({ user: botUser._id, token: token }).populate('user').populate('creator').populate('authors');
+    const document = await quoteModel.findOne({ user: botUser._id, token: token }).populate('user').populate('creator').populate('authors').exec();
     return document;
 }
 
