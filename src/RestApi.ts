@@ -55,7 +55,7 @@ function setupValidation(app: Express) {
         insertStatistic({
             global: true,
             key: statisticKeys.api.request,
-            user: undefined,
+            userId: undefined,
         });
 
         req.token = token;
@@ -104,8 +104,6 @@ function setupRoutes(app: Express) {
         const from = req.query['from'];
         const to = req.query['to'];
         const keys = req.query['keys'];
-
-        console.log(from, to, keys);
 
         let filter: StatisticFilter = { };
         if (typeof from === 'string' && from.match(/^\d+$/)) {
