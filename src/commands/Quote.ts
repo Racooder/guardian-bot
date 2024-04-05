@@ -286,7 +286,7 @@ export const Quote: Command = {
                 return { response, statistic };
             }
 
-            if (document.creator.id !== interaction.user.id) { // && !hasPermission(interaction.member, PermissionsBitField.Flags.ManageMessages)
+            if (document.creator.userId !== interaction.user.id) { // && !hasPermission(interaction.member, PermissionsBitField.Flags.ManageMessages)
                 const response: Response = {
                     replyType: ReplyType.Reply,
                     ephemeral: true,
