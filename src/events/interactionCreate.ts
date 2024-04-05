@@ -24,7 +24,7 @@ export const InteractionCreate: EventListener = {
             await updateStatistics(result);
             await replyToInteraction(interaction, result);
             if (result instanceof Failure) {
-                result.log();
+                result.log(client);
             }
         });
     }
