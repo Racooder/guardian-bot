@@ -39,3 +39,5 @@ export function hasPermission(member: GuildMember | APIInteractionGuildMember | 
     if (typeof member.permissions === "string") return false;
     return member.permissions.has(permission);
 }
+
+export type Dict<T> = { [key: string]: T };

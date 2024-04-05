@@ -1,9 +1,10 @@
 import { existsSync } from "fs";
+import { Dict } from "./Essentials";
 
 const LOCALIZATION_FOLDER = "localization";
 const FALLBACK_LANGUAGE = 'en';
 
-var localization: { [key: string]: { [key: string]: string } } = {};
+var localization: Dict<Dict<string>> = {};
 
 function loadLanguage(language: string): void {
     if (localization[language]) {
