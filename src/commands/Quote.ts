@@ -391,18 +391,19 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
         .setDescription(embedDescription)
         .addFields(embedFields);
 
-    const previousButton = new ButtonBuilder()
-        .setCustomId(`quote-page:previous:${list._id}`)
-        .setLabel("Previous Page")
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(list.page === 0);
-    const nextButton = new ButtonBuilder()
-        .setCustomId(`quote-page:next:${list._id}`)
-        .setLabel("Next Page")
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(list.page === quoteChunks.length - 1);
     const actionRow = new ActionRowBuilder<ButtonBuilder>()
-        .addComponents(previousButton, nextButton);
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId(`quote-page:previous:${list._id}`)
+                .setLabel("Previous Page")
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(list.page === 0),
+            new ButtonBuilder()
+                .setCustomId(`quote-page:next:${list._id}`)
+                .setLabel("Next Page")
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(list.page === quoteChunks.length - 1)
+        );
 
     return [embedBuilder, actionRow];
 }
