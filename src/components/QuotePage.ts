@@ -42,7 +42,7 @@ export const QuotePage: Component<ButtonInteraction> = {
                 return new UnknownQuotePageDataFailure();
         }
 
-        const { embedBuilder, actionRow } = await quoteListMessage(quoteList, quotes, client);
+        const [embedBuilder, actionRow] = await quoteListMessage(quoteList, quotes, client);
 
         const response: Response = {
             replyType: ReplyType.Update,

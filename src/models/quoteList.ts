@@ -98,7 +98,7 @@ export async function createQuoteList(botUser: BotUser, content?: string, author
         return true;
     });
 
-    return { list, quotes };
+    return [list, quotes];
 }
 
 export async function getQuoteList(id: QuoteList['_id']): Promise<QuoteList | null> {

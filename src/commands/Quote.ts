@@ -1,11 +1,11 @@
-import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, PermissionsBitField } from "discord.js";
+import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, Client, EmbedBuilder } from "discord.js";
 import { Command, ReplyType, Response } from "../Interactions";
 import { debug, error, logToDiscord } from "../Log";
 import { SubcommandExecutionFailure } from "../Failure";
 import { RawStatistic } from "../models/statistic";
 import statisticKeys from "../../data/statistic-keys.json";
 import { QuoteList, createQuoteList, getQuoteListQuery } from '../models/quoteList';
-import { EmbedWithButtons, hasPermission, parseDate, splitArrayIntoChunks } from "../Essentials";
+import { parseDate, splitArrayIntoChunks } from "../Essentials";
 import { RawDiscordUser } from "../models/discordUser";
 import { Quote as QuoteType, createQuote, getQuoteByToken } from "../models/quote";
 
@@ -343,7 +343,7 @@ export const Quote: Command = {
                 return { response, statistic };
             }
 
-            const { list, quotes } = await createQuoteList(botUser, content, author, context, creator, date);
+            const [list, quotes] = await createQuoteList(botUser, content, author, context, creator, date, dateRange);
             if (quotes.length === 0) {
                 const response: Response = {
                     replyType: ReplyType.Reply,
@@ -353,7 +353,7 @@ export const Quote: Command = {
                 return { response, statistic };
             }
 
-            const { embedBuilder, actionRow } = await quoteListMessage(list, quotes, client);
+            const [embedBuilder, actionRow] = await quoteListMessage(list, quotes, client);
 
             const response: Response = {
                 replyType: ReplyType.Reply,
@@ -366,7 +366,7 @@ export const Quote: Command = {
     },
 };
 
-export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], client: Client): Promise<EmbedWithButtons> {
+export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], client: Client): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
     const query = getQuoteListQuery(list);
     const chunkSize = 15; // TODO: Make this configurable
     const quoteChunks = splitArrayIntoChunks(quotes, chunkSize);
@@ -397,7 +397,7 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
     const actionRow = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(previousButton, nextButton);
 
-    return { embedBuilder, actionRow };
+    return [embedBuilder, actionRow];
 }
 
 async function quoteEmbedField(quote: QuoteType, client: Client) {

@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIInteractionGuildMember, ButtonBuilder, EmbedBuilder, GuildMember, PermissionResolvable } from "discord.js";
+import { APIInteractionGuildMember, GuildMember, PermissionResolvable } from "discord.js";
 
 export function splitArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {
     if (chunkSize <= 0) throw new Error("chunkSize must be greater than 0");
@@ -33,8 +33,6 @@ export function parseDate(dateString?: string): Date | undefined {
 export function unixToDate(timestamp: number): Date {
     return new Date(timestamp * 1000);
 }
-
-export type EmbedWithButtons = { embedBuilder: EmbedBuilder, actionRow: ActionRowBuilder<ButtonBuilder> }
 
 export function hasPermission(member: GuildMember | APIInteractionGuildMember | null, permission: PermissionResolvable): boolean {
     if (member === null) return false;
