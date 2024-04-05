@@ -58,4 +58,18 @@ export async function getQuoteByToken(botUser: BotUser, token: string): Promise<
     return document;
 }
 
+export async function randomQuote(botUser: BotUser, exclude: Quote['_id'][] = []): Promise<[Quote?, Dict<string>?]> {
+    const documents = await quoteModel.find({ _id: { $nin: exclude }, user: botUser }).populate('user').populate('creator').populate('authors').exec();
+    if (documents.length === 0) return [undefined, undefined];
+
+    let authors: Dict<string> = {};
+    for (const doc of documents) {
+        for (const author of doc.authors) {
+            authors[author.name.toLowerCase()] = author.name;
+        }
+    }
+
+    return [documents[Math.floor(Math.random() * documents.length)], authors];
+}
+
 export default quoteModel;

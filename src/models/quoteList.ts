@@ -1,10 +1,10 @@
 import { Document, Model, Schema, model } from 'mongoose';
 import { DiscordUser, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
-import quoteModel, { Quote, getQuotes } from './quote';
+import quoteModel, { Quote } from './quote';
 import { BotUser } from './botUser';
 import { approximateEqual } from '../Essentials';
 
-const QUOTE_DATE_RANGE = 259200000; // 3 days in milliseconds //TODO: Make this configurable
+const QUOTE_DATE_RANGE = 259200000; // 3 days in milliseconds
 
 type QuoteQuery = {
     user: BotUser['_id'];
@@ -56,7 +56,7 @@ const quoteListSchema = new Schema<QuoteList, QuoteListModel>({
 
 const quoteListModel = model<QuoteList, QuoteListModel>('QuoteLists', quoteListSchema);
 
-export async function createQuoteList(botUser: BotUser, content?: string, author?: RawDiscordUser, context?: string, creator?: RawDiscordUser, date?: Date): Promise<{ list: QuoteList, quotes: Quote[] }> {
+export async function createQuoteList(botUser: BotUser, content?: string, author?: RawDiscordUser, context?: string, creator?: RawDiscordUser, date?: Date, dateRange?: number): Promise<[ QuoteList, Quote[] ]> {
     let authorUser: DiscordUser | undefined;
     let creatorUser: DiscordUser | undefined;
     let query: QuoteQuery = { user: botUser._id };
@@ -70,7 +70,6 @@ export async function createQuoteList(botUser: BotUser, content?: string, author
         creatorUser = await getOrCreateDiscordUser(creatorData.name, creatorData.type, creator.id);
         query.creator = creatorUser._id;
     }
-    console.log(query);
 
     const document = await quoteListModel.create({ user: botUser._id, page: 0, content, author: authorUser?._id, context, creator: creatorUser?._id, date });
     const list = await (await document.populate('author')).populate('creator');
@@ -92,7 +91,7 @@ export async function createQuoteList(botUser: BotUser, content?: string, author
         if (context !== undefined && quote.context && !quote.context.includes(context)) {
             return false;
         }
-        if (date !== undefined && !approximateEqual(quote.createdAt.getTime(), date.getTime(), QUOTE_DATE_RANGE)){
+        if (date !== undefined && !approximateEqual(quote.createdAt.getTime(), date.getTime(), dateRange ?? QUOTE_DATE_RANGE)){
             return false;
         }
         return true;
