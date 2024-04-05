@@ -10,6 +10,7 @@ import { RawDiscordUser } from "../models/discordUser";
 import { Quote as QuoteType, createQuote, getQuoteByToken } from "../models/quote";
 
 const MAX_CONVERSATION_LENGTH = 5;
+const QUOTE_PAGE_SIZE = 15;
 
 export const Quote: Command = {
     name: "quote",
@@ -178,6 +179,12 @@ export const Quote: Command = {
                     description: "The date query to filter quotes by.",
                     type: ApplicationCommandOptionType.String,
                     required: false,
+                },
+                {
+                    name: "date-range",
+                    description: "The range in days of the date query. (Default: 3)",
+                    type: ApplicationCommandOptionType.Integer,
+                    required: false,
                 }
             ],
         },
@@ -312,6 +319,7 @@ export const Quote: Command = {
             const creatorUser = interaction.options.getUser("creator", false) ?? undefined;
             const creatorName = interaction.options.getString("creator-name", false) ?? undefined;
             const dateString = interaction.options.getString("date", false) ?? undefined;
+            const dateRange = interaction.options.getInteger("date-range", false) ?? undefined;
 
             if (authorUser !== undefined && authorName !== undefined) {
                 const response: Response = {
@@ -368,8 +376,7 @@ export const Quote: Command = {
 
 export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], client: Client): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
     const query = getQuoteListQuery(list);
-    const chunkSize = 15; // TODO: Make this configurable
-    const quoteChunks = splitArrayIntoChunks(quotes, chunkSize);
+    const quoteChunks = splitArrayIntoChunks(quotes, QUOTE_PAGE_SIZE);
     const page = quoteChunks[list.page];
 
     let embedDescription = `Showing ${page.length} quotes`;
