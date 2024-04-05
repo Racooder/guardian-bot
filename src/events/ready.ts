@@ -30,7 +30,7 @@ export const Ready: EventListener = {
 
             info("Setting activity...");
             client.user.setActivity({
-                name: "Support me on Ko-fi!",
+                name: "/donate",
             });
 
             success(`${client.user.tag} is online`);

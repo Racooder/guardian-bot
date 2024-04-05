@@ -25,14 +25,13 @@ export const Donate: Command = {
 
         const embed = new EmbedBuilder()
             .setTitle("Donate on Ko-fi or directly per PayPal!")
-            .setDescription("Consider supporting the developement of the bot by donating via Ko-fi or PayPal!")
-            .setURL(KOFI_URL)
+            .setDescription("Consider supporting the developement and hosting of the bot by donating via Ko-fi or PayPal!")
             .setColor(embedColors.donate_embed)
             .setThumbnail(THUMBNAIL_URL);
 
         const kofiButton = new ButtonBuilder()
             .setStyle(ButtonStyle.Link)
-            .setLabel("My Ko-fi page")
+            .setLabel("Ko-fi")
             .setURL(KOFI_URL);
 
         const paypalButton = new ButtonBuilder()
