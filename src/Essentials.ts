@@ -40,4 +40,9 @@ export function hasPermission(member: GuildMember | APIInteractionGuildMember | 
     return member.permissions.has(permission);
 }
 
+export function generateToken(): string {
+    const tokenNumber = new Date().getTime() - 1672531200000;
+    return tokenNumber.toString(36);
+}
+
 export type Dict<T> = { [key: string]: T };

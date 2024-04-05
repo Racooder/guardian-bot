@@ -2,6 +2,7 @@ import { Document, Model, Schema, model } from 'mongoose';
 import { BotUser } from './botUser';
 import { DiscordUser, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
 import { User } from 'discord.js';
+import { Dict, generateToken } from '../Essentials';
 
 export interface Quote extends Document {
     token: string;
@@ -29,8 +30,7 @@ const quoteSchema = new Schema<Quote, QuoteModel>({
 const quoteModel = model<Quote, QuoteModel>('Quotes', quoteSchema);
 
 export async function createQuote(botUser: BotUser, creatorUser: User, statements: string[], authors: RawDiscordUser[], context?: string): Promise<Quote> {
-    const tokenNumber = new Date().getTime() - 1672531200000;
-    const token = tokenNumber.toString(36);
+    const token = generateToken();
     const creatorData = getDiscordUserData(creatorUser);
     const creator = await getOrCreateDiscordUser(creatorData.name, creatorData.type, creatorUser.id);
     let authorIds: DiscordUser['_id'][] = [];
