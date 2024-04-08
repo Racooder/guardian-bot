@@ -10,8 +10,10 @@
   "author": "Racooder <76227605+Racooder@users.noreply.github.com>",
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "build": "tsc",
-    "start": "node ./src/App.js",
+    "build": "run-script-os",
+    "build:darwin:linux": "tsc && cp -r ./localization ./dist/localization/",
+    "build:win32": "tsc && xcopy /E /I /Y localization dist\\localization\\",
+    "start": "node ./dist/src/App.js",
     "dev": "ts-node ./src/App.ts",
     "test": "jest --silent --json --outputFile=test-report.json"
   },

@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "ESNext",
         "module": "CommonJS",
-        "rootDirs": ["src/", "tests/"],
+        "rootDirs": ["src/"],
         "outDir": "dist/",
         "strict": true,
         "moduleResolution": "node",
@@ -24,10 +24,6 @@
         "./src/custom.d.ts",
     ],
     "include": [
-        "./**/*.ts"
+        "src/**/*.ts"
     ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
 }
