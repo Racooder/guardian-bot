@@ -1,5 +1,5 @@
 import { Document, Model, Schema, model } from 'mongoose';
-import { BotUser, getOrCreateBotUser } from './botUser';
+import { BotUser } from './botUser';
 import { DiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
 import { User } from 'discord.js';
 
@@ -21,13 +21,11 @@ codenameSchema.index({ user: 1, word: 1 }, { unique: true });
 
 const codenameModel = model<Codename, CodenameModel>('Codenames', codenameSchema);
 
-export async function getWords(userId: string): Promise<Codename[]> {
-    const botUser = await getOrCreateBotUser(userId);
+export async function getWords(botUser: BotUser): Promise<Codename[]> {
     return await codenameModel.find({ user: botUser._id });
 }
 
-export async function getWord(userId: string, word: string): Promise<Codename | null> {
-    const botUser = await getOrCreateBotUser(userId);
+export async function getWord(botUser: BotUser, word: string): Promise<Codename | null> {
     const document = await codenameModel.findOne({ user: botUser._id, word });
     if (!document) {
         return null;
@@ -35,8 +33,7 @@ export async function getWord(userId: string, word: string): Promise<Codename | 
     return document.populate('creator');
 }
 
-export async function addWord(userId: string, creatorUser: User, word: string): Promise<Codename | undefined> {
-    const botUser = await getOrCreateBotUser(userId);
+export async function addWord(botUser: BotUser, creatorUser: User, word: string): Promise<Codename | undefined> {
     const creatorData = getDiscordUserData(creatorUser);
     const creator = await getOrCreateDiscordUser(creatorData.name, creatorData.type, creatorUser.id);
     const existing = await codenameModel.findOne({ user: botUser._id, word });
@@ -46,8 +43,7 @@ export async function addWord(userId: string, creatorUser: User, word: string): 
     return await codenameModel.create({ user: botUser._id, creator: creator._id, word });
 }
 
-export async function removeWord(userId: string, word: string) : Promise<boolean> {
-    const botUser = await getOrCreateBotUser(userId);
+export async function removeWord(botUser: BotUser, word: string) : Promise<boolean> {
     const document = await codenameModel.findOne({ user: botUser._id, word }).populate('creator');
     if (!document) {
         return false;

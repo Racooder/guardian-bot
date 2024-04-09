@@ -44,7 +44,7 @@ export const Feedback: Command = {
         const statistic: RawStatistic = {
             global: false,
             key: statisticKeys.bot.event.interaction.command.feedback,
-            userId: botUser.id,
+            user: botUser
         };
 
         if (!interaction.isChatInputCommand()) {

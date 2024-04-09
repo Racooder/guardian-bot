@@ -38,7 +38,7 @@ export const Ping: Command = {
         const statistic: RawStatistic = {
             global: false,
             key: statisticKeys.bot.event.interaction.command.ping,
-            userId: botUser.id,
+            user: botUser
         };
 
         return { response, statistic };

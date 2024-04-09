@@ -20,7 +20,7 @@ export const Donate: Command = {
         const statistic: RawStatistic = {
             global: false,
             key: statisticKeys.bot.event.interaction.command.donate,
-            userId: botUser.id,
+            user: botUser
         };
 
         const embed = new EmbedBuilder()

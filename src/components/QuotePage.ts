@@ -17,7 +17,7 @@ export const QuotePage: Component<ButtonInteraction> = {
         const statistic: RawStatistic = {
             global: false,
             key: statisticKeys.bot.event.interaction.component.quotePage,
-            userId: botUser.id,
+            user: botUser
         };
 
         const quoteList = await getQuoteList(data[1]);

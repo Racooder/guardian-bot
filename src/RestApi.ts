@@ -55,7 +55,7 @@ function setupValidation(app: Express) {
         insertStatistic({
             global: true,
             key: statisticKeys.api.request,
-            userId: undefined,
+            user: undefined,
         });
 
         req.token = token;

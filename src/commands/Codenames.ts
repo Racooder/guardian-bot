@@ -54,11 +54,11 @@ export const Codenames: Command = {
             const statistic: RawStatistic = {
                 global: false,
                 key: statisticKeys.bot.event.interaction.command.codenames.add,
-                userId: botUser.id,
+                user: botUser
             };
 
             const word = interaction.options.getString("word", true);
-            const document = await addWord(botUser.id, interaction.user, word);
+            const document = await addWord(botUser, interaction.user, word);
             if (document === undefined) {
                 const response: Response = {
                     replyType: ReplyType.Reply,
@@ -81,11 +81,11 @@ export const Codenames: Command = {
             const statistic: RawStatistic = {
                 global: false,
                 key: statisticKeys.bot.event.interaction.command.codenames.remove,
-                userId: botUser.id,
+                user: botUser
             };
 
             const word = interaction.options.getString("word", true);
-            const document = await getWord(botUser.id, word);
+            const document = await getWord(botUser, word);
             if (!document) {
                 const response: Response = {
                     replyType: ReplyType.Reply,
@@ -108,7 +108,7 @@ export const Codenames: Command = {
                 }
             }
 
-            const removed = await removeWord(botUser.id, word);
+            const removed = await removeWord(botUser, word);
 
             if (!removed) {
                 return new RemoveWordFailure()
@@ -127,10 +127,10 @@ export const Codenames: Command = {
             const statistic: RawStatistic = {
                 global: false,
                 key: statisticKeys.bot.event.interaction.command.codenames.wordpack,
-                userId: botUser.id,
+                user: botUser
             };
 
-            const codenames = await getWords(botUser.id);
+            const codenames = await getWords(botUser);
             const words = codenames.map((codename) => codename.word);
             if (words.length === 0) {
                 const response: Response = {

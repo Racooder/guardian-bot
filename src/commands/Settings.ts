@@ -15,7 +15,7 @@ export const Settings: Command = {
         const statistic: RawStatistic = {
             global: false,
             key: statisticKeys.bot.event.interaction.command.settings,
-            userId: botUser.id,
+            user: botUser
         };
 
         return new FeatureNotImplementedFailure();

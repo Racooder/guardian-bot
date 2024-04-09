@@ -1,5 +1,5 @@
 import { Document, Model, Schema, model } from 'mongoose';
-import { BotUser, getOrCreateBotUser } from './botUser';
+import { BotUser } from './botUser';
 
 export type StatisticFilter = {
     global?: boolean;
@@ -12,7 +12,7 @@ export type StatisticFilter = {
 export interface RawStatistic {
     global: boolean;
     key: string;
-    userId?: string;
+    user?: BotUser;
 }
 
 export interface Statistic extends RawStatistic, Document {
@@ -25,18 +25,13 @@ interface StatisticModel extends Model<Statistic> { }
 const statisticSchema = new Schema<Statistic, StatisticModel>({
     global: { type: Boolean, required: true },
     key: { type: String, required: true },
-    userId: { type: Schema.Types.ObjectId, ref: 'BotUser' },
+    user: { type: Schema.Types.ObjectId, ref: 'BotUser' },
 }, { timestamps: true });
 
 const statisticModel = model<Statistic, StatisticModel>('Statistics', statisticSchema);
 
 export async function insertStatistic(stats: RawStatistic): Promise<Statistic> {
-    if (stats.userId === undefined) {
-        return await statisticModel.create(stats);
-    }
-
-    const botUser = await getOrCreateBotUser(stats.userId);
-    return await statisticModel.create({ ...stats, userId: botUser._id });
+    return await statisticModel.create({ ...stats, user: stats.user });
 }
 
 export async function getStatistics(filter?: StatisticFilter): Promise<Statistic[]> {
@@ -71,8 +66,7 @@ export async function getStatistics(filter?: StatisticFilter): Promise<Statistic
         query['key'] = { $in: filter.keys };
     }
     if (filter?.userId !== undefined) {
-        const botUser = await getOrCreateBotUser(filter.userId);
-        query['user'] = botUser._id;
+        query['user'] = filter.userId;
     }
 
     return await statisticModel.find(query);

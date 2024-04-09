@@ -200,7 +200,7 @@ export const Quote: Command = {
             const statistic: RawStatistic = {
                 global: false,
                 key: statisticKeys.bot.event.interaction.command.quote.add,
-                userId: botUser.id,
+                user: botUser
             };
 
             const context: string | undefined = interaction.options.getString("context", false) ?? undefined;
@@ -272,7 +272,7 @@ export const Quote: Command = {
             const statistic: RawStatistic = {
                 global: false,
                 key: statisticKeys.bot.event.interaction.command.quote.remove,
-                userId: botUser.id,
+                user: botUser
             };
 
             const token = interaction.options.getString("quote-token", true);
@@ -309,7 +309,7 @@ export const Quote: Command = {
             const statistic: RawStatistic = {
                 global: false,
                 key: statisticKeys.bot.event.interaction.command.quote.list,
-                userId: botUser.id,
+                user: botUser
             };
 
             const content = interaction.options.getString("content", false) ?? undefined;

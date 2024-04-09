@@ -18,7 +18,7 @@ export const QuoteGuesser: Command = {
         const statistic: RawStatistic = {
             global: false,
             key: statisticKeys.bot.event.interaction.command.quoteGuesser,
-            userId: botUser.id,
+            user: botUser
         };
 
         const document = await createQuoteGuesserGame();
