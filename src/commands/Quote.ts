@@ -10,7 +10,7 @@ import { RawDiscordUser } from "../models/discordUser";
 import { Quote as QuoteType, createQuote, getQuoteByToken } from "../models/quote";
 
 const MAX_CONVERSATION_LENGTH = 5;
-const QUOTE_PAGE_SIZE = 15;
+export const QUOTE_PAGE_SIZE = 15;
 
 export const Quote: Command = {
     name: "quote",
@@ -361,7 +361,7 @@ export const Quote: Command = {
                 return { response, statistic };
             }
 
-            const [embedBuilder, actionRow] = await quoteListMessage(list, quotes, client);
+            const [embedBuilder, actionRow] = await quoteListMessage(list, quotes, client, 0);
 
             const response: Response = {
                 replyType: ReplyType.Reply,
@@ -374,35 +374,45 @@ export const Quote: Command = {
     },
 };
 
-export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], client: Client): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
+export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], client: Client, page: number): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
     const query = getQuoteListQuery(list);
-    const quoteChunks = splitArrayIntoChunks(quotes, QUOTE_PAGE_SIZE);
-    const page = quoteChunks[list.page];
+    const quoteChunks = splitArrayIntoChunks(quotes.reverse(), QUOTE_PAGE_SIZE);
+    const pageQuotes = quoteChunks[page];
 
-    let embedDescription = `Showing ${page.length} quotes`;
+    let embedDescription = `Showing ${pageQuotes.length} quotes`;
     if (query !== "") {
         embedDescription += ` matching:\n${query}`;
     }
 
-    const embedFields = await Promise.all(page.map((quote) => quoteEmbedField(quote, client)));
+    const embedFields = await Promise.all(pageQuotes.map((quote) => quoteEmbedField(quote, client)));
 
     const embedBuilder = new EmbedBuilder()
-        .setTitle(`Quotes (Page ${list.page + 1}/${quoteChunks.length})`)
+        .setTitle(`Quotes (Page ${page + 1}/${quoteChunks.length})`)
         .setDescription(embedDescription)
         .addFields(embedFields);
 
     const actionRow = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`quote-page:previous:${list._id}`)
-                .setLabel("Previous Page")
+                .setCustomId(`quote-page:first:${list._id}`)
+                .setEmoji('⏪')
                 .setStyle(ButtonStyle.Secondary)
-                .setDisabled(list.page === 0),
+                .setDisabled(page === 0),
             new ButtonBuilder()
-                .setCustomId(`quote-page:next:${list._id}`)
-                .setLabel("Next Page")
+                .setCustomId(`quote-page:page:${list._id}:${page - 1}`)
+                .setLabel('◀️')
                 .setStyle(ButtonStyle.Secondary)
-                .setDisabled(list.page === quoteChunks.length - 1)
+                .setDisabled(page === 0),
+            new ButtonBuilder()
+                .setCustomId(`quote-page:page:${list._id}:${page + 1}`)
+                .setLabel('▶️')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page === quoteChunks.length - 1),
+            new ButtonBuilder()
+                .setCustomId(`quote-page:last:${list._id}`)
+                .setLabel('⏩')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page === quoteChunks.length - 1)
         );
 
     return [embedBuilder, actionRow];

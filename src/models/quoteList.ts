@@ -14,7 +14,6 @@ type QuoteQuery = {
 
 export interface QuoteList extends Document {
     user: BotUser['_id'];
-    page: number;
     content?: string;
     author?: DiscordUser['_id'];
     context?: string;
@@ -46,7 +45,6 @@ interface QuoteListModel extends Model<QuoteList> { }
 
 const quoteListSchema = new Schema<QuoteList, QuoteListModel>({
     user: { type: Schema.Types.ObjectId, ref: 'BotUsers', required: true },
-    page: { type: Number, required: true },
     content: { type: String },
     author: { type: Schema.Types.ObjectId, ref: 'DiscordUsers' },
     context: { type: String },
@@ -71,7 +69,7 @@ export async function createQuoteList(botUser: BotUser, content?: string, author
         query.creator = creatorUser._id;
     }
 
-    const document = await quoteListModel.create({ user: botUser._id, page: 0, content, author: authorUser?._id, context, creator: creatorUser?._id, date });
+    const document = await quoteListModel.create({ user: botUser._id, content, author: authorUser?._id, context, creator: creatorUser?._id, date });
     const list = await (await document.populate('author')).populate('creator');
 
     let quotes = await quoteModel.find(query).populate("creator").populate("authors").exec();
