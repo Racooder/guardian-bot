@@ -58,7 +58,7 @@ async function updateAvailable(discordClient: Client): Promise<boolean> {
     return true;
 }
 
-async function updateCheck(discordClient: Client): Promise<void> {
+async function scheduleUpdateChecks(discordClient: Client): Promise<void> {
     if (!config.do_update_check) {
         info("Update checking disabled");
         return;
@@ -70,15 +70,16 @@ async function updateCheck(discordClient: Client): Promise<void> {
 
     info("Update checking enabled (cron: " + config.update_check_cron + ")");
 
-    setTimeout(() => {
-        schedule.scheduleJob(config.update_check_cron, async () => {
-            debug("Checking for updates");
-            if (await updateAvailable(discordClient)) {
-                info("Update available, restarting");
-                stopApplication();
-            }
-        });
-    });
+    updateCheck();
+    schedule.scheduleJob(config.update_check_cron, updateCheck);
+}
+
+async function updateCheck() {
+    debug("Checking for updates");
+    if (await updateAvailable(discordClient)) {
+        info("Update available, restarting");
+        stopApplication();
+    }
 }
 
 function stopApplication(): void {
@@ -94,7 +95,7 @@ function stopApplication(): void {
 
 function ready(discordClient: Client): void {
     info("Application ready");
-    updateCheck(discordClient);
+    scheduleUpdateChecks(discordClient);
 }
 
 async function setupApp(): Promise<void> {

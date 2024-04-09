@@ -1,7 +1,7 @@
 {
     "debug": true,
     "api_port": 3000,
-    "do_update_check": true,
+    "do_update_check": false,
     "update_check_cron": "0 * * * *",
     "log_channel": "978702068615356426",
     "log_role": "1225907745614594148",
