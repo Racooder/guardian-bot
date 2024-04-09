@@ -10,9 +10,14 @@ export function getDiscordUserData(user: User): { name: string, type: DiscordUse
     return { name, type };
 }
 
+export type DiscordUserSettings = { }
+
+export const DEFAULT_DISCORD_USER_SETTINGS: DiscordUserSettings = { }
+
 export interface DiscordUser extends Document {
     name: string; // username, username#discriminator, or non discord name
     type: DiscordUserType;
+    settings: DiscordUserSettings
     userId?: string;
 }
 
@@ -21,6 +26,7 @@ interface DiscordUserModel extends Model<DiscordUser> { }
 const discordUserSchema = new Schema<DiscordUser, DiscordUserModel>({
     type: { type: String, required: true },
     name: { type: String, required: true },
+    settings: { type: Object, required: true, default: DEFAULT_DISCORD_USER_SETTINGS },
     userId: { type: String },
 });
 

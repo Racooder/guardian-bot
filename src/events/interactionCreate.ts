@@ -2,20 +2,27 @@ import { debug, error, logToDiscord } from "../Log";
 import { EventListener } from "../EventListeners";
 import { ButtonInteraction, Client, CommandInteraction, ComponentType, InteractionUpdateOptions, MessageComponentInteraction } from "discord.js";
 import { Commands, ComponentReturnType, Components, ReplyType, SlashCommandReturnType } from '../Interactions';
-import { BotUserNotFoundFailure, CommandNotFoundFailure, ComponentNotFoundFailure, Failure, MessageComponentExecutionFailure, SlashCommandExecutionFailure, UnknownComponentTypeFailure } from '../Failure';
+import { CommandNotFoundFailure, ComponentNotFoundFailure, Failure, MessageComponentExecutionFailure, SlashCommandExecutionFailure, UnknownComponentTypeFailure } from '../Failure';
 import { RawStatistic, insertStatistic } from "../models/statistic";
-import { BotUser, getOrCreateBotUser } from "../models/botUser";
+import { BotUser, BotUserType, updateBotUser } from "../models/botUser";
 
 export const InteractionCreate: EventListener = {
     start: (client) => {
         client.on("interactionCreate", async (interaction) => {
             debug("Interaction event triggered");
 
+            let botUser: BotUser;
+            if (interaction.inGuild()) {
+                botUser = await updateBotUser(interaction.guildId!, BotUserType.GUILD, interaction.guild!.name, interaction.guild!.memberCount);
+            } else {
+                botUser = await updateBotUser(interaction.user.id, BotUserType.USER, interaction.user.username, 0);
+            }
+
             let result: SlashCommandReturnType | ComponentReturnType | Failure;
             if (interaction.isCommand()) {
-                result = await handleSlashCommand(client, interaction);
+                result = await handleSlashCommand(client, interaction, botUser);
             } else if (interaction.isMessageComponent()) {
-                result = await handleMessageComponent(client, interaction);
+                result = await handleMessageComponent(client, interaction, botUser);
             } else {
                 logToDiscord(client, error("Unknown interaction type"));
                 return;
@@ -67,7 +74,7 @@ async function replyToInteraction(interaction: CommandInteraction | MessageCompo
     }
 }
 
-async function handleSlashCommand(client: Client, interaction: CommandInteraction): Promise<SlashCommandReturnType | Failure> {
+async function handleSlashCommand(client: Client, interaction: CommandInteraction, botUser: BotUser): Promise<SlashCommandReturnType | Failure> {
     debug("Slash command interaction recieved");
 
     debug(`Getting command ${interaction.commandName}`);
@@ -78,16 +85,6 @@ async function handleSlashCommand(client: Client, interaction: CommandInteractio
     if (!commandHandler) {
         logToDiscord(client, error(`Command ${interaction.commandName} not found`));
         return new CommandNotFoundFailure();
-    }
-
-    let botUser: BotUser | undefined;
-    if (interaction.inGuild()) {
-        botUser = await getOrCreateBotUser(interaction.guildId!) || undefined;
-    } else {
-        botUser = await getOrCreateBotUser(interaction.user.id) || undefined;
-    }
-    if (botUser === undefined) {
-        return new BotUserNotFoundFailure();
     }
 
     debug("Running command");
@@ -112,7 +109,7 @@ async function handleSlashCommand(client: Client, interaction: CommandInteractio
     return subcommandHandler(client, interaction, botUser);
 }
 
-async function handleMessageComponent(client: Client, interaction: MessageComponentInteraction): Promise<ComponentReturnType | Failure> {
+async function handleMessageComponent(client: Client, interaction: MessageComponentInteraction, botUser: BotUser): Promise<ComponentReturnType | Failure> {
     debug("Message component interaction recieved");
 
     let componentData = interaction.customId.split(":");
@@ -125,16 +122,6 @@ async function handleMessageComponent(client: Client, interaction: MessageCompon
 
     if (!componentHandler) {
         return new ComponentNotFoundFailure();
-    }
-
-    let botUser: BotUser | undefined;
-    if (interaction.inGuild()) {
-        botUser = await getOrCreateBotUser(interaction.guildId!) || undefined;
-    } else {
-        botUser = await getOrCreateBotUser(interaction.user.id) || undefined;
-    }
-    if (botUser === undefined) {
-        return new BotUserNotFoundFailure();
     }
 
     debug("Running component");
