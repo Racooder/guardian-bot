@@ -1,4 +1,7 @@
 import { localize } from "../src/Localization";
+import { setupLog } from "../src/Log";
+
+setupLog();
 
 describe('Localization - getLocalizedText', () => {
     test('Valid key and language should result in the localized text', () => {
