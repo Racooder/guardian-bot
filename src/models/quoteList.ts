@@ -3,6 +3,7 @@ import { DiscordUser, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser
 import quoteModel, { Quote } from './quote';
 import { BotUser } from './botUser';
 import { approximateEqual } from '../Essentials';
+import { debug } from '../Log';
 
 const QUOTE_DATE_RANGE = 259200000; // 3 days in milliseconds
 
@@ -22,6 +23,8 @@ export interface QuoteList extends Document {
 }
 
 export function getQuoteListQuery(quoteList: QuoteList) {
+    debug("Getting quote list query")
+
     let query = "";
     if (quoteList.content !== undefined) {
         query += `Content: ${quoteList.content}\n`;
@@ -54,7 +57,9 @@ const quoteListSchema = new Schema<QuoteList, QuoteListModel>({
 
 const quoteListModel = model<QuoteList, QuoteListModel>('QuoteLists', quoteListSchema);
 
-export async function createQuoteList(botUser: BotUser, content?: string, author?: RawDiscordUser, context?: string, creator?: RawDiscordUser, date?: Date, dateRange?: number): Promise<[ QuoteList, Quote[] ]> {
+export async function createQuoteList(botUser: BotUser, content?: string, author?: RawDiscordUser, context?: string, creator?: RawDiscordUser, date?: Date, dateRange?: number): Promise<[QuoteList, Quote[]]> {
+    debug("Creating quote list entry")
+
     let authorUser: DiscordUser | undefined;
     let creatorUser: DiscordUser | undefined;
     let query: QuoteQuery = { user: botUser._id };
@@ -99,6 +104,8 @@ export async function createQuoteList(botUser: BotUser, content?: string, author
 }
 
 export async function getQuoteList(id: QuoteList['_id']): Promise<QuoteList | null> {
+    debug(`Getting quote list ${id}`);
+
     const document = await quoteListModel.findById(id);
     if (document === null) {
         return null;

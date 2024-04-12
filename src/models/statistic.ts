@@ -1,5 +1,6 @@
 import { Document, Model, Schema, model } from 'mongoose';
 import { BotUser } from './botUser';
+import { debug } from '../Log';
 
 export type StatisticFilter = {
     global?: boolean;
@@ -31,10 +32,14 @@ const statisticSchema = new Schema<Statistic, StatisticModel>({
 const statisticModel = model<Statistic, StatisticModel>('Statistics', statisticSchema);
 
 export async function insertStatistic(stats: RawStatistic): Promise<Statistic> {
+    debug("Inserting statistic")
+
     return await statisticModel.create({ ...stats, user: stats.user });
 }
 
 export async function getStatistics(filter?: StatisticFilter): Promise<Statistic[]> {
+    debug("Getting statistics")
+
     const query: {
         global?: boolean;
         user?: BotUser['_id'];
@@ -73,10 +78,14 @@ export async function getStatistics(filter?: StatisticFilter): Promise<Statistic
 }
 
 export async function getGlobalStatistics(filter?: StatisticFilter) {
+    debug("Getting global statistics")
+
     return await getStatistics({ ...filter, global: true });
 }
 
 export async function getUserStatistics(user: BotUser['_id'], filter?: StatisticFilter) {
+    debug("Getting user statistics")
+
     return await getStatistics({ ...filter, userId: user });
 }
 

@@ -3,6 +3,7 @@ import { BotUser } from './botUser';
 import { DiscordUser, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
 import { User } from 'discord.js';
 import { Dict, generateToken } from '../Essentials';
+import { debug } from '../Log';
 
 export interface Quote extends Document {
     token: string;
@@ -30,6 +31,8 @@ const quoteSchema = new Schema<Quote, QuoteModel>({
 const quoteModel = model<Quote, QuoteModel>('Quotes', quoteSchema);
 
 export async function createQuote(botUser: BotUser, creatorUser: User, statements: string[], authors: RawDiscordUser[], context?: string): Promise<Quote> {
+    debug("Creating quote entry")
+
     const token = generateToken();
     const creatorData = getDiscordUserData(creatorUser);
     const creator = await getOrCreateDiscordUser(creatorData.name, creatorData.type, creatorUser.id);
@@ -49,27 +52,41 @@ export async function createQuote(botUser: BotUser, creatorUser: User, statement
 }
 
 export async function getQuotes(botUser: BotUser): Promise<Quote[]> {
+    debug(`Getting quotes for bot user ${botUser.id}`);
+
     const documents = await quoteModel.find({ user: botUser._id }).populate('user').populate('creator').populate('authors');
     return documents;
 }
 
 export async function getQuoteByToken(botUser: BotUser, token: string): Promise<Quote | null> {
+    debug(`Getting quote ${token} for bot user ${botUser.id}`);
+
     const document = await quoteModel.findOne({ user: botUser._id, token: token }).populate('user').populate('creator').populate('authors').exec();
     return document;
 }
 
-export async function randomQuote(botUser: BotUser, exclude: Quote['_id'][] = []): Promise<[Quote?, Dict<string>?]> {
+export async function randomQuote(botUser: BotUser, exclude: Quote['_id'][] = []): Promise<[Quote?, [string, string]?, [string, string][]?]> {
+    debug(`Getting random quote for bot user ${botUser.id}`);
+
     const documents = await quoteModel.find({ _id: { $nin: exclude }, user: botUser }).populate('user').populate('creator').populate('authors').exec();
     if (documents.length === 0) return [undefined, undefined];
+    const quote = documents[Math.floor(Math.random() * documents.length)];
 
-    let authors: Dict<string> = {};
+    debug("Getting all quote authors for the bot user")
+    let authorsDict: Dict<string> = {};
     for (const doc of documents) {
         for (const author of doc.authors) {
-            authors[author.name.toLowerCase()] = author.name;
+            authorsDict[author.name.toLowerCase()] = author.name;
         }
     }
 
-    return [documents[Math.floor(Math.random() * documents.length)], authors];
+    debug("Seperating quote author from other authors")
+    const authors = Object.entries(authorsDict);
+    const quoteAuthor = [quote.authors[0].name.toLowerCase(), quote.authors[0].name] as [string, string];
+    const quoteAuthorIndex = authors.map(author => author[0]).indexOf(quoteAuthor[0]);
+    authors.splice(quoteAuthorIndex, 1);
+
+    return [quote, quoteAuthor, authors];
 }
 
 export default quoteModel;

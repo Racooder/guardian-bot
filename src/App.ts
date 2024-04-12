@@ -28,6 +28,8 @@ const octokit = new Octokit({
 });
 
 async function updateAvailable(discordClient: Client): Promise<boolean> {
+    debug("Checking for updates");
+
     const response = await octokit.request("GET /repos/{owner}/{repo}/releases/latest", {
         owner: GITHUB_REPO_OWNER,
         repo: GITHUB_REPO_NAME,
@@ -59,6 +61,8 @@ async function updateAvailable(discordClient: Client): Promise<boolean> {
 }
 
 async function scheduleUpdateChecks(discordClient: Client): Promise<void> {
+    debug("Scheduling update checks");
+
     if (!config.do_update_check) {
         info("Update checking disabled");
         return;
@@ -75,7 +79,8 @@ async function scheduleUpdateChecks(discordClient: Client): Promise<void> {
 }
 
 async function updateCheck() {
-    debug("Checking for updates");
+    debug("Running update check");
+
     if (await updateAvailable(discordClient)) {
         info("Update available, restarting");
         stopApplication();
@@ -83,6 +88,8 @@ async function updateCheck() {
 }
 
 function stopApplication(): void {
+    debug("Stopping application");
+
     if (restApi === undefined || discordClient === undefined) {
         error("Application not running");
         return;

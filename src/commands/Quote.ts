@@ -206,6 +206,7 @@ export const Quote: Command = {
             const context: string | undefined = interaction.options.getString("context", false) ?? undefined;
             let quotes: string[] = [];
             let authors: RawDiscordUser[] = [];
+            debug("Getting quote and author options")
             for (let i = 1; i <= MAX_CONVERSATION_LENGTH; i++) {
                 let optionSuffix;
                 if (i === 1) {
@@ -375,6 +376,8 @@ export const Quote: Command = {
 };
 
 export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], client: Client, page: number): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
+    debug("Creating quote list message");
+
     const query = getQuoteListQuery(list);
     const quoteChunks = splitArrayIntoChunks(quotes.reverse(), QUOTE_PAGE_SIZE);
     const pageQuotes = quoteChunks[page];
@@ -419,6 +422,8 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
 }
 
 async function quoteEmbedField(quote: QuoteType, client: Client) {
+    debug("Creating quote embed field");
+
     if (quote.authors.length !== quote.statements.length) {
         logToDiscord(client, error(`Quote ${quote.token} has a mismatch between the number of authors and statements or can't be populated correctly.`));
         return {

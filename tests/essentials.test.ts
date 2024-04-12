@@ -1,4 +1,4 @@
-import { approximateEqual, parseDate, randomElement, splitArrayIntoChunks, unixToDate } from "../src/Essentials";
+import { approximateEqual, generateToken, parseDate, randomElement, splitArrayIntoChunks, unixToDate } from "../src/Essentials";
 
 describe('Essentials - splitArrayIntoChunks', () => {
     test('Empty array should result in empty array', () => {
@@ -63,5 +63,16 @@ describe('Essentials - parseDate', () => {
 describe('Essentials - unixToDate', () => {
     test('A valid unix timestamp should result in a date', () => {
         expect(unixToDate(1609459200)).toBeInstanceOf(Date);
+    });
+});
+
+describe('Essentials - generateToken', () => {
+    let savedToken: string;
+    test('A token should be generated', () => {
+        savedToken = generateToken();
+        expect(savedToken).toMatch(/[a-z0-9]+/);
+    });
+    test('A new token should be generated', () => {
+        expect(generateToken()).not.toBe(savedToken);
     });
 });
