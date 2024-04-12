@@ -61,3 +61,19 @@ export function generateToken(): string {
 }
 
 export type Dict<T> = { [key: string]: T };
+
+// https://stackoverflow.com/a/2450976
+export function shuffleArray<T>(array: T[]): T[] {
+    debug("Shuffling array")
+
+    let currentIndex = array.length;
+
+    while (currentIndex != 0) {
+        let randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+
+    return array;
+}
