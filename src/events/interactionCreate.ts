@@ -38,6 +38,8 @@ export const InteractionCreate: EventListener = {
 }
 
 async function updateStatistics(response: SlashCommandReturnType | ComponentReturnType | Failure) {
+    debug("Updating statistics");
+
     let statistic: RawStatistic;
     if (response instanceof Failure) {
         statistic = response.statistic();
@@ -48,6 +50,8 @@ async function updateStatistics(response: SlashCommandReturnType | ComponentRetu
 }
 
 async function replyToInteraction(interaction: CommandInteraction | MessageComponentInteraction, response: SlashCommandReturnType | ComponentReturnType | Failure) {
+    debug("Replying to interaction");
+
     if (response instanceof Failure) {
         interaction.reply(response.slashCommandResponse("en", true)); // TODO: Get language from user
         return;

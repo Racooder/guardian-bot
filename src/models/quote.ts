@@ -3,6 +3,7 @@ import { BotUser } from './botUser';
 import { DiscordUser, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
 import { User } from 'discord.js';
 import { Dict, generateToken } from '../Essentials';
+import { debug } from '../Log';
 
 export interface Quote extends Document {
     token: string;
@@ -30,6 +31,8 @@ const quoteSchema = new Schema<Quote, QuoteModel>({
 const quoteModel = model<Quote, QuoteModel>('Quotes', quoteSchema);
 
 export async function createQuote(botUser: BotUser, creatorUser: User, statements: string[], authors: RawDiscordUser[], context?: string): Promise<Quote> {
+    debug("Creating quote entry")
+
     const token = generateToken();
     const creatorData = getDiscordUserData(creatorUser);
     const creator = await getOrCreateDiscordUser(creatorData.name, creatorData.type, creatorUser.id);
@@ -49,11 +52,15 @@ export async function createQuote(botUser: BotUser, creatorUser: User, statement
 }
 
 export async function getQuotes(botUser: BotUser): Promise<Quote[]> {
+    debug(`Getting quotes for bot user ${botUser.id}`);
+
     const documents = await quoteModel.find({ user: botUser._id }).populate('user').populate('creator').populate('authors');
     return documents;
 }
 
 export async function getQuoteByToken(botUser: BotUser, token: string): Promise<Quote | null> {
+    debug(`Getting quote ${token} for bot user ${botUser.id}`);
+
     const document = await quoteModel.findOne({ user: botUser._id, token: token }).populate('user').populate('creator').populate('authors').exec();
     return document;
 }

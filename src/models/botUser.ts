@@ -1,5 +1,6 @@
 import { Document, Model, Schema, model } from 'mongoose';
 import { ApiUser } from './apiUser';
+import { debug } from '../Log';
 
 export enum BotUserType {
     GUILD = 'guild',
@@ -52,6 +53,8 @@ const botUserSchema = new Schema<BotUser, BotUserModel>({
 const botUserModel = model<BotUser, BotUserModel>('BotUsers', botUserSchema);
 
 export async function updateBotUser(id: string, type: BotUserType, name: string, memberCount: number): Promise<BotUser> {
+    debug(`Updating bot user ${name} (${type}) <${id}>`);
+
     const document = await botUserModel.findOne({ id, type });
 
     if (document === null) {

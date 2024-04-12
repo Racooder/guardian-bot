@@ -46,6 +46,8 @@ export const Ping: Command = {
 };
 
 function getLatencySuffix(latency: number): string {
+    debug(`Getting latency suffix for ${latency}`);
+
     // Special cases:
     switch (latency) {
         case 69:

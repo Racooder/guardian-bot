@@ -1,5 +1,6 @@
 import { User } from 'discord.js';
 import { Document, Model, Schema, model } from 'mongoose';
+import { debug } from '../Log';
 
 export type DiscordUserType = 'discord' | 'legacy' | 'non-discord';
 export type RawDiscordUser = User | string
@@ -35,6 +36,8 @@ discordUserSchema.index({ name: 1, type: 1 }, { unique: true });
 const discordUserModel = model<DiscordUser, DiscordUserModel>('DiscordUsers', discordUserSchema);
 
 export async function getOrCreateDiscordUser(username: string, type: DiscordUserType, id?: string): Promise<DiscordUser> {
+    debug(`Getting or creating discord user ${username} (${type})`);
+
     let document: DiscordUser | null;
     if (type === 'discord' || type === 'legacy') {
         if (id === undefined) {
