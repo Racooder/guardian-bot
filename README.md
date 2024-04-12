@@ -4,8 +4,10 @@
 <div align="center">
   <p>
     <a href="https://discord.gg/9Y8BE2A6cj"><img src="https://img.shields.io/discord/651800564966883328?label=Chat&logo=discord&logoColor=white" alt="Discord server"/></a>
-    <a href="https://github.com/Racooder/Racoonia-Guardian"><img src="https://img.shields.io/badge/Version-2.1.0-orange" alt="version"/></a>
+    <a href="https://github.com/Racooder/Racoonia-Guardian"><img src="https://img.shields.io/badge/Version-3.0.0-orange" alt="version"/></a>
     <a href="https://discord.com/api/oauth2/authorize?client_id=821713905692573708&permissions=2048&scope=applications.commands%20bot"><img src="https://img.shields.io/badge/Invite-Guardian-blue" alt="Discord server"/></a>
+    <a href="https://github.com/Racooder/guardian-bot/actions/workflows/test.yml"><img src="https://github.com/github/docs/actions/workflows/test.yml/badge.svg" alt="Test Action">
+    <a href="https://github.com/Racooder/guardian-bot/actions/workflows/build.yml"><img src="https://github.com/github/docs/actions/workflows/build.yml/badge.svg" alt="Build Action">
 </div>
 
 # Guardian
@@ -16,7 +18,14 @@ The official discord bot of the Racoonia discord server.
 
 Just [invite](https://discord.com/api/oauth2/authorize?client_id=821713905692573708&permissions=2048&scope=applications.commands%20bot) the bot to your discord server and you're done.
 
-The bot doesn't asks you for more permissions than he needs and will work in every text channel even if he is not visible in the member list.
+## Build
+
+1. Run `yarn build` in the original directory
+2. Copy the contents of `dist` to the target directory
+3. Copy the `package.json` to the target directory
+4. Copy the `.env.template` as `.env` and `config.json` to the target directory and fill out all the fields
+5. Run `npm install` in the target directory
+6. Run `npm run start` in the target directory
 
 ## License
 

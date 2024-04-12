@@ -1,0 +1,51 @@
+{
+    "bot": {
+        "event": {
+            "ready": "bot.event.ready",
+            "interaction": {
+                "command": {
+                    "codenames": {
+                        "default": "bot.event.interaction.command.codenames.default",
+                        "add": "bot.event.interaction.command.codenames.add",
+                        "remove": "bot.event.interaction.command.codenames.remove",
+                        "wordpack": "bot.event.interaction.command.codenames.wordpack"
+                    },
+                    "feedback": "bot.event.interaction.command.feedback",
+                    "donate": "bot.event.interaction.command.donate",
+                    "ping": "bot.event.interaction.command.ping",
+                    "quote": {
+                        "add": "bot.event.interaction.command.quote.add",
+                        "remove": "bot.event.interaction.command.quote.remove",
+                        "list": "bot.event.interaction.command.quote.list"
+                    },
+                    "quoteGuesser": "bot.event.interaction.command.quoteGuesser",
+                    "settings": "bot.event.interaction.command.settings"
+                },
+                "component": {
+                    "quotePage": "bot.event.interaction.component.quotePage"
+                }
+            }
+        }
+    },
+    "api": {
+        "request": "api.request"
+    },
+    "failure": {
+        "general": "failure.general",
+        "commandNotFound": "failure.commandNotFound",
+        "componentNotFound": "failure.componentNotFound",
+        "unknownComponentType": "failure.unknownComponentType",
+        "featureNotImplemented": "failure.featureNotImplemented",
+        "invalidDateFormat": "failure.invalidDateFormat",
+        "noQuotesFound": "failure.noQuotesFound",
+        "guildHasNoQuotes": "failure.guildHasNoQuotes",
+        "gameCreation": "failure.gameCreation",
+        "botUserNotFound": "failure.botUserNotFound",
+        "removeWord": "failure.removeWord",
+        "isChatInputCommand": "failure.isChatInputCommand",
+        "subcommandExecution": "failure.subcommandExecution",
+        "unknownQuotePageData": "failure.unknownQuotePageData",
+        "slashCommandExecution": "failure.slashCommandExecution",
+        "messageComponentExecution": "failure.componentExecution"
+    }
+}

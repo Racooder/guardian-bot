@@ -1,707 +1,450 @@
-import {
-    CommandInteraction,
-    Client,
-    ApplicationCommandType,
-    ApplicationCommandOptionType,
-    ChatInputCommandInteraction,
-    GuildMember,
-    ButtonStyle,
-    InteractionReplyOptions,
-    APIEmbedField,
-} from "discord.js";
-import { Command } from "../InteractionInterfaces";
-import quoteSchema, { IQuote } from "../models/quoteSchema";
-import guildMemberSchema, { IGuildMember } from "../models/guildMemberSchema";
-import quoteListSchema from "../models/quoteListSchema";
-import {
-    handleSubcommands,
-    isGuildCommand,
-    parseDate,
-    usernameString,
-} from "../Essentials";
-import {
-    ActionRowBuilder,
-    ButtonBuilder,
-    EmbedBuilder,
-} from "@discordjs/builders";
-import {
-    generalError,
-    invalidDateFormatError,
-    noGuildError,
-    notImplementedError,
-    notMatchingSearchError,
-} from "../InteractionReplies";
-import guildSchema, { guildSettings } from "../models/guildSchema";
-import EmbedColors from "../EmbedColors";
-import { debug, error, warn } from "../Log";
-import { StatisticType } from "../models/statisticsSchema";
+import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, Client, EmbedBuilder } from "discord.js";
+import { Command, ReplyType, Response } from "../Interactions";
+import { debug, error, logToDiscord } from "../Log";
+import { SubcommandExecutionFailure } from "../Failure";
+import { RawStatistic } from "../models/statistic";
+import statisticKeys from "../../data/statistic-keys.json";
+import { QuoteList, createQuoteList, getQuoteListQuery } from '../models/quoteList';
+import { parseDate, splitArrayIntoChunks } from "../Essentials";
+import { RawDiscordUser } from "../models/discordUser";
+import { Quote as QuoteType, createQuote, getQuoteByToken } from "../models/quote";
+
+const MAX_CONVERSATION_LENGTH = 5;
+export const QUOTE_PAGE_SIZE = 15;
 
 export const Quote: Command = {
     name: "quote",
-    description: "Create, view, edit and delete quotes",
+    description: "Add, remove, or list quotes.",
     type: ApplicationCommandType.ChatInput,
     options: [
         {
+            name: "add",
+            description: "Add a quote.",
             type: ApplicationCommandOptionType.Subcommand,
-            name: "new",
-            description: "Create a new quote",
             options: [
                 {
-                    type: ApplicationCommandOptionType.String,
                     name: "quote",
-                    description: "The quote",
+                    description: "The quote to add.",
+                    type: ApplicationCommandOptionType.String,
                     required: true,
                 },
                 {
-                    type: ApplicationCommandOptionType.User,
                     name: "author",
-                    description: "The author of the quote",
+                    description: "The author of the quote.",
+                    type: ApplicationCommandOptionType.User,
+                    required: false,
                 },
                 {
-                    type: ApplicationCommandOptionType.String,
                     name: "non-discord-author",
-                    description:
-                        "The author of the quote if they are not a discord user",
+                    description: "The author of the quote if they are not on discord.",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                },
+                {
+                    name: "context",
+                    description: "The context of the quote.",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                },
+                {
+                    name: "quote-2",
+                    description: "The second quote to add. (For conversations)",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                },
+                {
+                    name: "author-2",
+                    description: "The author of the second quote. (For conversations)",
+                    type: ApplicationCommandOptionType.User,
+                    required: false,
+                },
+                {
+                    name: "non-discord-author-2",
+                    description: "The author of the second quote if they are not on discord. (For conversations)",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                },
+                {
+                    name: "quote-3",
+                    description: "The third quote to add. (For conversations)",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                },
+                {
+                    name: "author-3",
+                    description: "The author of the third quote. (For conversations)",
+                    type: ApplicationCommandOptionType.User,
+                    required: false,
+                },
+                {
+                    name: "non-discord-author-3",
+                    description: "The author of the third quote if they are not on discord. (For conversations)",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                },
+                {
+                    name: "quote-4",
+                    description: "The fourth quote to add. (For conversations)",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                },
+                {
+                    name: "author-4",
+                    description: "The author of the fourth quote. (For conversations)",
+                    type: ApplicationCommandOptionType.User,
+                    required: false,
+                },
+                {
+                    name: "non-discord-author-4",
+                    description: "The author of the fourth quote if they are not on discord. (For conversations)",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                },
+                {
+                    name: "quote-5",
+                    description: "The fifth quote to add. (For conversations)",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                },
+                {
+                    name: "author-5",
+                    description: "The author of the fifth quote. (For conversations)",
+                    type: ApplicationCommandOptionType.User,
+                    required: false,
+                },
+                {
+                    name: "non-discord-author-5",
+                    description: "The author of the fifth quote if they are not on discord. (For conversations)",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
                 },
             ],
         },
         {
+            name: "remove",
+            description: "Remove a quote.",
             type: ApplicationCommandOptionType.Subcommand,
-            name: "list",
-            description: "List all quotes",
-        },
-        {
-            type: ApplicationCommandOptionType.Subcommand,
-            name: "search",
-            description: "Search for a quote",
             options: [
                 {
+                    name: "quote-token",
+                    description: "The quote to remove.",
                     type: ApplicationCommandOptionType.String,
-                    name: "content",
-                    description: "The content to search for",
-                },
-                {
-                    type: ApplicationCommandOptionType.User,
-                    name: "author",
-                    description: "The author of the quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "author-name",
-                    description:
-                        "The author of the quote if they are not a discord user or left the server",
-                },
-                {
-                    type: ApplicationCommandOptionType.User,
-                    name: "creator",
-                    description: "The creator of the quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "creator-name",
-                    description:
-                        "The creator of the quote if they are not a discord user or left the server",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "date",
-                    description:
-                        "The approximate date the quote was created. Format: YYYY-MM-DD",
-                },
-            ],
-        },
-        {
-            type: ApplicationCommandOptionType.Subcommand,
-            name: "conversation",
-            description: "Create a quote from a conversation",
-            options: [
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "quote-1",
-                    description: "The first quote",
                     required: true,
                 },
-                {
-                    type: ApplicationCommandOptionType.User,
-                    name: "author-1",
-                    description: "The author of the first quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "non-discord-author-1",
-                    description:
-                        "The author of the first quote if they are not a discord user",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "quote-2",
-                    description: "The second quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.User,
-                    name: "author-2",
-                    description: "The author of the second quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "non-discord-author-2",
-                    description:
-                        "The author of the second quote if they are not a discord user",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "quote-3",
-                    description: "The third quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.User,
-                    name: "author-3",
-                    description: "The author of the third quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "non-discord-author-3",
-                    description:
-                        "The author of the third quote if they are not a discord user",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "quote-4",
-                    description: "The fourth quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.User,
-                    name: "author-4",
-                    description: "The author of the fourth quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "non-discord-author-4",
-                    description:
-                        "The author of the fourth quote if they are not a discord user",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "quote-5",
-                    description: "The fifth quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.User,
-                    name: "author-5",
-                    description: "The author of the fifth quote",
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "non-discord-author-5",
-                    description:
-                        "The author of the fifth quote if they are not a discord user",
-                },
             ],
         },
-        // {
-        //     type: ApplicationCommandOptionType.Subcommand,
-        //     name: "edit",
-        //     description: "Edit or delete your quotes"
-        // }
-    ],
-    run: async (client: Client, interaction: CommandInteraction) => {
-        debug("Quote command called");
-
-        if (!interaction.isChatInputCommand()) {
-            error("Quote command was not a chat input command", client);
-            await interaction.reply(generalError);
-            return;
-        }
-        if (!isGuildCommand(interaction)) {
-            debug("Quote command was not a guild command"); // This happens when the command is run in a DM
-            await interaction.reply(noGuildError);
-            return;
-        }
-
-        await handleSubcommands(
-            interaction,
-            interaction.options.getSubcommand(),
-            [
+        {
+            name: "list",
+            description: "List all quotes.",
+            type: ApplicationCommandOptionType.Subcommand,
+            options: [
                 {
-                    key: "new",
-                    run: handleNewQuote,
-                    stats: [StatisticType.Command_Quote_New],
+                    name: "content",
+                    description: "The content query to filter quotes by.",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
                 },
                 {
-                    key: "list",
-                    run: handleListQuotes,
-                    stats: [StatisticType.Command_Quote_List],
+                    name: "discord-author",
+                    description: "The discord author of the quotes to list.",
+                    type: ApplicationCommandOptionType.User,
+                    required: false,
                 },
                 {
-                    key: "search",
-                    run: handleSearchQuotes,
-                    stats: [StatisticType.Command_Quote_Search],
+                    name: "author-name",
+                    description: "The name of the author of the quotes to list.",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
                 },
                 {
-                    key: "conversation",
-                    run: handleConversation,
-                    stats: [StatisticType.Command_Quote_Conversation],
+                    name: "context",
+                    description: "The context query to filter quotes by.",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
                 },
                 {
-                    key: "edit",
-                    run: handleEditQuote,
-                    stats: [StatisticType.Command_Quote_Edit],
+                    name: "creator",
+                    description: "The creator of the quotes to list.",
+                    type: ApplicationCommandOptionType.User,
+                    required: false,
                 },
+                {
+                    name: "creator-name",
+                    description: "The name of the creator of the quotes to list.",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                },
+                {
+                    name: "date",
+                    description: "The date query to filter quotes by.",
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                },
+                {
+                    name: "date-range",
+                    description: "The range in days of the date query. (Default: 3)",
+                    type: ApplicationCommandOptionType.Integer,
+                    required: false,
+                }
             ],
-            [StatisticType.Command_Quote]
-        );
+        },
+    ],
+    run: async (client, interaction, botUser) => {
+        debug("Quote command called");
+        return new SubcommandExecutionFailure();
+    },
+    subcommands: {
+        add: async (client, interaction, botUser) => {
+            debug("Quote add subcommand called");
+
+            const statistic: RawStatistic = {
+                global: false,
+                key: statisticKeys.bot.event.interaction.command.quote.add,
+                user: botUser
+            };
+
+            const context: string | undefined = interaction.options.getString("context", false) ?? undefined;
+            let quotes: string[] = [];
+            let authors: RawDiscordUser[] = [];
+            debug("Getting quote and author options")
+            for (let i = 1; i <= MAX_CONVERSATION_LENGTH; i++) {
+                let optionSuffix;
+                if (i === 1) {
+                    optionSuffix = "";
+                } else {
+                    optionSuffix = "-" + i.toString();
+                }
+
+                const quote = interaction.options.getString(`quote${optionSuffix}`, false);
+                if (quote === null) {
+                    for (let j = i + 1; j <= MAX_CONVERSATION_LENGTH; j++) {
+                        if (interaction.options.getString(`quote-${j}`, false) !== null) {
+                            const response: Response = {
+                                replyType: ReplyType.Reply,
+                                ephemeral: true,
+                                content: `You defined quote ${j} but the quotes ${i} to ${j - 1} are missing.`,
+                            };
+                            return { response, statistic };
+                        }
+                    }
+                    break;
+                }
+
+                const discordAuthor = interaction.options.getUser(`author${optionSuffix}`, false);
+                const nonDiscordAuthor = interaction.options.getString(`non-discord-author${optionSuffix}`, false);
+                if (discordAuthor === null && nonDiscordAuthor === null) {
+                    const response: Response = {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: `Quote ${i} is missing an author.`,
+                    };
+                    return { response, statistic };
+                }
+                if (discordAuthor !== null && nonDiscordAuthor !== null) {
+                    const response: Response = {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: `Quote ${i} can only have a discord or a non-discord author not both.`,
+                    };
+                    return { response, statistic };
+                }
+
+                quotes.push(quote);
+                if (discordAuthor !== null) {
+                    authors.push(discordAuthor);
+                } else {
+                    authors.push(nonDiscordAuthor!);
+                }
+            }
+
+            await createQuote(botUser, interaction.user, quotes, authors, context);
+
+            const response: Response = {
+                replyType: ReplyType.Reply,
+                ephemeral: true,
+                content: "Your quote was added.",
+            };
+
+            return { response, statistic };
+        },
+        remove: async (client, interaction, botUser) => {
+            debug("Quote remove subcommand called");
+
+            const statistic: RawStatistic = {
+                global: false,
+                key: statisticKeys.bot.event.interaction.command.quote.remove,
+                user: botUser
+            };
+
+            const token = interaction.options.getString("quote-token", true);
+            const document = await getQuoteByToken(botUser, token);
+            if (document === null) {
+                const response: Response = {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: "Quote not found.",
+                };
+                return { response, statistic };
+            }
+
+            if (document.creator.userId !== interaction.user.id) { // && !hasPermission(interaction.member, PermissionsBitField.Flags.ManageMessages)
+                const response: Response = {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: "You do not have permission to remove this quote.",
+                };
+                return { response, statistic };
+            }
+
+            await document.deleteOne();
+            const response: Response = {
+                replyType: ReplyType.Reply,
+                ephemeral: true,
+                content: "Quote removed.",
+            };
+            return { response, statistic };
+        },
+        list: async (client, interaction, botUser) => {
+            debug("Quote list subcommand called");
+
+            const statistic: RawStatistic = {
+                global: false,
+                key: statisticKeys.bot.event.interaction.command.quote.list,
+                user: botUser
+            };
+
+            const content = interaction.options.getString("content", false) ?? undefined;
+            const authorUser = interaction.options.getUser("discord-author", false) ?? undefined;
+            const authorName = interaction.options.getString("author-name", false) ?? undefined;
+            const context = interaction.options.getString("context", false) ?? undefined;
+            const creatorUser = interaction.options.getUser("creator", false) ?? undefined;
+            const creatorName = interaction.options.getString("creator-name", false) ?? undefined;
+            const dateString = interaction.options.getString("date", false) ?? undefined;
+            const dateRange = interaction.options.getInteger("date-range", false) ?? undefined;
+
+            if (authorUser !== undefined && authorName !== undefined) {
+                const response: Response = {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: "You cannot specify both an author and an author name.",
+                };
+                return { response, statistic };
+            }
+            if (creatorUser !== undefined && creatorName !== undefined) {
+                const response: Response = {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: "You cannot specify both a creator and a creator name.",
+                };
+                return { response, statistic };
+            }
+
+            const author = authorUser ?? authorName;
+            const creator = creatorUser ?? creatorName;
+
+            const date = parseDate(dateString);
+            if (dateString !== undefined && date === undefined) {
+                const response: Response = {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: "Invalid date format. The correct format is YYYY-MM-DD.",
+                };
+                return { response, statistic };
+            }
+
+            const [list, quotes] = await createQuoteList(botUser, content, author, context, creator, date, dateRange);
+            if (quotes.length === 0) {
+                const response: Response = {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: "No quotes found.",
+                };
+                return { response, statistic };
+            }
+
+            const [embedBuilder, actionRow] = await quoteListMessage(list, quotes, client, 0);
+
+            const response: Response = {
+                replyType: ReplyType.Reply,
+                embeds: [embedBuilder],
+                components: [actionRow],
+            };
+
+            return { response, statistic };
+        },
     },
 };
 
-// Subcommand handlers
-/**
- * Create a new quote
- * @param client
- * @param interaction
- */
-async function handleNewQuote(
-    interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> {
-    debug("New quote subcommand called");
+export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], client: Client, page: number): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
+    debug("Creating quote list message");
 
-    // Get the option values
-    const quote = interaction.options.getString("quote", true);
-    const author = interaction.options.getUser("author");
-    const nonDiscordAuthor =
-        interaction.options.getString("non-discord-author");
+    const query = getQuoteListQuery(list);
+    const quoteChunks = splitArrayIntoChunks(quotes.reverse(), QUOTE_PAGE_SIZE);
+    const pageQuotes = quoteChunks[page];
 
-    // Check if any type of author was specified
-    if (author === null && nonDiscordAuthor === null) {
-        debug("No author specified");
-        return {
-            content: "You must specify a author or non-discord author!",
-            ephemeral: true,
-        };
+    let embedDescription = `Showing ${pageQuotes.length} quotes`;
+    if (query !== "") {
+        embedDescription += ` matching:\n${query}`;
     }
 
-    const creatorMember = interaction.member as GuildMember;
-
-    debug("Updating creator and author names in the database");
-    const creatorDocument = await guildMemberSchema.updateNames(
-        interaction.guildId!,
-        creatorMember
-    );
-    let authorDocument: IGuildMember | null = null;
-    if (author !== null) {
-        authorDocument = await guildMemberSchema.updateNames(
-            interaction.guildId!,
-            await interaction.guild!.members.fetch(author.id)
-        );
-    }
-
-    debug(
-        `Creating quote ${quote} in guild: ${interaction.guild!.name}(${
-            interaction.guildId
-        })`
-    );
-    const quoteDocument = await quoteSchema.create({
-        guildId: interaction.guildId!,
-        quote: quote,
-        timestamp: Math.floor(Date.now() / 1000),
-        author: authorDocument?._id,
-        nonDiscordAuthor: nonDiscordAuthor,
-        creator: creatorDocument._id,
-    });
-
-    debug("Building the embed");
-    const messageEmbed = new EmbedBuilder()
-        .setTitle(
-            `"${quoteDocument.quote}" - ${
-                authorDocument?._id
-                    ? `${authorDocument.displayName}`
-                    : quoteDocument.nonDiscordAuthor
-            }`
-        )
-        .setTimestamp(quoteDocument.timestamp * 1000)
-        .setAuthor({
-            name: creatorMember.displayName,
-            iconURL: interaction.user.displayAvatarURL(),
-        })
-        .setColor(EmbedColors.quoteEmbed);
-
-    return {
-        embeds: [messageEmbed],
-    };
-}
-
-/**
- * List all quotes on the guild
- * @param client
- * @param interaction
- */
-async function handleListQuotes(
-    interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> {
-    debug("List quotes subcommand called");
-
-    debug("Getting quotes from the database");
-    const quoteChunks = await quoteSchema.listQuotes(
-        interaction.guildId!,
-        await guildSettings.quoteListPageSize(guildSchema, interaction.guildId!)
-    );
-
-    // Check if there are any quotes
-    if (quoteChunks.length === 0) {
-        debug("There are no quotes on this server");
-        return {
-            content: "There are no quotes on this server!",
-            ephemeral: true,
-        };
-    }
-
-    debug("Creating quote list document");
-    const quoteListDocument = await quoteListSchema.create({
-        page: 0,
-    });
-
-    debug(
-        `Building the embed and action row for quote list: ${quoteListDocument._id}`
-    );
-    const messageEmbed = await quoteListEmbed(
-        quoteChunks,
-        quoteListDocument.page
-    );
-    const row = new ActionRowBuilder().addComponents(
-        previousPageButton(quoteListDocument._id, quoteListDocument.page > 0),
-        nextPageButton(
-            quoteListDocument._id,
-            quoteListDocument.page < quoteChunks.length - 1
-        )
-    );
-
-    return {
-        embeds: [messageEmbed],
-        components: [row],
-    } as InteractionReplyOptions;
-}
-
-/**
- * Search for quotes
- * @param client
- * @param interaction
- */
-async function handleSearchQuotes(
-    interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> {
-    debug("Search quotes subcommand called");
-
-    // Get the option values
-    const content = interaction.options.getString("content");
-    const author = interaction.options.getUser("author");
-    const authorName = interaction.options.getString("author-name");
-    const creator = interaction.options.getUser("creator");
-    const creatorName = interaction.options.getString("creator-name");
-    const dateString = interaction.options.getString("date");
-
-    // Check if any search parameters were specified
-    if (
-        content === null &&
-        author === null &&
-        authorName === null &&
-        creator === null &&
-        creatorName === null &&
-        dateString === null
-    ) {
-        debug("No search parameters specified");
-        return {
-            content: "You must specify at least one search parameter!",
-            ephemeral: true,
-        };
-    }
-
-    if (dateString !== null) {
-        debug("Parsing date");
-        var date: Date | undefined = parseDate(dateString);
-        if (date === undefined) {
-            debug("Invalid date format provided");
-            return invalidDateFormatError;
-        }
-    }
-
-    debug("Getting quote chunks from the database");
-    const quoteChunks = await quoteSchema.listQuotes(
-        interaction.guildId!,
-        await guildSettings.quoteListPageSize(
-            guildSchema,
-            interaction.guildId!
-        ),
-        content ?? undefined,
-        author?.id,
-        authorName ?? undefined,
-        creator?.id,
-        creatorName ?? undefined,
-        date
-    );
-
-    // Check if there are any quotes
-    if (quoteChunks.length === 0) {
-        debug("No quotes matched the search criteria");
-        return notMatchingSearchError;
-    }
-
-    debug("Creating quote list document");
-    const quoteListDocument = await quoteListSchema.create({
-        page: 0,
-        content: content,
-        authorId: author?.id,
-        authorName: authorName,
-        creatorId: creator?.id,
-        creatorName: creatorName,
-        date: date,
-    });
-
-    debug(
-        `Building the embed and action row for quote list: ${quoteListDocument._id}`
-    );
-    const queryDescription = `Quotes matching the following criteria:\n${
-        content ? `Content: ${content}\n` : ""
-    }${author ? `Author: ${usernameString(author)}\n` : ""}${
-        authorName ? `Author Name: ${authorName}\n` : ""
-    }${creator ? `Creator: ${usernameString(creator)}\n` : ""}${
-        creatorName ? `Creator Name: ${creatorName}\n` : ""
-    }${date ? `Date: ${date.toISOString().split("T")[0]}\n` : ""}`;
-    const messageEmbed = await quoteListEmbed(
-        quoteChunks,
-        quoteListDocument.page,
-        queryDescription
-    );
-    const row = new ActionRowBuilder().addComponents(
-        previousPageButton(quoteListDocument._id, quoteListDocument.page > 0),
-        nextPageButton(
-            quoteListDocument._id,
-            quoteListDocument.page < quoteChunks.length - 1
-        )
-    );
-
-    return {
-        embeds: [messageEmbed],
-        components: [row],
-    } as InteractionReplyOptions;
-}
-
-async function handleConversation(
-    interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> {
-    debug("Conversation subcommand called");
-
-    debug("Getting the option values");
-    var quotes = [
-        interaction.options.getString("quote-1", true),
-        interaction.options.getString("quote-2"),
-        interaction.options.getString("quote-3"),
-        interaction.options.getString("quote-4"),
-        interaction.options.getString("quote-5"),
-    ];
-    var authors = [
-        interaction.options.getUser("author-1"),
-        interaction.options.getUser("author-2"),
-        interaction.options.getUser("author-3"),
-        interaction.options.getUser("author-4"),
-        interaction.options.getUser("author-5"),
-    ];
-    var nonDiscordAuthors = [
-        interaction.options.getString("non-discord-author-1"),
-        interaction.options.getString("non-discord-author-2"),
-        interaction.options.getString("non-discord-author-3"),
-        interaction.options.getString("non-discord-author-4"),
-        interaction.options.getString("non-discord-author-5"),
-    ];
-    let authorDocumentIds: any[] = [];
-
-    debug(
-        "Check if the options are valid and convert the authors to database guild members"
-    );
-    for (let i = 0; i < quotes.length; i++) {
-        if (quotes[i] === null) {
-            quotes.splice(i, quotes.length - i);
-            authors.splice(i, quotes.length - i);
-            nonDiscordAuthors.splice(i, quotes.length - i);
-            break;
-        }
-
-        if (authors[i] === null && nonDiscordAuthors[i] === null) {
-            debug("No author specified");
-            return {
-                content: `You must specify an author or non-discord author for quote ${
-                    i + 1
-                }!`,
-                ephemeral: true,
-            };
-        }
-        if (authors[i] !== null && nonDiscordAuthors[i] !== null) {
-            debug("Both author and non-discord author specified");
-            return {
-                content: `You must specify either an author or non-discord author for quote ${
-                    i + 1
-                }, not both!`,
-                ephemeral: true,
-            };
-        }
-        if (authors[i] !== null) {
-            debug(`Updating author ${i + 1} name in the database`);
-            const authorDocument = await guildMemberSchema.updateNames(
-                interaction.guildId!,
-                authors[i]!
-            );
-            authorDocumentIds[i] = authorDocument._id;
-        }
-    }
-
-    if (quotes.length < 2) {
-        debug("Not enough quotes specified");
-        return {
-            content: "You must specify at least 2 quotes!",
-            ephemeral: true,
-        };
-    }
-
-    const creatorMember = interaction.member as GuildMember;
-
-    debug("Updating creator name in the database");
-    const creatorDocument = await guildMemberSchema.updateNames(
-        interaction.guildId!,
-        creatorMember
-    );
-
-    debug(
-        `Creating conversation quote in guild: ${interaction.guild!.name}(${
-            interaction.guildId
-        })`
-    );
-    const conversationDocument = await quoteSchema.create({
-        guildId: interaction.guildId!,
-        conversation: quotes,
-        timestamp: Math.floor(Date.now() / 1000),
-        conversationAuthors: authorDocumentIds,
-        conversationNonDiscordAuthors: nonDiscordAuthors,
-        creator: creatorDocument._id,
-    });
-
-    debug("Getting the author names");
-    const authorNames = await conversationDocument.conversationAuthorNames;
-
-    debug("Building the embed");
-    const messageEmbed = new EmbedBuilder()
-        .setTitle(`Conversation`)
-        .setTimestamp(conversationDocument.timestamp * 1000)
-        .setAuthor({
-            name: creatorMember.displayName,
-            iconURL: interaction.user.displayAvatarURL(),
-        })
-        .setColor(EmbedColors.quoteEmbed)
-        .setDescription(
-            quotes
-                .map((quote, index) => {
-                    return `"${quote}" - ${authorNames[index]}`;
-                })
-                .join("\n")
-        );
-
-    return {
-        embeds: [messageEmbed],
-    };
-}
-
-async function handleEditQuote(
-    interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> {
-    debug("Edit quote subcommand called");
-    warn("Edit quote subcommand not implemented");
-
-    return notImplementedError;
-    // TODO: Implement
-}
-
-// Embed builders
-/**
- * The embed builder for the quote list
- * @param pages - The pages of quotes
- * @param page - The current page
- * @param description - The description of the embed
- * @returns The embed builder
- */
-export async function quoteListEmbed(
-    pages: IQuote[][],
-    page: number,
-    description?: string
-): Promise<EmbedBuilder> {
-    debug(`Building quote list embed for page ${page + 1}/${pages.length}`);
-
-    if (page >= pages.length) {
-        page = pages.length - 1;
-    } else if (page < 0) {
-        page = 0;
-    }
-
-    let embedFields: APIEmbedField[] = [];
-    for (let i = 0; i < pages[page].length; i++) {
-        const quote = pages[page][i];
-        if (quote.conversation?.length) {
-            console.log(quote.conversation);
-            const authorNames = await quote.conversationAuthorNames;
-
-            embedFields.push({
-                name: `Conversation - Created by ${quote.creator.displayName} on <t:${quote.timestamp}:d>`,
-                value: quote
-                    .conversation!.map((q, index) => {
-                        return `"${q}" - ${authorNames[index]}`;
-                    })
-                    .join("\n"),
-            });
-        } else {
-            embedFields.push({
-                name: `"${quote.quote}" - ${await quote.authorName}`,
-                value: `Created by ${quote.creator.displayName} on <t:${quote.timestamp}:d>`,
-            });
-        }
-    }
+    const embedFields = await Promise.all(pageQuotes.map((quote) => quoteEmbedField(quote, client)));
 
     const embedBuilder = new EmbedBuilder()
-        .setTitle(`Quotes (Page ${page + 1}/${pages.length})`)
-        .setDescription(description ?? null)
-        .setColor(EmbedColors.quoteEmbed)
+        .setTitle(`Quotes (Page ${page + 1}/${quoteChunks.length})`)
+        .setDescription(embedDescription)
         .addFields(embedFields);
 
-    return Promise.resolve(embedBuilder);
+    const actionRow = new ActionRowBuilder<ButtonBuilder>()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId(`quote-page:first:${list._id}`)
+                .setEmoji('⏪')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page === 0),
+            new ButtonBuilder()
+                .setCustomId(`quote-page:page:${list._id}:${page - 1}`)
+                .setLabel('◀️')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page === 0),
+            new ButtonBuilder()
+                .setCustomId(`quote-page:page:${list._id}:${page + 1}`)
+                .setLabel('▶️')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page === quoteChunks.length - 1),
+            new ButtonBuilder()
+                .setCustomId(`quote-page:last:${list._id}`)
+                .setLabel('⏩')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page === quoteChunks.length - 1)
+        );
+
+    return [embedBuilder, actionRow];
 }
 
-// Button builders
-/**
- * The button builder for the previous page button
- * @param quoteListId - The quote list id
- * @param enabled - Whether the button is enabled
- * @returns The button builder
- */
-function previousPageButton(
-    quoteListId: string,
-    enabled: boolean
-): ButtonBuilder {
-    debug(`Building previous page button`);
+async function quoteEmbedField(quote: QuoteType, client: Client) {
+    debug("Creating quote embed field");
 
-    return new ButtonBuilder()
-        .setCustomId(`quotePage:previous:${quoteListId}`)
-        .setLabel("Previous Page")
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(!enabled);
-}
-
-/**
- * The button builder for the next page button
- * @param quoteListId - The quote list id
- * @param enabled - Whether the button is enabled
- * @returns The button builder
- */
-function nextPageButton(quoteListId: string, enabled: boolean): ButtonBuilder {
-    debug(`Building next page button`);
-
-    return new ButtonBuilder()
-        .setCustomId(`quotePage:next:${quoteListId}`)
-        .setLabel("Next Page")
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(!enabled);
+    if (quote.authors.length !== quote.statements.length) {
+        logToDiscord(client, error(`Quote ${quote.token} has a mismatch between the number of authors and statements or can't be populated correctly.`));
+        return {
+            name: "Error",
+            value: "An error occurred while formatting this quote",
+            inline: false,
+        }
+    }
+    let description = "";
+    for (let i = 0; i < quote.statements.length; i++) {
+        const statement = quote.statements[i];
+        const author = quote.authors[i];
+        if (author.name === null) {
+            description += `"${statement}" - ???\n`;
+            continue;
+        }
+        description += `"${statement}" - ${author.name}\n`;
+    }
+    return {
+        name: `Created by ${quote.creator.name} (Token: \`${quote.token}\`)`,
+        value: description,
+        inline: false,
+    }
 }

@@ -1,12 +1,8 @@
 import { Client, EmbedBuilder } from "discord.js";
-import {
-    createReadStream,
-    createWriteStream,
-    existsSync,
-    mkdirSync,
-    writeFileSync,
-} from "fs";
+import { createReadStream, createWriteStream, existsSync, mkdirSync, writeFileSync } from "fs";
 import { createGzip } from "zlib";
+import config from "../config.json";
+import embedColors from "../data/embed-colors.json";
 
 const format = {
     Reset: "\x1b[0m",
@@ -41,64 +37,76 @@ const format = {
 const folderPath = "./logs";
 const latestPath = `${folderPath}/latest.txt`;
 
-export function debug(message: string) {
-    if (process.env.DEBUG === "true") {
+export function debug(message: string): EmbedBuilder {
+    if (config.debug === true) {
         log(message, "[DEBUG]  ", format.FgGray);
     }
+    return new EmbedBuilder()
+        .setTitle("Debug")
+        .setDescription(message)
+        .setColor(embedColors.log_debug);
 }
 
-export function info(message: string) {
+export function info(message: string): EmbedBuilder {
     log(message, "[INFO]   ", format.FgWhite);
+    return new EmbedBuilder()
+        .setTitle("Info")
+        .setDescription(message)
+        .setColor(embedColors.log_info);
 }
 
-export function success(message: string) {
+export function success(message: string): EmbedBuilder {
     log(message, "[SUCCESS]", format.FgGreen);
+    return new EmbedBuilder()
+        .setTitle("Success")
+        .setDescription(message)
+        .setColor(embedColors.log_success);
 }
 
-export function warn(message: string) {
+export function warn(message: string): EmbedBuilder {
     log(message, "[WARN]   ", format.FgYellow);
+    return new EmbedBuilder()
+        .setTitle("Warn")
+        .setDescription(message)
+        .setColor(embedColors.log_warning);
 }
 
-export function error(message: string, client?: Client) {
+export function error(message: string): EmbedBuilder {
     log(message, "[ERROR]  ", format.FgRed);
+    return new EmbedBuilder()
+        .setTitle("Error")
+        .setDescription(message)
+        .setColor(embedColors.log_error);
+}
 
-    const errorChannel = process.env.ERROR_CHANNEL;
-    if (client && errorChannel) {
-        client.channels.fetch(errorChannel).then((channel) => {
-            if (channel && channel.isTextBased()) {
-                const messageEmbed = new EmbedBuilder()
-                    .setTitle("Error")
-                    .setDescription(message)
-                    .setColor(0xaa0000);
-                channel.send({
-                    content: "<@&" + process.env.ERROR_ROLE + ">",
-                    embeds: [messageEmbed],
-                });
-            }
+export async function logToDiscord(client: Client, embed: EmbedBuilder) {
+    const channel = await client.channels.fetch(config.log_channel);
+    if (channel && channel.isTextBased()) {
+        channel.send({
+            content: "<@&" + config.log_role + ">",
+            embeds: [embed],
         });
     }
 }
 
 function log(message: string, prefix: string, color = "", doSave = true) {
-    const msg = `${new Date().toLocaleString("en-GB")} ${prefix} ${message}`;
-    console.log(color, msg, format.Reset);
+    const localTime = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+    console.log(color, localTime, prefix, message, format.Reset);
+
     if (doSave) {
+        const msg = `${localTime} ${prefix} ${message}`;
         save(msg);
     }
 }
 
-function save(message: string) {
+function save(message: string): void {
     writeFileSync(latestPath, `${message}\n`, { flag: "a" });
 }
 
-export async function setupLog() {
+export async function setupLog(): Promise<void> {
     existsSync(folderPath) || mkdirSync(folderPath);
     if (existsSync(latestPath)) {
-        const targetPath =
-            `${folderPath}/${new Date().toISOString()}.txt.gz`.replace(
-                /:/g,
-                "-"
-            );
+        const targetPath = `${folderPath}/${new Date().toISOString()}.txt.gz`.replace(/:/g, "-");
 
         // Compress the latest file
         return new Promise<void>((resolve, reject) => {

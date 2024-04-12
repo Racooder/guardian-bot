@@ -1,128 +1,55 @@
-import {
-    ButtonInteraction,
-    Client,
-    ButtonBuilder,
-    APIButtonComponent,
-    ActionRowBuilder,
-    InteractionUpdateOptions,
-} from "discord.js";
-import { Button } from "../InteractionInterfaces";
-import quoteSchema from "../models/quoteSchema";
-import { isGuildCommand } from "../Essentials";
-import quoteListSchema from "../models/quoteListSchema";
-import { quoteListEmbed } from "../commands/Quote";
-import guildSchema, { guildSettings } from "../models/guildSchema";
-import { noGuildError } from "../InteractionReplies";
 import { debug } from "../Log";
-import { StatisticType, updateStatistic } from "../models/statisticsSchema";
+import { Component, ReplyType, Response } from '../Interactions';
+import { UnknownQuotePageDataFailure } from "../Failure";
+import { ButtonInteraction, ComponentType } from "discord.js";
+import { getQuoteList } from "../models/quoteList";
+import { getQuotes } from "../models/quote";
+import { QUOTE_PAGE_SIZE, quoteListMessage } from "../commands/Quote";
+import { RawStatistic } from "../models/statistic";
+import statisticKeys from "../../data/statistic-keys.json";
 
-export const QuotePage: Button = {
-    name: "quotePage",
-    isButton: true,
-    run: async (
-        client: Client,
-        interaction: ButtonInteraction,
-        data: string[]
-    ) => {
-        debug("Quote page button interaction received");
+export const QuotePage: Component<ButtonInteraction> = {
+    name: "quote-page",
+    type: ComponentType.Button,
+    run: async (client, interaction, botUser, data) => {
+        debug("QuotePage component called");
 
-        if (!isGuildCommand(interaction)) {
-            await interaction.update(noGuildError as InteractionUpdateOptions);
-            return;
+        const statistic: RawStatistic = {
+            global: false,
+            key: statisticKeys.bot.event.interaction.component.quotePage,
+            user: botUser
+        };
+
+        const quoteList = await getQuoteList(data[1]);
+        const quotes = await getQuotes(botUser);
+
+        if (quoteList === null) {
+            return new UnknownQuotePageDataFailure();
         }
 
-        debug("Getting quote list from database");
-        const quoteListDocument = await quoteListSchema.findById(data[1]);
-
-        // Check if the quote list exists
-        if (!quoteListDocument) {
-            await interaction.update({
-                content:
-                    "This quote list no longer exists!\nPlease create a new one using `/quote list` or `/quote search`.",
-                components: [],
-                embeds: [],
-            });
-            return;
+        let page: number;
+        switch (data[0]) {
+            case "first":
+                page = 0;
+                break;
+            case "page":
+                page = parseInt(data[2]);
+                break;
+            case "last":
+                page = Math.ceil(quotes.length / QUOTE_PAGE_SIZE) - 1;
+                break;
+            default:
+                return new UnknownQuotePageDataFailure();
         }
 
-        debug("Getting quote chunks from database");
-        const quoteChunks = await quoteSchema.listQuotes(
-            interaction.guildId!,
-            await guildSettings.quoteListPageSize(
-                guildSchema,
-                interaction.guildId!
-            ),
-            quoteListDocument.content,
-            quoteListDocument.authorId,
-            quoteListDocument.authorName,
-            quoteListDocument.creatorId,
-            quoteListDocument.creatorName,
-            quoteListDocument.date
-        );
+        const [embedBuilder, actionRow] = await quoteListMessage(quoteList, quotes, client, page);
 
-        // Check if there are any quotes
-        if (quoteChunks.length === 0) {
-            debug("No quotes found");
-            await interaction.update({
-                content: "Error: No quotes found",
-                components: [],
-                embeds: [],
-            });
-            return;
-        }
+        const response: Response = {
+            replyType: ReplyType.Update,
+            embeds: [embedBuilder],
+            components: [actionRow],
+        };
 
-        debug("Updating quote list page");
-        if (data[0] === "next") {
-            quoteListDocument.page++;
-        } else {
-            quoteListDocument.page--;
-        }
-
-        // Save the quote list
-        await quoteListDocument.save();
-
-        debug("Creating message embed");
-        const messageEmbed = await quoteListEmbed(
-            quoteChunks,
-            quoteListDocument.page
-        );
-
-        // Check if there are any buttons
-        if (!interaction.message.components) {
-            await interaction.update({
-                content: "Error: No buttons found",
-                components: [],
-                embeds: [],
-            });
-            return;
-        }
-
-        debug("Updating buttons");
-        const previousPageButton =
-            interaction.message.components![0].components[0];
-        const nextPageButton = interaction.message.components![0].components[1];
-        const prevButtonBuilder = ButtonBuilder.from(
-            previousPageButton as APIButtonComponent
-        ).setDisabled(quoteListDocument.page === 0);
-        const nextButtonBuilder = ButtonBuilder.from(
-            nextPageButton as APIButtonComponent
-        ).setDisabled(quoteListDocument.page === quoteChunks.length - 1);
-
-        // Create the component row
-        const row = new ActionRowBuilder().addComponents(
-            prevButtonBuilder,
-            nextButtonBuilder
-        );
-
-        debug("Updating message");
-        await interaction.update({
-            embeds: [messageEmbed],
-            components: [row],
-        } as InteractionUpdateOptions);
-
-        updateStatistic([
-            StatisticType.Component,
-            StatisticType.Component_QuotePage,
-        ]);
+        return { response, statistic };
     },
 };

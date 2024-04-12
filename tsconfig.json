@@ -1,9 +1,9 @@
 {
     "compilerOptions": {
         "target": "ESNext",
-        "module": "commonjs",
-        "rootDir": "./src/",
-        "outDir": "./dist/",
+        "module": "CommonJS",
+        "rootDirs": ["src/"],
+        "outDir": "dist/",
         "strict": true,
         "moduleResolution": "node",
         "importHelpers": true,
@@ -14,11 +14,16 @@
         "resolveJsonModule": true,
         "forceConsistentCasingInFileNames": true,
         "removeComments": true,
-        "typeRoots": ["node_modules/@types"],
+        "typeRoots": [
+            "node_modules/@types"
+        ],
         "sourceMap": false,
         "baseUrl": "./"
     },
-    "files": ["src/Index.ts"],
-    "include": ["./**/*.ts"],
-    "exclude": ["node_modules", "dist"]
+    "files": [
+        "./src/custom.d.ts",
+    ],
+    "include": [
+        "src/**/*.ts"
+    ],
 }

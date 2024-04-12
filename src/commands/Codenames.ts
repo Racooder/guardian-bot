@@ -1,29 +1,20 @@
-import {
-    CommandInteraction,
-    Client,
-    ApplicationCommandType,
-    ApplicationCommandOptionType,
-    ChatInputCommandInteraction,
-    InteractionReplyOptions,
-    GuildMember,
-} from "discord.js";
-import { Command } from "../InteractionInterfaces";
-import { generalError, noGuildError } from "../InteractionReplies";
-import { handleSubcommands, isGuildCommand } from "../Essentials";
-import codenamesSchema from "../models/codenamesSchema";
-import guildMemberSchema from "../models/guildMemberSchema";
-import { debug, error } from "../Log";
-import { StatisticType } from "../models/statisticsSchema";
+import { ApplicationCommandOptionType, ApplicationCommandType } from "discord.js";
+import { Command, ReplyType, Response } from '../Interactions';
+import { debug } from "../Log";
+import { RawStatistic } from "../models/statistic";
+import statisticKeys from "../../data/statistic-keys.json"
+import { addWord, getWord, getWords, removeWord } from "../models/codename";
+import { RemoveWordFailure, SubcommandExecutionFailure } from "../Failure";
 
 export const Codenames: Command = {
     name: "codenames",
-    description: "Add words to the server wordpack",
+    description: "Add words to the codenames wordpack",
     type: ApplicationCommandType.ChatInput,
     options: [
         {
             type: ApplicationCommandOptionType.Subcommand,
-            name: "add-word",
-            description: "Add a word to the server wordpack",
+            name: "add",
+            description: "Add a word to the codenames wordpack",
             options: [
                 {
                     type: ApplicationCommandOptionType.String,
@@ -35,115 +26,130 @@ export const Codenames: Command = {
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
-            name: "wordpack",
-            description: "Get the server wordpack",
-        },
-    ],
-    run: async (client: Client, interaction: CommandInteraction) => {
-        debug("Codenames command called");
-
-        if (!interaction.isChatInputCommand()) {
-            error("Codenames command was not a chat input command", client);
-            await interaction.reply(generalError);
-            return;
-        }
-        if (!isGuildCommand(interaction)) {
-            debug("Codenames command was not a guild command"); // This happens when the command is run in a DM
-            await interaction.reply(noGuildError);
-            return;
-        }
-
-        await handleSubcommands(
-            interaction,
-            interaction.options.getSubcommand(),
-            [
+            name: "remove",
+            description: "Remove a word from the codenames wordpack",
+            options: [
                 {
-                    key: "add-word",
-                    run: handleAddWord,
-                    stats: [StatisticType.Command_Codenames_AddWord],
-                },
-                {
-                    key: "wordpack",
-                    run: handleGetPack,
-                    stats: [StatisticType.Command_Codenames_Wordpack],
+                    type: ApplicationCommandOptionType.String,
+                    name: "word",
+                    description: "The word to remove",
+                    required: true,
                 },
             ],
-            [StatisticType.Command_Codenames]
-        );
+        },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: "wordpack",
+            description: "Get the codenames wordpack",
+        }
+    ],
+    run: async (client, interaction, botUser) => {
+        debug("Codenames command called");
+        return new SubcommandExecutionFailure();
     },
-};
+    subcommands: {
+        add: async (client, interaction, botUser) => {
+            debug("Codenames add subcommand called");
 
-// Subcommand handlers
-/**
- * Create a new game of quote guesser
- * @param interaction
- */
-async function handleAddWord(
-    interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> {
-    debug("Codenames add-word subcommand called");
+            const statistic: RawStatistic = {
+                global: false,
+                key: statisticKeys.bot.event.interaction.command.codenames.add,
+                user: botUser
+            };
 
-    // Get the option values
-    const word = interaction.options.getString("word", true);
+            const word = interaction.options.getString("word", true);
+            const document = await addWord(botUser, interaction.user, word);
+            if (document === undefined) {
+                const response: Response = {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: `Word "${word}" already exists in the codenames wordpack`,
+                };
+                return { response, statistic };
+            }
 
-    debug("Updating creator name in the database");
-    const creatorDocument = await guildMemberSchema.updateNames(
-        interaction.guildId!,
-        interaction.member as GuildMember
-    );
-
-    debug(
-        `Creating codenames word "${word}" in guild: ${
-            interaction.guild!.name
-        }(${interaction.guildId})`
-    );
-    try {
-        await codenamesSchema.create({
-            guildId: interaction.guildId,
-            word: word,
-            creator: creatorDocument._id,
-        });
-    } catch (error: any) {
-        if (error.code === 11000) {
-            debug(`Codenames word already exists`);
-            return {
-                content: `The word "${word}" is already in the server wordpack`,
+            const response: Response = {
+                replyType: ReplyType.Reply,
+                content: `Added word "${word}" to the codenames wordpack`,
                 ephemeral: true,
             };
-        } else {
-            error(error, interaction.client);
-            return generalError;
-        }
+            return { response, statistic };
+        },
+        remove: async (client, interaction, botUser) => {
+            debug("Codenames remove subcommand called");
+
+            const statistic: RawStatistic = {
+                global: false,
+                key: statisticKeys.bot.event.interaction.command.codenames.remove,
+                user: botUser
+            };
+
+            const word = interaction.options.getString("word", true);
+            const document = await getWord(botUser, word);
+            if (!document) {
+                const response: Response = {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: `Word "${word}" not found in the codenames wordpack`,
+                };
+                return { response, statistic };
+            }
+
+            if (interaction.inGuild()) {
+                const isCreator = document.creator.userId === interaction.user.id;
+
+                if (!isCreator) {
+                    const response: Response = {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: `You do not have permission to remove word "${word}" from the codenames wordpack`,
+                    };
+                    return { response, statistic };
+                }
+            }
+
+            const removed = await removeWord(botUser, word);
+
+            if (!removed) {
+                return new RemoveWordFailure()
+            }
+
+            const response: Response = {
+                replyType: ReplyType.Reply,
+                ephemeral: true,
+                content: `Removed word "${word}" from the codenames wordpack`,
+            };
+            return { response, statistic };
+        },
+        wordpack: async (client, interaction, botUser) => {
+            debug("Codenames wordpack subcommand called");
+
+            const statistic: RawStatistic = {
+                global: false,
+                key: statisticKeys.bot.event.interaction.command.codenames.wordpack,
+                user: botUser
+            };
+
+            const codenames = await getWords(botUser);
+            const words = codenames.map((codename) => codename.word);
+            if (words.length === 0) {
+                const response: Response = {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: "No words found in the codenames wordpack",
+                };
+                return { response, statistic };
+            }
+            const buffer = Buffer.from(words.join("\n"), "utf-8");
+
+            const response: Response = {
+                replyType: ReplyType.Reply,
+                files: [{
+                    name: "wordpack.txt",
+                    attachment: buffer,
+                }],
+            };
+            return { response, statistic };
+        },
     }
-
-    debug("Codenames word created");
-    return {
-        content: `Added the word "${word}" to the server wordpack`,
-        ephemeral: true,
-    };
-}
-
-/**
- * Display the leaderboard for quote guesser
- * @param interaction
- */
-async function handleGetPack(
-    interaction: ChatInputCommandInteraction
-): Promise<InteractionReplyOptions> {
-    debug("Codenames wordpack subcommand called");
-
-    debug("Generating wordpack buffer");
-    const words = await codenamesSchema.listQuotes(interaction.guildId!);
-    const buffer = Buffer.from(words.join("\n"), "utf-8");
-
-    debug("Sending wordpack buffer");
-    return {
-        files: [
-            {
-                attachment: buffer,
-                name: `wordpack-${interaction.guild!.name}.txt`,
-            },
-        ],
-        ephemeral: true,
-    };
-}
+};
