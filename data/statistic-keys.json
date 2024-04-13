@@ -19,7 +19,12 @@
                         "list": "bot.event.interaction.command.quote.list"
                     },
                     "quoteGuesser": "bot.event.interaction.command.quoteGuesser",
-                    "settings": "bot.event.interaction.command.settings"
+                    "settings": {
+                        "view": "bot.event.interaction.command.settings.view",
+                        "change": {
+                            "quote_privacy": "bot.event.interaction.command.settings.change.quote_privacy"
+                        }
+                    },
                     "connections": {
                         "follow": "bot.event.interaction.command.connections.follow"
                     }
@@ -38,6 +43,8 @@
         "general": "failure.general",
         "commandNotFound": "failure.commandNotFound",
         "componentNotFound": "failure.componentNotFound",
+        "subcommandGroupNotFound": "failure.subcommandGroupNotFound",
+        "subcommandNotFound": "failure.subcommandNotFound",
         "unknownComponentType": "failure.unknownComponentType",
         "featureNotImplemented": "failure.featureNotImplemented",
         "invalidDateFormat": "failure.invalidDateFormat",

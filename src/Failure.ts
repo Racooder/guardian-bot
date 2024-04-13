@@ -86,6 +86,24 @@ export class ComponentNotFoundFailure extends Failure {
     }
 }
 
+export class SubcommandGroupNotFoundFailure extends Failure {
+    constructor(errorData?: any) {
+        super(errorData);
+        this.type = "SubcommandGroupNotFound";
+        this.localizationKey = "failure.subcommand_group_not_found";
+        this.statisticKey = statisticKeys.failure.subcommandGroupNotFound;
+    }
+}
+
+export class SubcommandNotFoundFailure extends Failure {
+    constructor(errorData?: any) {
+        super(errorData);
+        this.type = "SubcommandNotFound";
+        this.localizationKey = "failure.subcommand_not_found";
+        this.statisticKey = statisticKeys.failure.subcommandNotFound;
+    }
+}
+
 export class UnknownComponentTypeFailure extends Failure {
     constructor(errorData?: any) {
         super(errorData);

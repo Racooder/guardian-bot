@@ -2,7 +2,7 @@ import { debug, error, logToDiscord } from "../Log";
 import { EventListener } from "../EventListeners";
 import { ButtonInteraction, Client, CommandInteraction, ComponentType, InteractionUpdateOptions, MessageComponentInteraction } from "discord.js";
 import { Commands, ComponentReturnType, Components, ReplyType, SlashCommandReturnType } from '../Interactions';
-import { CommandNotFoundFailure, ComponentNotFoundFailure, Failure, MessageComponentExecutionFailure, SlashCommandExecutionFailure, UnknownComponentTypeFailure } from '../Failure';
+import { CommandNotFoundFailure, ComponentNotFoundFailure, Failure, MessageComponentExecutionFailure, SlashCommandExecutionFailure, SubcommandGroupNotFoundFailure, SubcommandNotFoundFailure, UnknownComponentTypeFailure } from '../Failure';
 import { RawStatistic, insertStatistic } from "../models/statistic";
 import { BotUser, BotUserType, updateBotUser } from "../models/botUser";
 
@@ -103,14 +103,35 @@ async function handleSlashCommand(client: Client, interaction: CommandInteractio
         return commandReturn;
     }
 
+    const subcommandGroup = interaction.options.getSubcommandGroup(false);
     const subcommand = interaction.options.getSubcommand(false);
 
-    if (subcommand === null || commandHandler.subcommands === undefined) {
-        return commandReturn;
+    if (subcommandGroup && subcommand) {
+        if (!commandHandler.subcommandGroups) {
+            return new SubcommandGroupNotFoundFailure();
+        }
+
+        const subcommandGroupHandler = commandHandler.subcommandGroups[subcommandGroup];
+        if (subcommandGroupHandler.hasOwnProperty(subcommand)) {
+            return subcommandGroupHandler[subcommand](client, interaction, botUser);
+        } else {
+            return new SubcommandNotFoundFailure();
+        }
     }
 
-    const subcommandHandler = commandHandler.subcommands[subcommand];
-    return subcommandHandler(client, interaction, botUser);
+    if (subcommand) {
+        if (!commandHandler.subcommands) {
+            return new SubcommandNotFoundFailure();
+        }
+
+        const subcommandHandler = commandHandler.subcommands[subcommand];
+        if (!subcommandHandler) {
+            return new SubcommandNotFoundFailure();
+        }
+        return subcommandHandler(client, interaction, botUser);
+    }
+
+    return commandReturn;
 }
 
 async function handleMessageComponent(client: Client, interaction: MessageComponentInteraction, botUser: BotUser): Promise<ComponentReturnType | Failure> {
