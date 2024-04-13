@@ -31,6 +31,7 @@
                 },
                 "component": {
                     "quotePage": "bot.event.interaction.component.quotePage",
+                    "quoteGuesser": "bot.event.interaction.component.quoteGuesser",
                     "followMenu": "bot.event.interaction.component.followMenu"
                 }
             }

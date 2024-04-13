@@ -4,7 +4,7 @@ import { debug } from "../Log";
 import statisticKeys from "../../data/statistic-keys.json"
 import { RawStatistic } from "../models/statistic";
 import quoteGuesserModel, { createQuoteGuesserGame, QuoteGuesserGame } from "../models/quoteGuesser";
-import { Dict } from "../Essentials";
+import { shuffleArray } from "../Essentials";
 import { randomQuote } from "../models/quote";
 import { BotUser } from "../models/botUser";
 
@@ -21,27 +21,28 @@ export const QuoteGuesser: Command = {
             user: botUser
         };
 
-        const document = await createQuoteGuesserGame();
-        const response = await newRound(document, botUser);
+        const response = await newRound(botUser);
 
         return { response, statistic };
     },
 };
 
-export async function newRound(document: QuoteGuesserGame, botUser: BotUser): Promise<Response>{
-    if (document === null) {
-        return {
-            replyType: ReplyType.Reply,
-            ephemeral: true,
-            content: "Game not found", // TODO: Error Handling
-        };
-    }
-    const [quote, authors] = await randomQuote(botUser, document.usedQuotes);
+export async function newRound(botUser: BotUser, document?: QuoteGuesserGame): Promise<Response>{
+    debug("Starting new round");
+
+    const [quote, quoteAuthor, authors] = await randomQuote(botUser, document?.usedQuotes);
     if (quote === undefined) {
         return {
             replyType: ReplyType.Reply,
             ephemeral: true,
             content: "No quotes left to guess", // TODO: Error Handling
+        };
+    }
+    if (quoteAuthor === undefined) {
+        return {
+            replyType: ReplyType.Reply,
+            ephemeral: true,
+            content: "Quote author not found", // TODO: Error Handling
         };
     }
     if (authors === undefined) {
@@ -51,28 +52,41 @@ export async function newRound(document: QuoteGuesserGame, botUser: BotUser): Pr
             content: "No authors found", // TODO: Error Handling
         };
     }
-    document.usedQuotes.push(quote._id);
-    await document.save();
-    const [embedBuilder, actionRows] = quoteGuesserMessage(document._id, quote.statements[0], document.usedQuotes.length, 0, authors)
+
+    if (document === undefined) {
+        document = await createQuoteGuesserGame(quote, authors, quoteAuthor);
+    }
+
+    const [embedBuilders, actionRows] = quoteGuesserMessage(document, quote.statements[0])
 
     return {
         replyType: ReplyType.Reply,
-        embeds: [embedBuilder],
+        embeds: embedBuilders,
         components: actionRows,
     };
 }
 
 export async function finishRound(id: string) {
+    debug("Finishing round");
+
     const document = await quoteGuesserModel.findById(id).exec();
     if (document === null) {
         return; // Game not found
     }
 }
 
-function quoteGuesserMessage(id: string, quote: string, round: number, answers: number, options: Dict<string>): [EmbedBuilder, ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[]] {
+export function quoteGuesserMessage(document: QuoteGuesserGame, quote: string): [EmbedBuilder[], ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[]] {
+    debug("Creating quote guesser message");
+
+    const id = document._id;
+    const round = document.usedQuotes.length;
+    const answerCount = Object.keys(document.answers).length;
+    const authors = document.choices;
+    const quoteAuthor = document.correctAuthor;
+
     let answersText = "No one answered yet";
-    if (answers > 0) {
-        answersText = `${answers} ${answers === 1 ? "person has" : "people have"} answered`;
+    if (answerCount > 0) {
+        answersText = `${answerCount} ${answerCount === 1 ? "person has" : "people have"} answered`;
     }
 
     const embedBuilder = new EmbedBuilder()
@@ -84,62 +98,30 @@ function quoteGuesserMessage(id: string, quote: string, round: number, answers: 
     const buttonRow = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`quote-guesser-finish-${id}`)
+                .setCustomId(`quote-guesser:finish:${id}`)
                 .setLabel("Finish Round")
                 .setStyle(ButtonStyle.Primary),
             new ButtonBuilder()
-                .setCustomId(`quote-guesser-stop-${id}`)
-                .setLabel("Stop Game")
+                .setCustomId(`quote-guesser:end:${id}`)
+                .setLabel("End Game")
                 .setStyle(ButtonStyle.Danger),
         ) as ActionRowBuilder<ButtonBuilder>;
+
+    // Shuffle authors and add the correct author
+    const options = shuffleArray<[string, string]>(authors).slice(0, 24);
+    options.splice(Math.floor(Math.random() * options.length), 0, quoteAuthor);
 
     const selectionRow = new ActionRowBuilder()
         .addComponents(
             new StringSelectMenuBuilder()
-                .setCustomId(`quote-guesser-answer-test`)
+                .setCustomId(`quote-guesser:answer:${id}`)
                 .setPlaceholder("Select the correct answer")
-                .addOptions(Object.entries(options).map(([lowered, name]) => {
+                .addOptions(options.map(([lowered, name]) => {
                     return { label: name, value: lowered };
                 }))
+                .setMinValues(1)
+                .setMaxValues(1),
         ) as ActionRowBuilder<StringSelectMenuBuilder>;
 
-    return [embedBuilder, [buttonRow, selectionRow]];
-}
-
-function roundResultsMessage(results: [[string, string]], round: number, quote: string, author: string): [EmbedBuilder, ActionRowBuilder<ButtonBuilder>] {
-    author = author.toLowerCase();
-    let correctAnswers = 0;
-    for (const [_, answer] of results) {
-        if (answer === author) {
-            correctAnswers++;
-        }
-    }
-
-    let correctAnswersText = "No one answered correctly";
-    if (correctAnswers > 0) {
-        correctAnswersText = `${correctAnswers} ${correctAnswers === 1 ? "person has" : "people have"} answered correctly`;
-    }
-
-    const embedBuilder = new EmbedBuilder()
-        .setAuthor({ name: `Quote Guesser - Round ${round} Results` })
-        .setTitle(`The correct answer was: ${author}`)
-        .setDescription(`"${quote}" - ${author}`)
-        .addFields(results.map(([name, answer]) => {
-            return { name: `${name}'s answer`, value: `${answer} ${answer === author ? "✅" : "❌"}`};
-        }))
-        .setFooter({ text: correctAnswersText });
-
-    const actionRow = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId(`quote-guesser-next-${round}`)
-                .setLabel("Next Round")
-                .setStyle(ButtonStyle.Primary),
-            new ButtonBuilder()
-                .setCustomId(`quote-guesser-stop-${round}`)
-                .setLabel("Stop Game")
-                .setStyle(ButtonStyle.Danger),
-        ) as ActionRowBuilder<ButtonBuilder>;
-
-    return [ embedBuilder, actionRow ];
+    return [[embedBuilder], [buttonRow, selectionRow]];
 }
