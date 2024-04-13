@@ -4,7 +4,7 @@ import { Commands } from "../Interactions";
 import { debug, error, info, success } from "../Log";
 import mongoose from "mongoose";
 import statisticKeys from "../../data/statistic-keys.json"
-import config from "../../config.json";
+import config from "../../meta/config.json";
 
 export const Ready: EventListener = {
     start: (client) =>{

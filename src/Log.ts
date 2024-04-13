@@ -1,7 +1,7 @@
 import { Client, EmbedBuilder } from "discord.js";
 import { createReadStream, createWriteStream, existsSync, mkdirSync, writeFileSync } from "fs";
 import { createGzip } from "zlib";
-import config from "../config.json";
+import config from "../meta/config.json";
 import embedColors from "../data/embed-colors.json";
 
 const format = {

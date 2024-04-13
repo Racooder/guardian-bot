@@ -1,5 +1,5 @@
 import { debug, error, info, logToDiscord, setupLog, warn } from "./Log";
-import config from "../config.json";
+import config from "../meta/config.json";
 import { setupRestApi } from "./RestApi";
 import { setupDiscordBot } from "./Bot";
 import { Server } from "http";
@@ -7,7 +7,9 @@ import { Client, HTTPError } from "discord.js";
 import schedule from 'node-schedule';
 import { Octokit } from "octokit";
 import { existsSync, readFileSync, writeFileSync } from "fs";
-import "dotenv/config";
+import dotenv from "dotenv";
+
+dotenv.config({ path: "./meta/.env" });
 
 const GITHUB_REPO_OWNER = "Racooder";
 const GITHUB_REPO_NAME = "guardian-bot";
