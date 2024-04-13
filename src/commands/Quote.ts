@@ -387,6 +387,7 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
         embedDescription += ` matching:\n${query}`;
     }
 
+    debug("Creating quote embed fields");
     const embedFields = await Promise.all(pageQuotes.map((quote) => quoteEmbedField(quote, client)));
 
     const embedBuilder = new EmbedBuilder()
@@ -422,8 +423,6 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
 }
 
 async function quoteEmbedField(quote: QuoteType, client: Client) {
-    debug("Creating quote embed field");
-
     if (quote.authors.length !== quote.statements.length) {
         logToDiscord(client, error(`Quote ${quote.token} has a mismatch between the number of authors and statements or can't be populated correctly.`));
         return {

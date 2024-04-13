@@ -1,4 +1,4 @@
-import { Client } from "discord.js";
+import { Client, IntentsBitField } from "discord.js";
 import { debug, info } from "./Log";
 import { Listeners } from "./EventListeners";
 
@@ -6,7 +6,7 @@ export async function setupDiscordBot(): Promise<Client> {
     info("Starting Discord bot...");
 
     const discordClient = new Client({
-        intents: [],
+        intents: [IntentsBitField.Flags.Guilds],
     });
 
     debug("Starting event listeners...");

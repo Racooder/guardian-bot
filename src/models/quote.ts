@@ -2,7 +2,7 @@ import { Document, Model, Schema, model } from 'mongoose';
 import { BotUser } from './botUser';
 import { DiscordUser, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
 import { User } from 'discord.js';
-import { Dict, generateToken } from '../Essentials';
+import { Dict, generateToken, getAccessableConnections } from '../Essentials';
 import { debug } from '../Log';
 
 export interface Quote extends Document {
@@ -54,7 +54,9 @@ export async function createQuote(botUser: BotUser, creatorUser: User, statement
 export async function getQuotes(botUser: BotUser): Promise<Quote[]> {
     debug(`Getting quotes for bot user ${botUser.id}`);
 
-    const documents = await quoteModel.find({ user: botUser._id }).populate('user').populate('creator').populate('authors');
+    const targets = await getAccessableConnections(botUser);
+
+    const documents = await quoteModel.find({ user: { $in: targets } }).populate('user').populate('creator').populate('authors');
     return documents;
 }
 
@@ -68,7 +70,9 @@ export async function getQuoteByToken(botUser: BotUser, token: string): Promise<
 export async function randomQuote(botUser: BotUser, exclude: Quote['_id'][] = []): Promise<[Quote?, [string, string]?, [string, string][]?]> {
     debug(`Getting random quote for bot user ${botUser.id}`);
 
-    const documents = await quoteModel.find({ _id: { $nin: exclude }, user: botUser }).populate('user').populate('creator').populate('authors').exec();
+    const targets = await getAccessableConnections(botUser);
+
+    const documents = await quoteModel.find({ _id: { $nin: exclude }, user: { $in: targets } }).populate('user').populate('creator').populate('authors').exec();
     if (documents.length === 0) return [undefined, undefined];
     const quote = documents[Math.floor(Math.random() * documents.length)];
 

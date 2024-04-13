@@ -3,6 +3,7 @@ import { BotUser } from './botUser';
 import { DiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
 import { User } from 'discord.js';
 import { debug } from '../Log';
+import { getAccessableConnections } from '../Essentials';
 
 export interface Codename extends Document {
     user: BotUser['_id'];
@@ -25,13 +26,17 @@ const codenameModel = model<Codename, CodenameModel>('Codenames', codenameSchema
 export async function getWords(botUser: BotUser): Promise<Codename[]> {
     debug(`Getting codenames words for bot user ${botUser.name}`);
 
-    return await codenameModel.find({ user: botUser._id });
+    const targets = await getAccessableConnections(botUser);
+
+    return await codenameModel.find({ user: { $in: targets } });
 }
 
 export async function getWord(botUser: BotUser, word: string): Promise<Codename | null> {
     debug(`Getting codename word ${word} for bot user ${botUser.name}`);
 
-    const document = await codenameModel.findOne({ user: botUser._id, word });
+    const targets = await getAccessableConnections(botUser);
+
+    const document = await codenameModel.findOne({ user: { $in: targets }, word });
     if (!document) {
         return null;
     }

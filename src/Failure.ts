@@ -166,3 +166,12 @@ export class MessageComponentExecutionFailure extends Failure {
         this.statisticKey = statisticKeys.failure.messageComponentExecution;
     }
 }
+
+export class UnknownFollowMenuDataFailure extends Failure {
+    constructor(errorData?: any) {
+        super(errorData);
+        this.type = "UnknownFollowMenuDataFailure";
+        this.localizationKey = "failure.unknown_follow_menu_data";
+        this.statisticKey = statisticKeys.failure.unknownFollowMenuData;
+    }
+}

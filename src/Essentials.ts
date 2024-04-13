@@ -1,5 +1,6 @@
 import { APIInteractionGuildMember, GuildMember, PermissionResolvable } from "discord.js";
 import { debug } from "./Log";
+import botUserModel, { BotUser, QuotePrivacy } from "./models/botUser";
 
 export function splitArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {
     if (chunkSize <= 0) throw new Error("chunkSize must be greater than 0");
@@ -60,4 +61,25 @@ export function shuffleArray<T>(array: T[]): T[] {
     }
 
     return array;
+}
+
+export function clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
+}
+
+export async function getAccessableConnections(botUser: BotUser): Promise<BotUser['_id'][]> {
+    const connections = [botUser._id];
+    for (let user of botUser.following as BotUser[]) {
+        if (user.settings === undefined) {
+            user = await botUserModel.findById(user._id).populate('settings').exec() as BotUser;
+        }
+
+        if (user.settings.quote_privacy === QuotePrivacy.PRIVATE) continue;
+        if (user.settings.quote_privacy === QuotePrivacy.TWO_WAY) {
+            if (user.following.find(following => following._id.equals(botUser._id)) === undefined) continue;
+        };
+        connections.push(user._id);
+    }
+
+    return connections;
 }

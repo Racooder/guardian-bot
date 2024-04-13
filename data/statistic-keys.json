@@ -20,9 +20,13 @@
                     },
                     "quoteGuesser": "bot.event.interaction.command.quoteGuesser",
                     "settings": "bot.event.interaction.command.settings"
+                    "connections": {
+                        "follow": "bot.event.interaction.command.connections.follow"
+                    }
                 },
                 "component": {
-                    "quotePage": "bot.event.interaction.component.quotePage"
+                    "quotePage": "bot.event.interaction.component.quotePage",
+                    "followMenu": "bot.event.interaction.component.followMenu"
                 }
             }
         }
@@ -46,6 +50,7 @@
         "subcommandExecution": "failure.subcommandExecution",
         "unknownQuotePageData": "failure.unknownQuotePageData",
         "slashCommandExecution": "failure.slashCommandExecution",
-        "messageComponentExecution": "failure.componentExecution"
+        "messageComponentExecution": "failure.componentExecution",
+        "unknownFollowMenuData": "failure.unknownFollowMenuData"
     }
 }

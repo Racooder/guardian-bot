@@ -7,6 +7,7 @@ import { getQuotes } from "../models/quote";
 import { QUOTE_PAGE_SIZE, quoteListMessage } from "../commands/Quote";
 import { RawStatistic } from "../models/statistic";
 import statisticKeys from "../../data/statistic-keys.json";
+import { clamp } from "../Essentials";
 
 export const QuotePage: Component<ButtonInteraction> = {
     name: "quote-page",
@@ -27,16 +28,18 @@ export const QuotePage: Component<ButtonInteraction> = {
             return new UnknownQuotePageDataFailure();
         }
 
+        const lastPage = Math.ceil(quotes.length / QUOTE_PAGE_SIZE) - 1;
+
         let page: number;
         switch (data[0]) {
             case "first":
                 page = 0;
                 break;
             case "page":
-                page = parseInt(data[2]);
+                page = clamp(parseInt(data[2]), 0, lastPage);
                 break;
             case "last":
-                page = Math.ceil(quotes.length / QUOTE_PAGE_SIZE) - 1;
+                page = lastPage;
                 break;
             default:
                 return new UnknownQuotePageDataFailure();
