@@ -8,8 +8,6 @@ const FALLBACK_LANGUAGE = 'en';
 var localization: Dict<Dict<string>> = {};
 
 function loadLanguage(language: string): void {
-    debug(`Loading language ${language}`);
-
     if (localization[language]) {
         return;
     }
@@ -26,8 +24,6 @@ function loadLanguage(language: string): void {
  * @returns The text in the specified language, or the fallback language if the key is not found
  */
 export function localize(key: string, language: string): string {
-    debug(`Localizing key ${key} in language ${language}`);
-
     loadLanguage(language);
     if (localization[language]) {
         if (localization[language][key]) {

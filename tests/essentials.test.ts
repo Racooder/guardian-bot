@@ -1,7 +1,4 @@
 import { approximateEqual, generateToken, parseDate, randomElement, splitArrayIntoChunks, unixToDate } from "../src/Essentials";
-import { setupLog } from "../src/Log";
-
-setupLog();
 
 describe('Essentials - splitArrayIntoChunks', () => {
     test('Empty array should result in empty array', () => {
