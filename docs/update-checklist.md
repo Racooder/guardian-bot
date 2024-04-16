@@ -6,7 +6,7 @@
 4. Write changelog
 5. Update version in `README`
 6. Update `version.json`
-7. Change `database_name` in `config.json` to `guardian-v<version>` where `<version>` is the current major database version. For example `guardian-v3`
+7. Change `database_name` in `config.yml` to `guardian-v<version>` where `<version>` is the current major database version. For example `guardian-v3`
 8. Create pull request and merge with `main`
 9. Check if automated build passes
 10. Create release with version tag

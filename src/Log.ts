@@ -1,7 +1,7 @@
 import { Client, EmbedBuilder } from "discord.js";
 import { createReadStream, createWriteStream, existsSync, mkdirSync, writeFileSync } from "fs";
 import { createGzip } from "zlib";
-import config from "../meta/config.json";
+import { config } from "./Essentials";
 import embedColors from "../data/embed-colors.json";
 
 const format = {
@@ -80,6 +80,8 @@ export function error(message: string): EmbedBuilder {
 }
 
 export async function logToDiscord(client: Client, embed: EmbedBuilder) {
+    if (config.log_to_discord === false) return;
+
     const channel = await client.channels.fetch(config.log_channel);
     if (channel && channel.isTextBased()) {
         channel.send({

@@ -1,6 +1,19 @@
 import { APIInteractionGuildMember, GuildMember, PermissionResolvable } from "discord.js";
-import { debug } from "./Log";
 import botUserModel, { BotUser, QuotePrivacy } from "./models/botUser";
+import * as yaml from "js-yaml";
+
+export type Config = {
+    debug: boolean;
+    api_port: number;
+    do_update_check: boolean;
+    update_check_cron: string;
+    log_channel: string;
+    log_role: string;
+    database_name: string;
+    log_to_discord: boolean;
+}
+
+export const config: Config = yaml.load(require("fs").readFileSync("meta/config.yml", "utf8")) as Config;
 
 export function splitArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {
     if (chunkSize <= 0) throw new Error("chunkSize must be greater than 0");

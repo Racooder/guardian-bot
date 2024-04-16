@@ -2,7 +2,7 @@ import cors from "cors";
 import express, { Express, Request, Response, NextFunction } from "express";
 import { Server } from "http";
 import { debug, info, success } from "./Log";
-import config from "../meta/config.json";
+import { config } from "./Essentials";
 import { StatisticFilter, getGlobalStatistics, getStatistics, getUserStatistics, insertStatistic } from "./models/statistic";
 import statisticKeys from "../data/statistic-keys.json"
 import { unixToDate } from "./Essentials";

@@ -1,5 +1,5 @@
 import { debug, error, info, logToDiscord, setupLog, warn } from "./Log";
-import config from "../meta/config.json";
+import { config } from "./Essentials";
 import { setupRestApi } from "./RestApi";
 import { setupDiscordBot } from "./Bot";
 import { Server } from "http";
