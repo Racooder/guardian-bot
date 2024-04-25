@@ -28,7 +28,7 @@ export const FollowMenu: Component<ButtonInteraction> = {
 
                 if (document) {
                     const page = parseInt(data[2]);
-                    const [embed, actionRow] = followMenuMessage(document, page);
+                    const [embed, actionRow] = await followMenuMessage(document, page);
 
                     const response: Response = {
                         replyType: ReplyType.Update,

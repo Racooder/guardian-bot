@@ -83,7 +83,7 @@ export const Connections: Command = {
             }
 
             const document = await followMenuModel.create({ targets, extendedSearch });
-            const [embed, actionRow] = followMenuMessage(document);
+            const [embed, actionRow] = await followMenuMessage(document);
             const response = {
                 embeds: [embed],
                 components: [actionRow],
@@ -94,24 +94,30 @@ export const Connections: Command = {
     }
 };
 
-export function followMenuMessage(document: FollowMenu, page = 0): [EmbedBuilder, ActionRowBuilder<ButtonBuilder>] {
+export async function followMenuMessage(document: FollowMenu, page = 0): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
     debug("Creating follow menu message");
 
     clamp(page, 0, document.targets.length - 1);
 
-    const target = document.targets[page] as BotUser;
+    const targetId = document.targets[page]._id;
+    const target = await botUserModel.findById(targetId);
 
     const embedBuilder = new EmbedBuilder()
         .setAuthor({
             name: `Found ${document.targets.length} matching target ${document.targets.length === 1 ? "" : "s"}`,
         })
-        .setTitle(target.name)
 
-    let targetDescription = `Type: ${TYPE_DISPLAY[target.type]}`;
-    if (target.type === BotUserType.GUILD) {
-        targetDescription += `\nMember count: ${target.memberCount}`;
+    if (target === null) {
+        embedBuilder.setTitle("Unknown user or server");
+        embedBuilder.setDescription("The data for this user or server could not be found");
+    } else {
+        embedBuilder.setTitle(target.name);
+        let targetDescription = `Type: ${TYPE_DISPLAY[target.type]}`;
+        if (target.type === BotUserType.GUILD) {
+            targetDescription += `\nMember count: ${target.memberCount}`;
+        }
+        embedBuilder.setDescription(targetDescription);
     }
-    embedBuilder.setDescription(targetDescription);
 
     if (document.extendedSearch) {
         embedBuilder.setFooter({
@@ -130,13 +136,18 @@ export function followMenuMessage(document: FollowMenu, page = 0): [EmbedBuilder
                 .setCustomId(`follow-menu:page:${document._id}:${page + 1}`)
                 .setEmoji('▶️')
                 .setStyle(ButtonStyle.Secondary)
-                .setDisabled(page === document.targets.length - 1),
+                .setDisabled(page === document.targets.length - 1)
+        ) as ActionRowBuilder<ButtonBuilder>;
+
+    if (target !== null) {
+        actionRow.addComponents(
             new ButtonBuilder()
                 .setCustomId(`follow-menu:follow:${target._id}`)
                 .setLabel("Follow")
                 .setStyle(ButtonStyle.Primary)
                 .setEmoji("🔗")
-        ) as ActionRowBuilder<ButtonBuilder>;
+        );
+    }
 
     return [embedBuilder, actionRow];
 }
