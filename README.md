@@ -28,7 +28,7 @@ Just [invite](https://discord.com/api/oauth2/authorize?client_id=821713905692573
 4. Install [yarn](https://classic.yarnpkg.com/lang/en/docs/install)
 5. Run `yarn` inside the installation directory
 6. Rename the `.env.template` file in the `meta` folder to `.env` and setup your environmental variables inside it.
-7. Setup the `config.yml` in the `meta` folder
+6. Rename the `config.yml.template` file in the `meta` folder to `config.yml` and setup your settings in it.
 8. Run `yarn start`
 
 ## Build

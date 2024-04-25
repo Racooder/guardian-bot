@@ -14,6 +14,7 @@ dotenv.config({ path: "./meta/.env" });
 const GITHUB_REPO_OWNER = "Racooder";
 const GITHUB_REPO_NAME = "guardian-bot";
 const LATEST_GITHUB_RELEASE_FILE = "../github-latest-release.txt";
+const DOWNLOAD_URL_PATH = "../update-url.txt";
 
 var restApi: Server;
 var discordClient: Client;
@@ -42,7 +43,7 @@ async function updateAvailable(discordClient: Client): Promise<boolean> {
             logToDiscord(discordClient, error("GitHub API returned " + e.status));
         }
     });
-    if (response === undefined || response.status === 200) {
+    if (response === undefined || response.status !== 200) {
         return false;
     }
     const latestRelease = response.data.tag_name;
@@ -55,10 +56,13 @@ async function updateAvailable(discordClient: Client): Promise<boolean> {
         writeFileSync(LATEST_GITHUB_RELEASE_FILE, "", { encoding: "utf-8" });
     }
 
+    const artifactUrl = response.data.assets[0].browser_download_url;
+
     if (currentRelease === latestRelease) {
         return false;
     }
-    writeFileSync(LATEST_GITHUB_RELEASE_FILE, latestRelease, { encoding: "ascii" });
+    writeFileSync(LATEST_GITHUB_RELEASE_FILE, latestRelease, { encoding: "utf-8" });
+    writeFileSync(DOWNLOAD_URL_PATH, response.data.html_url, { encoding: "utf-8" });
     return true;
 }
 
@@ -92,12 +96,12 @@ async function updateCheck() {
 function stopApplication(): void {
     debug("Stopping application");
 
-    if (restApi === undefined || discordClient === undefined) {
+    if (discordClient === undefined) {
         error("Application not running");
         return;
     }
 
-    restApi.close();
+    // restApi.close();
     discordClient.destroy();
     process.exit(0);
 }
