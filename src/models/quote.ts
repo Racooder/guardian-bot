@@ -9,6 +9,7 @@ export interface Quote extends Document {
     token: string;
     user: BotUser['_id'];
     creator: DiscordUser['_id'];
+    isConversation: boolean;
     statements: string[];
     authors: DiscordUser['_id'][];
     context?: string;
@@ -24,6 +25,7 @@ const quoteSchema = new Schema<Quote, QuoteModel>({
     user: { type: Schema.Types.ObjectId, ref: 'BotUsers', required: true },
     creator: { type: Schema.Types.ObjectId, ref: 'DiscordUsers', required: true },
     statements: { type: [String], required: true },
+    isConversation: { type: Boolean, required: true },
     authors: [{ type: Schema.Types.ObjectId, ref: 'DiscordUsers', required: true }],
     context: { type: String, required: false }
 }, { timestamps: true });
@@ -47,8 +49,9 @@ export async function createQuote(botUser: BotUser, creatorUser: User, statement
             authorIds.push(authorUser._id);
         }
     }
+    const isConversation = statements.length > 1;
 
-    return await quoteModel.create({ token, user: botUser._id, creator: creator._id, statements: statements, authors: authorIds, context });
+    return await quoteModel.create({ token, user: botUser._id, creator: creator._id, isConversation, statements, authors: authorIds, context });
 }
 
 export async function getQuotes(botUser: BotUser): Promise<Quote[]> {
@@ -72,7 +75,7 @@ export async function randomQuote(botUser: BotUser, exclude: Quote['_id'][] = []
 
     const targets = await getAccessableConnections(botUser);
 
-    const documents = await quoteModel.find({ _id: { $nin: exclude }, user: { $in: targets } }).populate('user').populate('creator').populate('authors').exec();
+    const documents = await quoteModel.find({ _id: { $nin: exclude }, user: { $in: targets }, isConversation: false }).populate('user').populate('creator').populate('authors').exec();
     if (documents.length === 0) return [];
     const quote = documents[Math.floor(Math.random() * documents.length)];
 
