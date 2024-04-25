@@ -25,7 +25,7 @@ export const QuoteGuesserComponent: Component<ButtonInteraction | StringSelectMe
             const response: Response = {
                 replyType: ReplyType.Reply,
                 ephemeral: true,
-                content: "Invalid data", // TODO: Error Handling
+                content: "Invalid data",
             };
             return { response, statistic };
         }
@@ -35,7 +35,7 @@ export const QuoteGuesserComponent: Component<ButtonInteraction | StringSelectMe
             const response: Response = {
                 replyType: ReplyType.Reply,
                 ephemeral: true,
-                content: "Invalid handler", // TODO: Error Handling
+                content: "Invalid handler",
             };
             return { response, statistic };
         }
@@ -45,7 +45,7 @@ export const QuoteGuesserComponent: Component<ButtonInteraction | StringSelectMe
             const response: Response = {
                 replyType: ReplyType.Reply,
                 ephemeral: true,
-                content: "Game not found", // TODO: Error Handling
+                content: "Game not found",
             };
             return { response, statistic };
         }

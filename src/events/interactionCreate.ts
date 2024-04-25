@@ -53,13 +53,11 @@ async function replyToInteraction(interaction: CommandInteraction | MessageCompo
     debug("Replying to interaction");
 
     if (response instanceof Failure) {
-        interaction.reply(response.slashCommandResponse("en", true)); // TODO: Get language from user
+        interaction.reply(response.slashCommandResponse("en", true));
         return;
     }
 
     const reply = response.response;
-
-    // TODO: Localization (For ephemeral messages, we should always use the user's language)
 
     switch (reply.replyType) {
         case ReplyType.Reply:

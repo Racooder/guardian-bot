@@ -22,8 +22,6 @@ export const Ready: EventListener = {
             });
             success("Database connected");
 
-            // TODO: Clear expired database entries
-
             info("Registering commands...");
             await client.application.commands.set(Commands);
             debug("Registered commands: (" + Commands.map((command) => command.name).join(", ") + ")");

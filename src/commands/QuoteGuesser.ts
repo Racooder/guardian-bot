@@ -35,21 +35,21 @@ export async function newRound(botUser: BotUser, document?: QuoteGuesserGame): P
         return {
             replyType: ReplyType.Reply,
             ephemeral: true,
-            content: "No quotes left to guess", // TODO: Error Handling
+            content: "No quotes left to guess",
         };
     }
     if (correctAuthor === undefined) {
         return {
             replyType: ReplyType.Reply,
             ephemeral: true,
-            content: "Quote author not found", // TODO: Error Handling
+            content: "Quote author not found",
         };
     }
     if (authors === undefined) {
         return {
             replyType: ReplyType.Reply,
             ephemeral: true,
-            content: "No authors found", // TODO: Error Handling
+            content: "No authors found",
         };
     }
 

@@ -113,10 +113,10 @@ async function setupApp(): Promise<void> {
         info("Debug mode enabled");
     }
 
-    const server = setupRestApi();
+    // const server = setupRestApi(); (wip)
     const client = setupDiscordBot();
 
-    restApi = await server;
+    // restApi = await server; (wip)
     discordClient = await client;
     ready(discordClient);
 }
