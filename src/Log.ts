@@ -37,8 +37,8 @@ const format = {
 const folderPath = "./logs";
 const latestPath = `${folderPath}/latest.txt`;
 
-export function debug(message: string): EmbedBuilder {
-    if (config.debug === true) {
+export function debug(message: string, force = false): EmbedBuilder {
+    if (config.debug === true || force === true) {
         log("[DEBUG]  ", message, format.FgGray);
     }
     return new EmbedBuilder()
