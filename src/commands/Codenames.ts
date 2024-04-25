@@ -3,7 +3,7 @@ import { Command, ReplyType, Response } from '../Interactions';
 import { debug } from "../Log";
 import { RawStatistic } from "../models/statistic";
 import statisticKeys from "../../data/statistic-keys.json"
-import { addWord, getWord, getWords, removeWord } from "../models/codename";
+import { addWord, removeWord, getWords, RemoveWordResult } from "../models/codename";
 import { RemoveWordFailure, SubcommandExecutionFailure } from "../Failure";
 
 export const Codenames: Command = {
@@ -85,20 +85,17 @@ export const Codenames: Command = {
             };
 
             const word = interaction.options.getString("word", true);
-            const document = await getWord(botUser, word);
-            if (!document) {
-                const response: Response = {
-                    replyType: ReplyType.Reply,
-                    ephemeral: true,
-                    content: `Word "${word}" not found in the codenames wordpack`,
-                };
-                return { response, statistic };
-            }
-
-            if (interaction.inGuild()) {
-                const isCreator = document.creator.userId === interaction.user.id;
-
-                if (!isCreator) {
+            const removeSuccess = await removeWord(botUser, word, interaction.inGuild(), interaction.user);
+            switch (removeSuccess) {
+                case RemoveWordResult.NotFound: {
+                    const response: Response = {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: `Word "${word}" not found in the codenames wordpack`,
+                    };
+                    return { response, statistic };
+                }
+                case RemoveWordResult.NotCreator: {
                     const response: Response = {
                         replyType: ReplyType.Reply,
                         ephemeral: true,
@@ -106,20 +103,18 @@ export const Codenames: Command = {
                     };
                     return { response, statistic };
                 }
+                case RemoveWordResult.Success: {
+                    const response: Response = {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: `Removed word "${word}" from the codenames wordpack`,
+                    };
+                    return { response, statistic };
+                }
+                default: {
+                    return new RemoveWordFailure();
+                }
             }
-
-            const removed = await removeWord(botUser, word);
-
-            if (!removed) {
-                return new RemoveWordFailure()
-            }
-
-            const response: Response = {
-                replyType: ReplyType.Reply,
-                ephemeral: true,
-                content: `Removed word "${word}" from the codenames wordpack`,
-            };
-            return { response, statistic };
         },
         wordpack: async (client, interaction, botUser) => {
             debug("Codenames wordpack subcommand called");
