@@ -39,7 +39,7 @@ const latestPath = `${folderPath}/latest.txt`;
 
 export function debug(message: string): EmbedBuilder {
     if (config.debug === true) {
-        log(message, "[DEBUG]  ", format.FgGray);
+        log("[DEBUG]  ", message, format.FgGray);
     }
     return new EmbedBuilder()
         .setTitle("Debug")
@@ -48,7 +48,7 @@ export function debug(message: string): EmbedBuilder {
 }
 
 export function info(message: string): EmbedBuilder {
-    log(message, "[INFO]   ", format.FgWhite);
+    log("[INFO]   ", message, format.FgWhite);
     return new EmbedBuilder()
         .setTitle("Info")
         .setDescription(message)
@@ -56,7 +56,7 @@ export function info(message: string): EmbedBuilder {
 }
 
 export function success(message: string): EmbedBuilder {
-    log(message, "[SUCCESS]", format.FgGreen);
+    log("[SUCCESS]", message, format.FgGreen);
     return new EmbedBuilder()
         .setTitle("Success")
         .setDescription(message)
@@ -64,19 +64,30 @@ export function success(message: string): EmbedBuilder {
 }
 
 export function warn(message: string): EmbedBuilder {
-    log(message, "[WARN]   ", format.FgYellow);
+    log("[WARN]   ", message, format.FgYellow);
     return new EmbedBuilder()
         .setTitle("Warn")
         .setDescription(message)
         .setColor(embedColors.log_warning);
 }
 
-export function error(message: string): EmbedBuilder {
-    log(message, "[ERROR]  ", format.FgRed);
-    return new EmbedBuilder()
-        .setTitle("Error")
-        .setDescription(message)
-        .setColor(embedColors.log_error);
+export function error(message: string, error?: Error): EmbedBuilder {
+    if (error) {
+        log("[ERROR]  ", `${message}\n${error.stack}`, format.FgRed);
+    } else {
+        log("[ERROR]  ", message, format.FgRed);
+    }
+    const embed = new EmbedBuilder().setColor(embedColors.log_error);
+
+    if (error) {
+        embed.setTitle(message);
+        embed.setDescription(`\`\`\`${error.stack}\n\`\`\``);
+    } else {
+        embed.setTitle("Error");
+        embed.setDescription(message);
+    }
+
+    return embed;
 }
 
 export async function logToDiscord(client: Client, embed: EmbedBuilder) {
@@ -91,7 +102,7 @@ export async function logToDiscord(client: Client, embed: EmbedBuilder) {
     }
 }
 
-function log(message: string, prefix: string, color = "", doSave = true) {
+function log(prefix: string, message: string, color = "", doSave = true) {
     const localTime = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
     console.log(color, localTime, prefix, message, format.Reset);
 
