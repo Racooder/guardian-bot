@@ -123,12 +123,12 @@ export function followMenuMessage(document: FollowMenu, page = 0): [EmbedBuilder
         .addComponents(
             new ButtonBuilder()
                 .setCustomId(`follow-menu:page:${document._id}:${page - 1}`)
-                .setLabel('◀️')
+                .setEmoji('◀️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
                 .setCustomId(`follow-menu:page:${document._id}:${page + 1}`)
-                .setLabel('▶️')
+                .setEmoji('▶️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === document.targets.length - 1),
             new ButtonBuilder()

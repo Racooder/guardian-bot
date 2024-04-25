@@ -404,17 +404,17 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
                 .setDisabled(page === 0),
             new ButtonBuilder()
                 .setCustomId(`quote-page:page:${list._id}:${page - 1}`)
-                .setLabel('◀️')
+                .setEmoji('◀️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
                 .setCustomId(`quote-page:page:${list._id}:${page + 1}`)
-                .setLabel('▶️')
+                .setEmoji('▶️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === quoteChunks.length - 1),
             new ButtonBuilder()
                 .setCustomId(`quote-page:last:${list._id}`)
-                .setLabel('⏩')
+                .setEmoji('⏩')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === quoteChunks.length - 1)
         );
