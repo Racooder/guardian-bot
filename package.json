@@ -12,7 +12,7 @@
   "scripts": {
     "build": "run-script-os",
     "build:darwin:linux": "tsc && cp -r localization data meta package.json yarn.lock ./dist/",
-    "build:win32": "tsc && for %I in (localization data meta) do xcopy /E /I /Y %I dist\\%I\\ && for %I in (package.json, yarn.lock) copy %I dist\\",
+    "build:win32": "tsc && for %I in (localization data meta) do xcopy /E /I /Y %I dist\\%I\\ && for %I in (package.json, yarn.lock) do copy %I dist\\",
     "start": "node ./dist/src/App.js",
     "dev": "ts-node ./src/App.ts",
     "test": "jest --silent --json --outputFile=test-report.json"
