@@ -1,9 +1,21 @@
 import { APIInteractionGuildMember, GuildMember, PermissionResolvable } from "discord.js";
-import { debug } from "./Log";
+import botUserModel, { BotUser, QuotePrivacy } from "./models/botUser";
+import * as yaml from "js-yaml";
+
+export type Config = {
+    debug: boolean;
+    api_port: number;
+    do_update_check: boolean;
+    update_check_cron: string;
+    log_channel: string;
+    log_role: string;
+    database_name: string;
+    log_to_discord: boolean;
+}
+
+export const config: Config = yaml.load(require("fs").readFileSync("meta/config.yml", "utf8")) as Config;
 
 export function splitArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {
-    debug("Splitting array into chunks");
-
     if (chunkSize <= 0) throw new Error("chunkSize must be greater than 0");
     if (array.length == 0) return [];
     if (array.length == 1 || chunkSize >= array.length) return [array];
@@ -16,22 +28,16 @@ export function splitArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {
 }
 
 export function approximateEqual(a: number, b: number, epsilon: number): boolean {
-    debug(`Checking if ${a} is approximately equal to ${b} with epsilon ${epsilon}`);
-
     return Math.abs(a - b) < epsilon;
 }
 
 export function randomElement<T>(array: T[]): T {
-    debug("Getting random element from array");
-
     if (array.length === 0) throw new Error("Cannot get a random element from an empty array");
 
     return array[Math.floor(Math.random() * array.length)];
 }
 
 export function parseDate(dateString?: string): Date | undefined {
-    debug(`Parsing date from ${dateString}`);
-
     if (dateString === undefined) return undefined;
     if (!new RegExp(/^\d{4}-\d\d?-\d\d?$/).test(dateString)) return undefined;
 
@@ -40,22 +46,16 @@ export function parseDate(dateString?: string): Date | undefined {
 }
 
 export function unixToDate(timestamp: number): Date {
-    debug(`Converting unix timestamp ${timestamp} to date`);
-
     return new Date(timestamp * 1000);
 }
 
 export function hasPermission(member: GuildMember | APIInteractionGuildMember | null, permission: PermissionResolvable): boolean {
-    debug("Checking if member has permission")
-
     if (member === null) return false;
     if (typeof member.permissions === "string") return false;
     return member.permissions.has(permission);
 }
 
 export function generateToken(): string {
-    debug("Generating token")
-
     const tokenNumber = new Date().getTime() - 1672531200000;
     return tokenNumber.toString(36);
 }
@@ -64,8 +64,6 @@ export type Dict<T> = { [key: string]: T };
 
 // https://stackoverflow.com/a/2450976
 export function shuffleArray<T>(array: T[]): T[] {
-    debug("Shuffling array")
-
     let currentIndex = array.length;
 
     while (currentIndex != 0) {
@@ -76,4 +74,25 @@ export function shuffleArray<T>(array: T[]): T[] {
     }
 
     return array;
+}
+
+export function clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
+}
+
+export async function getAccessableConnections(botUser: BotUser): Promise<BotUser['_id'][]> {
+    const connections = [botUser._id];
+    for (let user of botUser.following as BotUser[]) {
+        if (user.settings === undefined) {
+            user = await botUserModel.findById(user._id).populate('settings').exec() as BotUser;
+        }
+
+        if (user.settings.quote_privacy === QuotePrivacy.PRIVATE) continue;
+        if (user.settings.quote_privacy === QuotePrivacy.TWO_WAY) {
+            if (user.following.find(following => following._id.equals(botUser._id)) === undefined) continue;
+        };
+        connections.push(user._id);
+    }
+
+    return connections;
 }

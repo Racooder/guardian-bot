@@ -387,6 +387,7 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
         embedDescription += ` matching:\n${query}`;
     }
 
+    debug("Creating quote embed fields");
     const embedFields = await Promise.all(pageQuotes.map((quote) => quoteEmbedField(quote, client)));
 
     const embedBuilder = new EmbedBuilder()
@@ -403,27 +404,29 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
                 .setDisabled(page === 0),
             new ButtonBuilder()
                 .setCustomId(`quote-page:page:${list._id}:${page - 1}`)
-                .setLabel('◀️')
+                .setEmoji('◀️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
                 .setCustomId(`quote-page:page:${list._id}:${page + 1}`)
-                .setLabel('▶️')
+                .setEmoji('▶️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === quoteChunks.length - 1),
             new ButtonBuilder()
                 .setCustomId(`quote-page:last:${list._id}`)
-                .setLabel('⏩')
+                .setEmoji('⏩')
                 .setStyle(ButtonStyle.Secondary)
-                .setDisabled(page === quoteChunks.length - 1)
+                .setDisabled(page === quoteChunks.length - 1),
+            new ButtonBuilder()
+                .setCustomId(`quote-page:page:${list._id}:${page}`)
+                .setEmoji('🔄')
+                .setStyle(ButtonStyle.Secondary)
         );
 
     return [embedBuilder, actionRow];
 }
 
 async function quoteEmbedField(quote: QuoteType, client: Client) {
-    debug("Creating quote embed field");
-
     if (quote.authors.length !== quote.statements.length) {
         logToDiscord(client, error(`Quote ${quote.token} has a mismatch between the number of authors and statements or can't be populated correctly.`));
         return {

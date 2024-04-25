@@ -1,12 +1,12 @@
 import { debug, error, info, setupLog, success, warn } from "../src/Log";
 
+setupLog();
+
 describe('Log - loggers', () => {
     const logSpy = jest.spyOn(console, 'log');
 
-    setupLog();
-
     test('debug should log the message with the correct prefix and color', () => {
-        debug("test");
+        debug("test", true);
         expect(logSpy).toHaveBeenCalledWith("\x1b[90m", expect.anything(), "[DEBUG]  ", "test", "\x1b[0m");
     });
     test('info should log the message with the correct prefix and color', () => {

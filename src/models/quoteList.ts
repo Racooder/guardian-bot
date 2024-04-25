@@ -2,7 +2,7 @@ import { Document, Model, Schema, model } from 'mongoose';
 import { DiscordUser, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
 import quoteModel, { Quote } from './quote';
 import { BotUser } from './botUser';
-import { approximateEqual } from '../Essentials';
+import { approximateEqual, getAccessableConnections } from '../Essentials';
 import { debug } from '../Log';
 
 const QUOTE_DATE_RANGE = 259200000; // 3 days in milliseconds
@@ -62,7 +62,12 @@ export async function createQuoteList(botUser: BotUser, content?: string, author
 
     let authorUser: DiscordUser | undefined;
     let creatorUser: DiscordUser | undefined;
-    let query: QuoteQuery = { user: botUser._id };
+
+    const document = await quoteListModel.create({ user: botUser._id, content, author: authorUser?._id, context, creator: creatorUser?._id, date });
+    const list = await (await document.populate('author')).populate('creator');
+
+    const targets = await getAccessableConnections(botUser);
+    let query: QuoteQuery = { user: { $in: targets } };
     if (author && typeof author !== 'string') {
         const authorData = getDiscordUserData(author);
         authorUser = await getOrCreateDiscordUser(authorData.name, authorData.type, author.id);
@@ -73,9 +78,6 @@ export async function createQuoteList(botUser: BotUser, content?: string, author
         creatorUser = await getOrCreateDiscordUser(creatorData.name, creatorData.type, creator.id);
         query.creator = creatorUser._id;
     }
-
-    const document = await quoteListModel.create({ user: botUser._id, content, author: authorUser?._id, context, creator: creatorUser?._id, date });
-    const list = await (await document.populate('author')).populate('creator');
 
     let quotes = await quoteModel.find(query).populate("creator").populate("authors").exec();
     quotes = quotes.filter(quote => {

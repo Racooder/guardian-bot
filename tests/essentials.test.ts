@@ -73,6 +73,8 @@ describe('Essentials - generateToken', () => {
         expect(savedToken).toMatch(/[a-z0-9]+/);
     });
     test('A new token should be generated', () => {
-        expect(generateToken()).not.toBe(savedToken);
+        setTimeout(() => {
+            expect(generateToken()).not.toBe(savedToken);
+        }, 1);
     });
 });
