@@ -30,7 +30,7 @@ export const QuoteGuesser: Command = {
 export async function newRound(botUser: BotUser, document?: QuoteGuesserGame): Promise<Response>{
     debug("Starting new round");
 
-    const [quote, quoteAuthor, authors] = await randomQuote(botUser, document?.usedQuotes);
+    const [quote, authors, correctAuthor] = await randomQuote(botUser, document?.usedQuotes);
     if (quote === undefined) {
         return {
             replyType: ReplyType.Reply,
@@ -38,7 +38,7 @@ export async function newRound(botUser: BotUser, document?: QuoteGuesserGame): P
             content: "No quotes left to guess", // TODO: Error Handling
         };
     }
-    if (quoteAuthor === undefined) {
+    if (correctAuthor === undefined) {
         return {
             replyType: ReplyType.Reply,
             ephemeral: true,
@@ -54,10 +54,17 @@ export async function newRound(botUser: BotUser, document?: QuoteGuesserGame): P
     }
 
     if (document === undefined) {
-        document = await createQuoteGuesserGame(quote, authors, quoteAuthor);
+        document = await createQuoteGuesserGame(quote, authors, correctAuthor);
+    } else {
+        document.currentQuote = quote;
+        document.usedQuotes.push(quote._id);
+        document.choices = authors;
+        document.correctAuthor = correctAuthor;
+        document.answers.clear();
+        await document.save();
     }
 
-    const [embedBuilders, actionRows] = quoteGuesserMessage(document, quote.statements[0])
+    const [embedBuilders, actionRows] = quoteGuesserMessage(document, quote.statements[0]);
 
     return {
         replyType: ReplyType.Reply,
@@ -80,9 +87,9 @@ export function quoteGuesserMessage(document: QuoteGuesserGame, quote: string): 
 
     const id = document._id;
     const round = document.usedQuotes.length;
-    const answerCount = Object.keys(document.answers).length;
-    const authors = document.choices;
-    const quoteAuthor = document.correctAuthor;
+    const choices = document.choices;
+    const correctAuthor = document.correctAuthor;
+    const answerCount = document.answers.size;
 
     let answersText = "No one answered yet";
     if (answerCount > 0) {
@@ -108,8 +115,8 @@ export function quoteGuesserMessage(document: QuoteGuesserGame, quote: string): 
         ) as ActionRowBuilder<ButtonBuilder>;
 
     // Shuffle authors and add the correct author
-    const options = shuffleArray<[string, string]>(authors).slice(0, 24);
-    options.splice(Math.floor(Math.random() * options.length), 0, quoteAuthor);
+    const options = shuffleArray<[string, string]>(Array.from(choices.entries())).slice(0, 24);
+    options.splice(Math.floor(Math.random() * options.length), 0, correctAuthor);
 
     const selectionRow = new ActionRowBuilder()
         .addComponents(

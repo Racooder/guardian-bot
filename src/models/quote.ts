@@ -2,7 +2,7 @@ import { Document, Model, Schema, model } from 'mongoose';
 import { BotUser } from './botUser';
 import { DiscordUser, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
 import { User } from 'discord.js';
-import { Dict, generateToken, getAccessableConnections } from '../Essentials';
+import { generateToken, getAccessableConnections } from '../Essentials';
 import { debug } from '../Log';
 
 export interface Quote extends Document {
@@ -67,30 +67,29 @@ export async function getQuoteByToken(botUser: BotUser, token: string): Promise<
     return document;
 }
 
-export async function randomQuote(botUser: BotUser, exclude: Quote['_id'][] = []): Promise<[Quote?, [string, string]?, [string, string][]?]> {
+export async function randomQuote(botUser: BotUser, exclude: Quote['_id'][] = []): Promise<[Quote?, Map<string, string>?, [string, string]?]> {
     debug(`Getting random quote for bot user ${botUser.id}`);
 
     const targets = await getAccessableConnections(botUser);
 
     const documents = await quoteModel.find({ _id: { $nin: exclude }, user: { $in: targets } }).populate('user').populate('creator').populate('authors').exec();
-    if (documents.length === 0) return [undefined, undefined];
+    if (documents.length === 0) return [];
     const quote = documents[Math.floor(Math.random() * documents.length)];
 
+    debug("Getting correct author for the quote")
+    const correctAuthor = [quote.authors[0].name.toLowerCase(), quote.authors[0].name] as [string, string];
+
     debug("Getting all quote authors for the bot user")
-    let authorsDict: Dict<string> = {};
+    let authors = new Map<string, string>();
     for (const doc of documents) {
         for (const author of doc.authors) {
-            authorsDict[author.name.toLowerCase()] = author.name;
+            if (author.name.toLowerCase() === correctAuthor[0]) continue;
+
+            authors.set(author.name.toLowerCase(), author.name);
         }
     }
 
-    debug("Seperating quote author from other authors")
-    const authors = Object.entries(authorsDict);
-    const quoteAuthor = [quote.authors[0].name.toLowerCase(), quote.authors[0].name] as [string, string];
-    const quoteAuthorIndex = authors.map(author => author[0]).indexOf(quoteAuthor[0]);
-    authors.splice(quoteAuthorIndex, 1);
-
-    return [quote, quoteAuthor, authors];
+    return [quote, authors, correctAuthor];
 }
 
 export default quoteModel;

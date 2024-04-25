@@ -7,6 +7,7 @@ import { Dict } from "../Essentials";
 import quoteGuesserModel, { QuoteGuesserGame } from "../models/quoteGuesser";
 import { newRound, quoteGuesserMessage } from "../commands/QuoteGuesser";
 import { BotUser } from "../models/botUser";
+import discordUserModel from "../models/discordUser";
 
 export const QuoteGuesserComponent: Component<ButtonInteraction | StringSelectMenuInteraction> = {
     name: "quote-guesser",
@@ -39,7 +40,7 @@ export const QuoteGuesserComponent: Component<ButtonInteraction | StringSelectMe
             return { response, statistic };
         }
 
-        const gameDocument = await quoteGuesserModel.findById(data[1]).populate("currentQuote").populate("correctAuthor").exec();
+        const gameDocument = await quoteGuesserModel.findById(data[1]).populate("currentQuote").exec();
         if (gameDocument === null) {
             const response: Response = {
                 replyType: ReplyType.Reply,
@@ -72,15 +73,25 @@ const HANDLER = {
 } as Dict<handlerFunction>;
 
 async function handleFinish(gameDocument: QuoteGuesserGame): Promise<handlerReturnType> {
+    for (const answer of gameDocument.answers.entries()) {
+        if (answer[1] === gameDocument.correctAuthor[0]) {
+            const prevScore = gameDocument.scores.get(answer[0]) || 0;
+            gameDocument.scores.set(answer[0], prevScore + 1);
+        }
+    }
+    gameDocument.save();
+
     return roundResultsMessage(gameDocument);
 }
 
 async function handleEnd(gameDocument: QuoteGuesserGame): Promise<handlerReturnType> {
-    return [ [gameResultsMessage(gameDocument)], [] ];
+    const resultMessage = gameResultsMessage(gameDocument);
+    quoteGuesserModel.findByIdAndDelete(gameDocument._id).exec();
+    return resultMessage;
 }
 
 async function handleNext(gameDocument: QuoteGuesserGame, _: ButtonInteraction, botUser: BotUser): Promise<handlerReturnType> {
-    const response =  await newRound(botUser, gameDocument);
+    const response = await newRound(botUser, gameDocument);
     if (response.embeds === undefined || response.components === undefined) {
         return quoteGuesserMessage(gameDocument, gameDocument.currentQuote);
     }
@@ -89,69 +100,74 @@ async function handleNext(gameDocument: QuoteGuesserGame, _: ButtonInteraction, 
 
 async function handleAnswer(gameDocument: QuoteGuesserGame, interaction: StringSelectMenuInteraction): Promise<handlerReturnType>  {
     const answer = interaction.values[0];
-    gameDocument.answers.push([interaction.user.id, answer]);
+    gameDocument.answers.set(interaction.user.id, answer);
     gameDocument.save();
 
     return quoteGuesserMessage(gameDocument, gameDocument.currentQuote.statements[0]);
 }
 
-function roundResultsMessage(gameDocument: QuoteGuesserGame): [EmbedBuilder[], ActionRowBuilder<ButtonBuilder>[]] {
+async function roundResultsMessage(gameDocument: QuoteGuesserGame): Promise<[EmbedBuilder[], ActionRowBuilder<ButtonBuilder>[]]> {
     debug("Creating round results message");
 
-    const results = gameDocument.answers;
-    const round = gameDocument.usedQuotes.length;
     const quote = gameDocument.currentQuote.statements[0] as string;
-    const author = gameDocument.correctAuthor[0];
-
-    let correctAnswers = 0;
-    for (const answer of results) {
-        if (answer[1] === author) {
-            correctAnswers++;
-        }
-    }
-
-    let correctAnswersText = "No one answered correctly";
-    if (correctAnswers > 0) {
-        correctAnswersText = `${correctAnswers} ${correctAnswers === 1 ? "person has" : "people have"} answered correctly`;
-    }
+    const round = gameDocument.usedQuotes.length;
+    const correctAuthor = gameDocument.correctAuthor[0];
 
     const embedBuilder = new EmbedBuilder()
-        .setAuthor({ name: `Quote Guesser - Round ${round} Results` })
-        .setTitle(`The correct answer was: ${author}`)
-        .setDescription(`"${quote}" - ${author}`)
-        .addFields(results.map(([name, answer]) => {
-            return { name: `${name}'s answer`, value: `${answer} ${answer[1] === author ? "✅" : "❌"}`};
-        }))
-        .setFooter({ text: correctAnswersText });
+    .setAuthor({ name: `Quote Guesser - Round ${round} Results` })
+    .setTitle(`The correct answer was ${correctAuthor}`)
+    .setDescription(`"${quote}" - ${correctAuthor}`)
+
+    const answers = gameDocument.answers.entries();
+    const choices = gameDocument.choices;
+    choices.set(correctAuthor, gameDocument.correctAuthor[1]);
+
+    let correctAnswers = 0;
+    for (const answer of answers) {
+        if (answer[1] === correctAuthor) {
+            correctAnswers++;
+        }
+        const userDocument = await discordUserModel.findOne({ userId: answer[0] })
+        if (userDocument === null) continue;
+        embedBuilder.addFields({ name: `${userDocument.name}'s answer`, value: `${choices.get(answer[1])} ${answer[1] === correctAuthor ? "✅" : "❌"}` });
+    }
+
+    if (correctAnswers > 0) {
+        embedBuilder.setFooter({ text: `${correctAnswers} ${correctAnswers === 1 ? "person has" : "people have"} answered correctly` });
+    } else {
+        embedBuilder.setFooter({ text: "No one answered correctly" });
+    }
+
 
     const actionRow = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`quote-guesser-next-${round}`)
+                .setCustomId(`quote-guesser:next:${gameDocument._id}`)
                 .setLabel("Next Round")
                 .setStyle(ButtonStyle.Primary),
             new ButtonBuilder()
-                .setCustomId(`quote-guesser-stop-${round}`)
-                .setLabel("Stop Game")
+                .setCustomId(`quote-guesser:end:${gameDocument._id}`)
+                .setLabel("End Game")
                 .setStyle(ButtonStyle.Danger),
         ) as ActionRowBuilder<ButtonBuilder>;
 
     return [[embedBuilder], [actionRow]];
 }
 
-function gameResultsMessage(gameDocument: QuoteGuesserGame): EmbedBuilder {
+async function gameResultsMessage(gameDocument: QuoteGuesserGame): Promise<[EmbedBuilder[], []]> {
     debug("Creating game results message");
 
-    const results = Object.entries(gameDocument.scores);
     const round = gameDocument.usedQuotes.length;
-
     const embedBuilder = new EmbedBuilder()
         .setAuthor({ name: `Quote Guesser - Game Results` })
         .setTitle(`Game Over!`)
         .setDescription(`The game has ended after ${round} rounds`)
-        .addFields(results.map(([name, score]) => {
-            return { name, value: score.toString() };
-        }));
 
-    return embedBuilder;
+    for (const result of gameDocument.scores.entries()) {
+        const userDocument = await discordUserModel.findOne({ userId: result[0] });
+        if (userDocument === null) continue;
+        embedBuilder.addFields({ name: userDocument.name, value: `${result[1]} ${result[1] === 1 ? "point" : "points"}` });
+    }
+
+    return [[embedBuilder], []];
 }
