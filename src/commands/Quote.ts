@@ -416,7 +416,11 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
                 .setCustomId(`quote-page:last:${list._id}`)
                 .setEmoji('⏩')
                 .setStyle(ButtonStyle.Secondary)
-                .setDisabled(page === quoteChunks.length - 1)
+                .setDisabled(page === quoteChunks.length - 1),
+            new ButtonBuilder()
+                .setCustomId(`quote-page:page:${list._id}:${page}`)
+                .setEmoji('🔄')
+                .setStyle(ButtonStyle.Secondary)
         );
 
     return [embedBuilder, actionRow];
