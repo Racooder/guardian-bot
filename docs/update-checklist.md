@@ -1,13 +1,15 @@
 # Checklist for update releases
 
+> [!IMPORTANT]
+> Don't forget to credit testers
+
 1. Remove all `TODO:` or `FIXME:` comments
 2. Run tests
 3. Do manual tests
 4. Write changelog
 5. Update version in `README`
-6. Update `version.json`
-7. Change `database_name` in `config.yml` to `guardian-v<version>` where `<version>` is the current major database version. For example `guardian-v3`
-8. Create pull request and merge with `main`
-9. Check if automated build passes
-10. Create release with version tag
-11. Check if bot updates correctly
+6. Update `version.yml`
+7. Create pull request and merge with `main`
+8. Check if automated build passes
+9. Create release with version tag
+10. Check if bot updates correctly
