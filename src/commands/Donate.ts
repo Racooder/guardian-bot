@@ -1,10 +1,8 @@
 import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builders";
 import { APIActionRowComponent, APIMessageActionRowComponent, ApplicationCommandType, ButtonStyle } from "discord.js";
-import { Command, ReplyType, Response } from "../Interactions";
+import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
 import embedColors from "../../data/embed-colors.json";
-import { RawStatistic } from "../models/statistic";
-import statisticKeys from "../../data/statistic-keys.json"
 
 const KOFI_URL = "https://ko-fi.com/racooder";
 const PAYPAL_URL = "https://paypal.me/racooder";
@@ -16,12 +14,6 @@ export const Donate: Command = {
     type: ApplicationCommandType.ChatInput,
     run: async (client, interaction, botUser) => {
         debug("Donate command called");
-
-        const statistic: RawStatistic = {
-            global: false,
-            key: statisticKeys.bot.event.interaction.command.donate,
-            user: botUser
-        };
 
         const embed = new EmbedBuilder()
             .setTitle("Donate on Ko-fi or directly per PayPal!")
@@ -45,11 +37,10 @@ export const Donate: Command = {
 
         const actionRowComponent = actionRow.toJSON() as APIActionRowComponent<APIMessageActionRowComponent>;
 
-        const response: Response = {
+        return {
             replyType: ReplyType.Reply,
             embeds: [embed],
             components: [actionRowComponent],
         };
-        return { response, statistic };
     },
 };

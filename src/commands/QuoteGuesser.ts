@@ -1,29 +1,18 @@
 import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
-import { Command, ReplyType, Response } from "../Interactions";
+import { Command, ReplyType, Response } from "../InteractionEssentials";
 import { debug } from "../Log";
-import statisticKeys from "../../data/statistic-keys.json"
-import { RawStatistic } from "../models/statistic";
 import quoteGuesserModel, { createQuoteGuesserGame, QuoteGuesserGame } from "../models/quoteGuesser";
 import { shuffleArray } from "../Essentials";
 import { randomQuote } from "../models/quote";
 import { BotUser } from "../models/botUser";
 
 export const QuoteGuesser: Command = {
-    name: "quote-guesser",
+    name: "quote_guesser",
     description: "Play the quote guesser game.",
     type: ApplicationCommandType.ChatInput,
     run: async (client, interaction, botUser) => {
         debug("QuoteGuesser command called");
-
-        const statistic: RawStatistic = {
-            global: false,
-            key: statisticKeys.bot.event.interaction.command.quoteGuesser,
-            user: botUser
-        };
-
-        const response = await newRound(botUser);
-
-        return { response, statistic };
+        return await newRound(botUser);
     },
 };
 
@@ -52,7 +41,6 @@ export async function newRound(botUser: BotUser, document?: QuoteGuesserGame): P
             content: "No authors found",
         };
     }
-
     if (document === undefined) {
         document = await createQuoteGuesserGame(quote, authors, correctAuthor);
     } else {
@@ -64,13 +52,7 @@ export async function newRound(botUser: BotUser, document?: QuoteGuesserGame): P
         await document.save();
     }
 
-    const [embedBuilders, actionRows] = quoteGuesserMessage(document, quote.statements[0]);
-
-    return {
-        replyType: ReplyType.Reply,
-        embeds: embedBuilders,
-        components: actionRows,
-    };
+    return quoteGuesserMessage(document, quote.statements[0], ReplyType.Reply);
 }
 
 export async function finishRound(id: string) {
@@ -82,7 +64,7 @@ export async function finishRound(id: string) {
     }
 }
 
-export function quoteGuesserMessage(document: QuoteGuesserGame, quote: string): [EmbedBuilder[], ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[]] {
+export function quoteGuesserMessage(document: QuoteGuesserGame, quote: string, replyType: ReplyType): Response {
     debug("Creating quote guesser message");
 
     const id = document._id;
@@ -105,11 +87,11 @@ export function quoteGuesserMessage(document: QuoteGuesserGame, quote: string): 
     const buttonRow = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`quote-guesser:finish:${id}`)
+                .setCustomId(`quote_guesser_button;finish;${id}`)
                 .setLabel("Finish Round")
                 .setStyle(ButtonStyle.Primary),
             new ButtonBuilder()
-                .setCustomId(`quote-guesser:end:${id}`)
+                .setCustomId(`quote_guesser_button;end;${id}`)
                 .setLabel("End Game")
                 .setStyle(ButtonStyle.Danger),
         ) as ActionRowBuilder<ButtonBuilder>;
@@ -117,18 +99,21 @@ export function quoteGuesserMessage(document: QuoteGuesserGame, quote: string): 
     // Shuffle authors and add the correct author
     const options = shuffleArray<[string, string]>(Array.from(choices.entries())).slice(0, 24);
     options.splice(Math.floor(Math.random() * options.length), 0, correctAuthor);
+    const optionObjects = options.map(([id, name]) => ({ value: id, label: name }));
 
     const selectionRow = new ActionRowBuilder()
         .addComponents(
             new StringSelectMenuBuilder()
-                .setCustomId(`quote-guesser:answer:${id}`)
+                .setCustomId(`quote_guesser_answer;${id}`)
                 .setPlaceholder("Select the correct answer")
-                .addOptions(options.map(([lowered, name]) => {
-                    return { label: name, value: lowered };
-                }))
+                .addOptions(optionObjects)
                 .setMinValues(1)
                 .setMaxValues(1),
         ) as ActionRowBuilder<StringSelectMenuBuilder>;
 
-    return [[embedBuilder], [buttonRow, selectionRow]];
+    return {
+        replyType,
+        embeds: [embedBuilder],
+        components: [selectionRow, buttonRow],
+    }
 }

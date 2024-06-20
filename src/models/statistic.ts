@@ -10,13 +10,11 @@ export type StatisticFilter = {
     keys?: string[];
 }
 
-export interface RawStatistic {
+export interface Statistic extends Document {
     global: boolean;
     key: string;
-    user?: BotUser;
-}
+    user?: BotUser['_id'];
 
-export interface Statistic extends RawStatistic, Document {
     createdAt: Date;
     updatedAt: Date;
 }
@@ -30,12 +28,6 @@ const statisticSchema = new Schema<Statistic, StatisticModel>({
 }, { timestamps: true });
 
 const statisticModel = model<Statistic, StatisticModel>('Statistics', statisticSchema);
-
-export async function insertStatistic(stats: RawStatistic): Promise<Statistic> {
-    debug("Inserting statistic")
-
-    return await statisticModel.create({ ...stats, user: stats.user });
-}
 
 export async function getStatistics(filter?: StatisticFilter): Promise<Statistic[]> {
     debug("Getting statistics")

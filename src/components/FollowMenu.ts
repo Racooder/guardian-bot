@@ -1,70 +1,62 @@
 import { debug } from "../Log";
-import { Component, ReplyType, Response } from '../Interactions';
-import { UnknownFollowMenuDataFailure } from "../Failure";
+import { Component, ReplyType } from '../InteractionEssentials';
 import { ButtonInteraction, ComponentType } from "discord.js";
-import { RawStatistic } from "../models/statistic";
-import statisticKeys from "../../data/statistic-keys.json";
 import followMenuModel from "../models/followMenu";
 import { followMenuMessage } from "../commands/Connections";
 import botUserModel from "../models/botUser";
 
 export const FollowMenu: Component<ButtonInteraction> = {
-    name: "follow-menu",
+    name: "follow_menu",
     type: ComponentType.Button,
-    run: async (client, interaction, botUser, data) => {
-        debug("FollowMenu component called");
-
-        const statistic: RawStatistic = {
-            global: false,
-            key: statisticKeys.bot.event.interaction.component.followMenu,
-            user: botUser
-        };
-
-        let responseContent = "";
-        switch (data[0]) {
-            case "page":
+    subcomponents: {
+        page: {
+            run: async (client, interaction, botUser, data) => {
                 debug("FollowMenu page button pressed");
-                const document = await followMenuModel.findById(data[1]);
+
+                const document = await followMenuModel.findById(data[0]);
 
                 if (document) {
-                    const page = parseInt(data[2]);
-                    const [embed, actionRow] = await followMenuMessage(document, page);
+                    const page = parseInt(data[1]);
+                    const [embed, actionRow] = await followMenuMessage(botUser, document, page);
 
-                    const response: Response = {
+                    return {
                         replyType: ReplyType.Update,
                         embeds: [embed],
                         components: [actionRow],
                     };
-                    return { response, statistic };
                 }
 
-                responseContent = "This follow menu has expired";
-                break;
-            case "follow":
+                return {
+                    replyType: ReplyType.Update,
+                    content: "This follow menu has expired",
+                    embeds: [],
+                    components: [],
+                    ephemeral: true,
+                };
+            },
+        },
+        follow: {
+            run: async (client, interaction, botUser, data) => {
                 debug("FollowMenu follow button pressed");
-                const targetDocument = await botUserModel.findById(data[1]);
+                const targetDocument = await botUserModel.findById(data[0]);
 
-                if (!targetDocument) {
-                    responseContent = "Could not find the user or server you were looking for";
-                    break;
+                let responseContent = "Could not find the user or server you were looking for";
+                if (targetDocument) {
+                    responseContent = `Successfully followed **${targetDocument.name}**`;
+                    if (!botUser.following.includes(targetDocument.id)) {
+                        botUser.following.push(targetDocument);
+                    }
+                    await botUser.save();
                 }
 
-                botUser.following.push(targetDocument);
-                await botUser.save();
-                responseContent = `Successfully followed **${targetDocument.name}**`;
-                break;
-            default:
-                return new UnknownFollowMenuDataFailure();
+                return {
+                    replyType: ReplyType.Update,
+                    content: responseContent,
+                    embeds: [],
+                    components: [],
+                    ephemeral: true,
+                };
+            }
         }
-
-        const response: Response = {
-            replyType: ReplyType.Update,
-            content: responseContent,
-            embeds: [],
-            components: [],
-            ephemeral: true,
-        };
-
-        return { response, statistic };
     },
 };

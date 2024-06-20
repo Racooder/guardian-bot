@@ -1,8 +1,6 @@
 import { ApplicationCommandType, EmbedBuilder } from "discord.js";
-import { Command, ReplyType, Response } from "../Interactions";
+import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
-import statisticKeys from "../../data/statistic-keys.json";
-import { RawStatistic } from "../models/statistic";
 
 export const Ping: Command = {
     name: "ping",
@@ -30,18 +28,11 @@ export const Ping: Command = {
             }
         );
 
-        const response: Response = {
+        return {
             replyType: ReplyType.Reply,
             embeds: [embed],
             ephemeral: true,
         };
-        const statistic: RawStatistic = {
-            global: false,
-            key: statisticKeys.bot.event.interaction.command.ping,
-            user: botUser
-        };
-
-        return { response, statistic };
     },
 };
 

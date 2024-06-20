@@ -1,4 +1,3 @@
-import { insertStatistic } from "../models/statistic";
 import { EventListener } from "../EventListeners";
 import { Commands } from "../Interactions";
 import { debug, error, info, success } from "../Log";
@@ -9,6 +8,7 @@ import followMenuModel from "../models/followMenu";
 import quoteGuesserModel from "../models/quoteGuesser";
 import quoteListModel from "../models/quoteList";
 import { Model } from 'mongoose';
+import statisticModel from "../models/statistic";
 
 export const Ready: EventListener = {
     start: (client) =>{
@@ -40,9 +40,9 @@ export const Ready: EventListener = {
 
             success(`${client.user.tag} is online`);
 
-            insertStatistic({
+            statisticModel.create({
                 global: true,
-                key: statisticKeys.bot.event.ready,
+                key: statisticKeys.bot.event.ready
             });
         });
     }

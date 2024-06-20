@@ -1,10 +1,12 @@
 import { debug, error, logToDiscord } from "../Log";
 import { EventListener } from "../EventListeners";
-import { ButtonInteraction, Client, CommandInteraction, ComponentType, InteractionUpdateOptions, MessageComponentInteraction } from "discord.js";
-import { Commands, ComponentReturnType, Components, ReplyType, SlashCommandReturnType } from '../Interactions';
-import { CommandNotFoundFailure, ComponentNotFoundFailure, Failure, MessageComponentExecutionFailure, SlashCommandExecutionFailure, SubcommandGroupNotFoundFailure, SubcommandNotFoundFailure, UnknownComponentTypeFailure } from '../Failure';
-import { RawStatistic, insertStatistic } from "../models/statistic";
 import { BotUser, BotUserType, updateBotUser } from "../models/botUser";
+import { CommandFormatFailure, CommandNotFoundFailure, ComponentNotFoundFailure, Failure, MessageComponentExecutionFailure, SlashCommandExecutionFailure } from "../Failure";
+import statisticKeys from "../../data/statistic-keys.json";
+import statisticModel from "../models/statistic";
+import { ButtonInteraction, Client, CommandInteraction, ComponentType, InteractionUpdateOptions, MessageComponentInteraction } from "discord.js";
+import { Commands, Components } from "../Interactions";
+import { ReplyType, Response } from "../InteractionEssentials";
 
 export const InteractionCreate: EventListener = {
     start: (client) => {
@@ -18,7 +20,7 @@ export const InteractionCreate: EventListener = {
                 botUser = await updateBotUser(interaction.user.id, BotUserType.USER, interaction.user.username, 0);
             }
 
-            let result: SlashCommandReturnType | ComponentReturnType | Failure;
+            let result: [Response, string] | Failure;
             if (interaction.isCommand()) {
                 result = await handleSlashCommand(client, interaction, botUser);
             } else if (interaction.isMessageComponent()) {
@@ -28,56 +30,29 @@ export const InteractionCreate: EventListener = {
                 return;
             }
 
-            await updateStatistics(result);
-            await replyToInteraction(interaction, result);
+            let statKey: string;
             if (result instanceof Failure) {
                 result.log(client);
+                statKey = result.statKey();
+                replyToInteraction(interaction, result);
+            } else {
+                statKey = result[1];
+                replyToInteraction(interaction, result[0]);
             }
+
+            statisticModel.create({
+                global: false,
+                key: statKey,
+                user: botUser._id,
+            });
         });
     }
 }
 
-async function updateStatistics(response: SlashCommandReturnType | ComponentReturnType | Failure) {
-    debug("Updating statistics");
-
-    let statistic: RawStatistic;
-    if (response instanceof Failure) {
-        statistic = response.statistic();
-    } else {
-        statistic = response.statistic;
-    }
-    insertStatistic(statistic);
-}
-
-async function replyToInteraction(interaction: CommandInteraction | MessageComponentInteraction, response: SlashCommandReturnType | ComponentReturnType | Failure) {
-    debug("Replying to interaction");
-
-    if (response instanceof Failure) {
-        interaction.reply(response.slashCommandResponse("en", true));
-        return;
-    }
-
-    const reply = response.response;
-
-    switch (reply.replyType) {
-        case ReplyType.Reply:
-            interaction.reply(reply);
-            break;
-        case ReplyType.FollowUp:
-            interaction.reply(reply);
-            break;
-        case ReplyType.Update:
-            if (interaction.isMessageComponent() ) {
-                interaction.update(reply as InteractionUpdateOptions);
-            } else {
-                interaction.editReply(reply);
-            }
-            break;
-    }
-}
-
-async function handleSlashCommand(client: Client, interaction: CommandInteraction, botUser: BotUser): Promise<SlashCommandReturnType | Failure> {
+async function handleSlashCommand(client: Client, interaction: CommandInteraction, botUser: BotUser): Promise<[Response, string] | Failure> {
     debug("Slash command interaction recieved");
+
+    let statKey = statisticKeys.bot.event.interaction.command
 
     debug(`Getting command ${interaction.commandName}`);
     const commandHandler = Commands.find(
@@ -89,75 +64,152 @@ async function handleSlashCommand(client: Client, interaction: CommandInteractio
         return new CommandNotFoundFailure();
     }
 
-    debug("Running command");
-    let commandReturn: SlashCommandReturnType | Failure;
-    try {
-        commandReturn = await commandHandler.run(client, interaction, botUser);
-    } catch (err) {
-        return new SlashCommandExecutionFailure(err);
+    statKey += `.${commandHandler.name}`;
+
+    if (commandHandler.run) {
+        try {
+            const result = await commandHandler.run(client, interaction, botUser);
+            if (result instanceof Failure) {
+                return result;
+            } else {
+                return [result, statKey];
+            }
+        } catch (err) {
+            return new SlashCommandExecutionFailure(err);
+        }
     }
 
     if (!interaction.isChatInputCommand()) {
-        return commandReturn;
+        return new CommandFormatFailure();
     }
 
-    const subcommandGroup = interaction.options.getSubcommandGroup(false);
-    const subcommand = interaction.options.getSubcommand(false);
-
-    if (subcommandGroup && subcommand) {
-        if (!commandHandler.subcommandGroups) {
-            return new SubcommandGroupNotFoundFailure();
+    let firstSubcommand = interaction.options.getSubcommandGroup(false);
+    let secondSubcommand = interaction.options.getSubcommand(false);
+    if (!firstSubcommand) {
+        if (!secondSubcommand) {
+            return new CommandFormatFailure();
         }
 
-        const subcommandGroupHandler = commandHandler.subcommandGroups[subcommandGroup];
-        if (subcommandGroupHandler.hasOwnProperty(subcommand)) {
-            return subcommandGroupHandler[subcommand](client, interaction, botUser);
+        firstSubcommand = secondSubcommand;
+        secondSubcommand = null;
+    }
+
+    if (!commandHandler.subcommands) {
+        return new CommandFormatFailure();
+    }
+    if (!commandHandler.subcommands[firstSubcommand]) {
+        return new CommandFormatFailure();
+    }
+
+    let subcommandHandler = commandHandler.subcommands[firstSubcommand];
+    statKey += `.${firstSubcommand}`;
+
+    if (secondSubcommand) {
+        if (!subcommandHandler.subcommands) {
+            return new CommandFormatFailure();
+        }
+        if (!subcommandHandler.subcommands[secondSubcommand]) {
+            return new CommandFormatFailure();
+        }
+
+        subcommandHandler = subcommandHandler.subcommands[secondSubcommand];
+        statKey += `.${secondSubcommand}`;
+    }
+
+    if (!subcommandHandler.run) {
+        return new CommandFormatFailure();
+    }
+
+    try {
+        const result = await subcommandHandler.run(client, interaction, botUser);
+        if (result instanceof Failure) {
+            return result;
         } else {
-            return new SubcommandNotFoundFailure();
+            return [result, statKey];
         }
+    } catch (err) {
+        return new SlashCommandExecutionFailure(err);
     }
-
-    if (subcommand) {
-        if (!commandHandler.subcommands) {
-            return new SubcommandNotFoundFailure();
-        }
-
-        const subcommandHandler = commandHandler.subcommands[subcommand];
-        if (!subcommandHandler) {
-            return new SubcommandNotFoundFailure();
-        }
-        return subcommandHandler(client, interaction, botUser);
-    }
-
-    return commandReturn;
 }
 
-async function handleMessageComponent(client: Client, interaction: MessageComponentInteraction, botUser: BotUser): Promise<ComponentReturnType | Failure> {
+async function handleMessageComponent(client: Client, interaction: MessageComponentInteraction, botUser: BotUser): Promise<[Response, string] | Failure> {
     debug("Message component interaction recieved");
 
-    let componentData = interaction.customId.split(":");
-    const componentName = componentData.shift();
+    let statKey = statisticKeys.bot.event.interaction.component;
 
+    const componentData = interaction.customId.split(";");
+
+    const componentName = componentData.shift();
     debug(`Getting component ${componentName}`);
-    const componentHandler = Components.find(
-        (component) => component.name === componentName
+    const component = Components.find(
+        (c) => c.name === componentName
     );
 
-    if (!componentHandler) {
+    if (!component) {
+        logToDiscord(client, error(`Component ${componentName} not found`));
         return new ComponentNotFoundFailure();
     }
 
-    debug("Running component");
+    statKey += `.${component.name}`;
+
+    let handler = component.run;
+    let subcomponents = component.subcomponents;
+    while (subcomponents && componentData.length > 0) {
+        const subcomponent = subcomponents[componentData[0]];
+        if (!subcomponent) {
+            break;
+        }
+
+        handler = subcomponent.run;
+        subcomponents = subcomponent.subcomponents;
+        statKey += `.${componentData.shift()}`;
+    }
+
+    if (!handler) {
+        return new ComponentNotFoundFailure();
+    }
+
     try {
-        switch (componentHandler.type) {
+        let result: Response | Failure;
+        switch (component.type) {
             case ComponentType.Button:
-                return componentHandler.run(client, interaction as ButtonInteraction, botUser, componentData);
-            case ComponentType.StringSelect:
-                return componentHandler.run(client, interaction as MessageComponentInteraction, botUser, componentData);
+                result = await handler(client, interaction as ButtonInteraction, botUser, componentData);
+                break;
             default:
-                return new UnknownComponentTypeFailure();
+                result = await handler(client, interaction, botUser, componentData);
+                break;
+        }
+        if (result instanceof Failure) {
+            return result;
+        } else {
+            return [result, statKey];
         }
     } catch (err) {
         return new MessageComponentExecutionFailure(err);
+    }
+}
+
+function replyToInteraction(interaction: CommandInteraction | MessageComponentInteraction, result: Response | Failure) {
+    debug("Replying to interaction");
+
+    if (result instanceof Failure) {
+        interaction.reply(result.response("en"));
+        return;
+    }
+
+    switch (result.replyType) {
+        case ReplyType.Reply:
+            interaction.reply(result);
+            return;
+        case ReplyType.FollowUp:
+            interaction.reply(result);
+            return;
+        case ReplyType.Update:
+            if (interaction.isMessageComponent() ) {
+                interaction.update(result as InteractionUpdateOptions);
+            } else {
+                interaction.editReply(result);
+            }
+            return;
     }
 }

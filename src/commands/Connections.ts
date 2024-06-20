@@ -1,12 +1,8 @@
 import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { Command, ReplyType } from "../Interactions";
+import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
-import { SubcommandExecutionFailure } from "../Failure";
 import botUserModel, { BotUser, BotUserType } from "../models/botUser";
-import statisticKeys from "../../data/statistic-keys.json";
-import { RawStatistic } from "../models/statistic";
 import followMenuModel, { FollowMenu } from "../models/followMenu";
-import { clamp } from "../Essentials";
 
 const TYPE_DISPLAY = {
     [BotUserType.USER]: "User",
@@ -46,61 +42,50 @@ export const Connections: Command = {
                     required: true
                 }
             ]
-        }
+        },
     ],
-    run: async (client, interaction, botUser) => {
-        debug("Quote command called");
-        return new SubcommandExecutionFailure();
-    },
     subcommands: {
-        follow: async (client, interaction, botUser) => {
-            debug("Follow subcommand called");
+        follow: {
+            run: async (client, interaction, botUser) => {
+                debug("Follow subcommand called");
 
-            const statistic: RawStatistic = {
-                global: false,
-                key: statisticKeys.bot.event.interaction.command.connections.follow,
-                user: botUser
-            };
+                const name = interaction.options.getString("name", true);
+                const type = interaction.options.getString("type", true) as BotUserType;
 
-            const name = interaction.options.getString("name", true);
-            const type = interaction.options.getString("type", true) as BotUserType;
-
-            let targets = await botUserModel.find({ name, type });
-            removeSelfFromTargets(targets, botUser);
-            const extendedSearch = targets.length === 0;
-
-            if (extendedSearch) {
-                targets = await botUserModel.find({ name: { $regex: new RegExp(name, "i") }});
+                let targets = await botUserModel.find({ name, type });
                 removeSelfFromTargets(targets, botUser);
-                if (targets.length === 0) {
-                    const response = {
-                        content: "No user or guild found with that name and type",
-                        ephemeral: true,
-                        replyType: ReplyType.Reply
-                    }
-                    return { response, statistic };
-                }
-            }
+                const extendedSearch = targets.length === 0;
 
-            const document = await followMenuModel.create({ targets, extendedSearch });
-            const [embed, actionRow] = await followMenuMessage(document);
-            const response = {
-                embeds: [embed],
-                components: [actionRow],
-                replyType: ReplyType.Reply
-            };
-            return { response, statistic };
-        }
+                if (extendedSearch) {
+                    targets = await botUserModel.find({ name: { $regex: new RegExp(name, "i") } });
+                    removeSelfFromTargets(targets, botUser);
+                    if (targets.length === 0) {
+                        return {
+                            content: "No user or guild found with that name and type",
+                            ephemeral: true,
+                            replyType: ReplyType.Reply
+                        }
+                    }
+                }
+
+                const document = await followMenuModel.create({ targets, extendedSearch });
+                const [embed, actionRow] = await followMenuMessage(botUser, document);
+                return {
+                    embeds: [embed],
+                    components: [actionRow],
+                    replyType: ReplyType.Reply
+                };
+            },
+        },
     }
 };
 
-export async function followMenuMessage(document: FollowMenu, page = 0): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
+export async function followMenuMessage(botUser: BotUser, document: FollowMenu, page = 0): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
     debug("Creating follow menu message");
-
-    clamp(page, 0, document.targets.length - 1);
 
     const targetId = document.targets[page]._id;
     const target = await botUserModel.findById(targetId);
+    const followed = botUser.following.includes(targetId);
 
     const embedBuilder = new EmbedBuilder()
         .setAuthor({
@@ -111,7 +96,7 @@ export async function followMenuMessage(document: FollowMenu, page = 0): Promise
         embedBuilder.setTitle("Unknown user or server");
         embedBuilder.setDescription("The data for this user or server could not be found");
     } else {
-        embedBuilder.setTitle(target.name);
+        embedBuilder.setTitle(target.name + (followed ? " (followed)" : ""));
         let targetDescription = `Type: ${TYPE_DISPLAY[target.type]}`;
         if (target.type === BotUserType.GUILD) {
             targetDescription += `\nMember count: ${target.memberCount}`;
@@ -128,26 +113,21 @@ export async function followMenuMessage(document: FollowMenu, page = 0): Promise
     const actionRow = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`follow-menu:page:${document._id}:${page - 1}`)
+                .setCustomId(`follow_menu;page;${document._id};${page - 1}`)
                 .setEmoji('◀️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
-                .setCustomId(`follow-menu:page:${document._id}:${page + 1}`)
+                .setCustomId(`follow_menu;page;${document._id};${page + 1}`)
                 .setEmoji('▶️')
                 .setStyle(ButtonStyle.Secondary)
-                .setDisabled(page === document.targets.length - 1)
-        ) as ActionRowBuilder<ButtonBuilder>;
-
-    if (target !== null) {
-        actionRow.addComponents(
+                .setDisabled(page === document.targets.length - 1),
             new ButtonBuilder()
-                .setCustomId(`follow-menu:follow:${target._id}`)
+                .setCustomId(`follow_menu;follow;${targetId}`)
                 .setLabel("Follow")
                 .setStyle(ButtonStyle.Primary)
-                .setEmoji("🔗")
-        );
-    }
+                .setDisabled(target === null || followed)
+        ) as ActionRowBuilder<ButtonBuilder>;
 
     return [embedBuilder, actionRow];
 }

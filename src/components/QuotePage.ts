@@ -1,25 +1,17 @@
 import { debug } from "../Log";
-import { Component, ReplyType, Response } from '../Interactions';
+import { Component, ReplyType } from '../InteractionEssentials';
 import { UnknownQuotePageDataFailure } from "../Failure";
 import { ButtonInteraction, ComponentType } from "discord.js";
 import { getQuoteList } from "../models/quoteList";
 import { getQuotes } from "../models/quote";
 import { QUOTE_PAGE_SIZE, quoteListMessage } from "../commands/Quote";
-import { RawStatistic } from "../models/statistic";
-import statisticKeys from "../../data/statistic-keys.json";
 import { clamp } from "../Essentials";
 
 export const QuotePage: Component<ButtonInteraction> = {
-    name: "quote-page",
+    name: "quote_page",
     type: ComponentType.Button,
     run: async (client, interaction, botUser, data) => {
         debug("QuotePage component called");
-
-        const statistic: RawStatistic = {
-            global: false,
-            key: statisticKeys.bot.event.interaction.component.quotePage,
-            user: botUser
-        };
 
         const quoteList = await getQuoteList(data[1]);
         const quotes = await getQuotes(botUser);
@@ -45,14 +37,6 @@ export const QuotePage: Component<ButtonInteraction> = {
                 return new UnknownQuotePageDataFailure();
         }
 
-        const [embedBuilder, actionRow] = await quoteListMessage(quoteList, quotes, client, page);
-
-        const response: Response = {
-            replyType: ReplyType.Update,
-            embeds: [embedBuilder],
-            components: [actionRow],
-        };
-
-        return { response, statistic };
+        return await quoteListMessage(quoteList, quotes, client, page, ReplyType.Update);
     },
 };
