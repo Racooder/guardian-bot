@@ -43,6 +43,11 @@ export const Connections: Command = {
                 }
             ]
         },
+        {
+            name: "list",
+            description: "List all connected users and guilds",
+            type: ApplicationCommandOptionType.Subcommand
+        }
     ],
     subcommands: {
         follow: {
@@ -77,8 +82,68 @@ export const Connections: Command = {
                 };
             },
         },
+        list: {
+            run: async (client, interaction, botUser) => {
+                debug("List subcommand called");
+
+                const [embed, actionRow] = await connectionListMessage(botUser, 0);
+                return {
+                    embeds: [embed],
+                    components: [actionRow],
+                    replyType: ReplyType.Reply
+                };
+            }
+        }
     }
 };
+
+export async function connectionListMessage(botUser: BotUser, page: number): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
+    debug("Creating connection list message");
+
+    let targetId = "";
+    let embedBuilder = new EmbedBuilder();
+
+    if (botUser.following.length === 0) {
+        embedBuilder.setTitle("Not following any users or servers")
+    } else {
+        embedBuilder.setAuthor({ name: `Following ${botUser.following.length} user${botUser.following.length === 1 ? "" : "s"}` })
+        const target = await botUserModel.findById(botUser.following[page]);
+
+        if (target === null) {
+            embedBuilder.setTitle("Unknown user or server");
+            embedBuilder.setDescription("The data for this user or server could not be found");
+        } else {
+            targetId = target._id;
+            embedBuilder.setTitle(target.name);
+            let targetDescription = `Type: ${TYPE_DISPLAY[target.type]}`;
+            if (target.type === BotUserType.GUILD) {
+                targetDescription += `\nMember count: ${target.memberCount}`;
+            }
+            embedBuilder.setDescription(targetDescription);
+        }
+    }
+
+    const actionRow = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId(`connection_list;page;${page - 1}`)
+                .setEmoji('◀️')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page === 0),
+            new ButtonBuilder()
+                .setCustomId(`connection_list;page;${page + 1}`)
+                .setEmoji('▶️')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page >= botUser.following.length - 1),
+            new ButtonBuilder()
+                .setCustomId(`connection_list;unfollow;${targetId}`)
+                .setLabel("Unfollow")
+                .setStyle(ButtonStyle.Danger)
+                .setDisabled(targetId === "")
+        ) as ActionRowBuilder<ButtonBuilder>;
+
+    return [embedBuilder, actionRow];
+}
 
 export async function followMenuMessage(botUser: BotUser, document: FollowMenu, page = 0): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
     debug("Creating follow menu message");
