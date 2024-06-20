@@ -20,6 +20,9 @@ export interface QuoteList extends Document {
     context?: string;
     creator?: DiscordUser['_id'];
     date?: Date;
+
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export function getQuoteListQuery(quoteList: QuoteList) {
@@ -53,7 +56,7 @@ const quoteListSchema = new Schema<QuoteList, QuoteListModel>({
     context: { type: String },
     creator: { type: Schema.Types.ObjectId, ref: 'DiscordUsers' },
     date: { type: Date },
-});
+}, { timestamps: true });
 
 const quoteListModel = model<QuoteList, QuoteListModel>('QuoteLists', quoteListSchema);
 
