@@ -185,6 +185,19 @@ export const Quote: Command = {
                 }
             ],
         },
+        {
+            name: "context",
+            description: "Get the context of a quote.",
+            type: ApplicationCommandOptionType.Subcommand,
+            options: [
+                {
+                    name: "quote-token",
+                    description: "The quote to get the context of.",
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                },
+            ],
+        },
     ],
     subcommands: {
         add: {
@@ -331,6 +344,27 @@ export const Quote: Command = {
                 }
 
                 return await quoteListMessage(list, quotes, client, 0, ReplyType.Reply);
+            },
+        },
+        context: {
+            run: async (client, interaction, botUser) => {
+                debug("Quote context subcommand called");
+
+                const token = interaction.options.getString("quote-token", true);
+                const document = await getQuoteByToken(botUser, token);
+                if (document === null) {
+                    return {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: "Quote not found.",
+                    };
+                }
+
+                return {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: document.context ?? "No context provided.",
+                };
             },
         },
     },
