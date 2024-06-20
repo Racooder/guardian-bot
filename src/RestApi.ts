@@ -3,7 +3,7 @@ import express, { Express, Request, Response, NextFunction } from "express";
 import { Server } from "http";
 import { debug, info, success } from "./Log";
 import { config } from "./Essentials";
-import { StatisticFilter, getGlobalStatistics, getStatistics, getUserStatistics, insertStatistic } from "./models/statistic";
+import statisticModel, { StatisticFilter, getGlobalStatistics, getStatistics, getUserStatistics } from "./models/statistic";
 import statisticKeys from "../data/statistic-keys.json"
 import { unixToDate } from "./Essentials";
 
@@ -52,10 +52,9 @@ function setupValidation(app: Express) {
 
         // TODO: Get token permissions.
 
-        insertStatistic({
+        statisticModel.create({
             global: true,
-            key: statisticKeys.api.request,
-            user: undefined,
+            key: statisticKeys.api.request
         });
 
         req.token = token;
