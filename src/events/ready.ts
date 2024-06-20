@@ -12,7 +12,7 @@ import statisticModel from "../models/statistic";
 
 export const Ready: EventListener = {
     start: (client) =>{
-        client.on("ready", async () => {
+        client.once("ready", async () => {
             debug("Ready event triggered");
 
             if (client.user === null || client.application === null) {
