@@ -393,27 +393,27 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
     const actionRow = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`quote_page;first;${list._id}`)
+                .setCustomId(`quote_list;page;${list._id};0`)
                 .setEmoji('⏪')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
-                .setCustomId(`quote_page;page;${list._id};${page - 1}`)
+                .setCustomId(`quote_list;page;${list._id};${page - 1}`)
                 .setEmoji('◀️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
-                .setCustomId(`quote_page;page;${list._id};${page + 1}`)
+                .setCustomId(`quote_list;page;${list._id};${page + 1}`)
                 .setEmoji('▶️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === quoteChunks.length - 1),
             new ButtonBuilder()
-                .setCustomId(`quote_page;last;${list._id}`)
+                .setCustomId(`quote_list;page;${list._id};Infinity`)
                 .setEmoji('⏩')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === quoteChunks.length - 1),
             new ButtonBuilder()
-                .setCustomId(`quote_page;page;${list._id};${page}`)
+                .setCustomId(`quote_list;page;${list._id};${page}`)
                 .setEmoji('🔄')
                 .setStyle(ButtonStyle.Secondary)
         );

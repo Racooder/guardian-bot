@@ -6,7 +6,7 @@ import { Quote } from "./commands/Quote";
 import { QuoteGuesser } from "./commands/QuoteGuesser";
 import { Connections } from "./commands/Connections";
 import { Settings } from "./commands/Settings";
-import { QuotePage } from "./components/QuotePage";
+import { QuoteList } from "./components/QuoteList";
 import { QuoteGuesserButton } from "./components/QuoteGuesserButton";
 import { FollowMenu } from "./components/FollowMenu";
 import { Command, Component } from "./InteractionEssentials";
@@ -14,4 +14,4 @@ import { QuoteGuesserAnswer } from "./components/QuoteGuesserAnswer";
 
 export const Commands: Command[] = [Codenames, Feedback, Donate, Ping, Quote, QuoteGuesser, Connections, Settings];
 
-export const Components: Component<any>[] = [QuotePage, QuoteGuesserButton, QuoteGuesserAnswer, FollowMenu];
+export const Components: Component<any>[] = [QuoteList, QuoteGuesserButton, QuoteGuesserAnswer, FollowMenu];
