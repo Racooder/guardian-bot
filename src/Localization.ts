@@ -1,6 +1,5 @@
 import { existsSync } from "fs";
 import { Dict } from "./Essentials";
-import { debug } from "./Log";
 
 const LOCALIZATION_FOLDER = "localization";
 const FALLBACK_LANGUAGE = 'en';
