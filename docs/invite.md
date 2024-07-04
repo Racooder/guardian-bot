@@ -1,6 +1,6 @@
 # Invite Url
 
-https://discord.com/api/oauth2/authorize?client_id=840227359495946290&permissions=2048&scope=bot+applications.commands
+https://discord.com/api/oauth2/authorize?client_id=821713905692573708&permissions=2048&scope=bot+applications.commands
 
 ## Scopes
 
