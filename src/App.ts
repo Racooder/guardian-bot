@@ -1,8 +1,8 @@
 import { debug, error, info, logToDiscord, setupLog, warn } from "./Log";
 import { config } from "./Essentials";
-import { setupRestApi } from "./RestApi";
+// import { setupRestApi } from "./RestApi"; (wip)
 import { setupDiscordBot } from "./Bot";
-import { Server } from "http";
+// import { Server } from "http"; (wip)
 import { Client, HTTPError } from "discord.js";
 import schedule from 'node-schedule';
 import { Octokit } from "octokit";
@@ -16,7 +16,7 @@ const GITHUB_REPO_NAME = "guardian-bot";
 const LATEST_GITHUB_RELEASE_FILE = "../github-latest-release.txt";
 const DOWNLOAD_URL_PATH = "../update-url.txt";
 
-var restApi: Server;
+// var restApi: Server; (wip)
 var discordClient: Client;
 
 const octokit = new Octokit({
@@ -101,7 +101,7 @@ function stopApplication(): void {
         return;
     }
 
-    // restApi.close();
+    // restApi.close(); (wip)
     discordClient.destroy();
     process.exit(0);
 }
