@@ -395,7 +395,7 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
     const actionRow = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`quote_list;page;${list._id};0`)
+                .setCustomId(`quote_list;page;${list._id};-Infinity`)
                 .setEmoji('⏪')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),

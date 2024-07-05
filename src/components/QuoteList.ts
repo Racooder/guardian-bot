@@ -15,7 +15,7 @@ export const QuoteList: Component<ButtonInteraction> = {
             run: async (client, interaction, botUser, data) => {
                 debug("QuotePage page button pressed");
 
-                const quoteList = await getQuoteList(data[1]);
+                const quoteList = await getQuoteList(data[0]);
                 const quotes = await getQuotes(botUser);
                 const lastPage = Math.ceil(quotes.length / QUOTE_PAGE_SIZE) - 1;
 
@@ -23,7 +23,7 @@ export const QuoteList: Component<ButtonInteraction> = {
                     return new UnknownQuotePageDataFailure();
                 }
 
-                let page = clamp(parseFloat(data[2]), 0, lastPage);
+                let page = clamp(parseFloat(data[1]), 0, lastPage);
                 return quoteListMessage(quoteList, quotes, client, page, ReplyType.Update);
             },
         }
