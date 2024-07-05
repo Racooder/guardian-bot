@@ -11,8 +11,8 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "build": "run-script-os",
-    "build:darwin:linux": "tsc && cp -r localization data package.json yarn.lock ./dist/ && mkdir ./dist/meta && cp -r meta/.env.template meta/config.yml.template ./dist/meta/",
-    "build:win32": "tsc && (for %I in (localization data) do (xcopy /E /I /Y %I dist\\%I\\)) && (for %I in (package.json, yarn.lock) do (copy %I dist\\)) && (mkdir dist\\meta) && (for %I in (.env.template config.yml.template) do (copy meta\\%I dist\\meta\\))",
+    "build:darwin:linux": "tsc && cp -r localization package.json yarn.lock ./dist/ && mkdir ./dist/meta && cp -r meta/.env.template meta/config.yml.template ./dist/meta/",
+    "build:win32": "tsc && xcopy /E /I /Y localization dist\\localization\\ && (for %I in (package.json, yarn.lock) do (copy %I dist\\)) && (mkdir dist\\meta) && (for %I in (.env.template config.yml.template) do (copy meta\\%I dist\\meta\\))",
     "start": "node ./src/App.js",
     "dev": "ts-node ./src/App.ts",
     "test": "jest --silent --json --outputFile=test-report.json"
