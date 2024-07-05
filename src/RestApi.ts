@@ -4,7 +4,6 @@ import { Server } from "http";
 import { debug, info, success } from "./Log";
 import { config } from "./Essentials";
 import statisticModel, { StatisticFilter, getGlobalStatistics, getStatistics, getUserStatistics } from "./models/statistic";
-import statisticKeys from "../data/statistic-keys.json"
 import { unixToDate } from "./Essentials";
 
 export async function setupRestApi(): Promise<Server> {
@@ -54,7 +53,7 @@ function setupValidation(app: Express) {
 
         statisticModel.create({
             global: true,
-            key: statisticKeys.api.request
+            key: "api.request"
         });
 
         req.token = token;

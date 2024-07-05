@@ -2,7 +2,6 @@ import { debug, error, logToDiscord } from "../Log";
 import { EventListener } from "../EventListeners";
 import { BotUser, BotUserType, updateBotUser } from "../models/botUser";
 import { CommandFormatFailure, CommandNotFoundFailure, ComponentNotFoundFailure, Failure, MessageComponentExecutionFailure, SlashCommandExecutionFailure } from "../Failure";
-import statisticKeys from "../../data/statistic-keys.json";
 import statisticModel from "../models/statistic";
 import { ButtonInteraction, Client, CommandInteraction, ComponentType, InteractionUpdateOptions, MessageComponentInteraction } from "discord.js";
 import { Commands, Components } from "../Interactions";
@@ -52,7 +51,7 @@ export const InteractionCreate: EventListener = {
 async function handleSlashCommand(client: Client, interaction: CommandInteraction, botUser: BotUser): Promise<[Response, string] | Failure> {
     debug("Slash command interaction recieved");
 
-    let statKey = statisticKeys.bot.event.interaction.command
+    let statKey = "bot.event.interaction.command";
 
     debug(`Getting command ${interaction.commandName}`);
     const commandHandler = Commands.find(
@@ -135,7 +134,7 @@ async function handleSlashCommand(client: Client, interaction: CommandInteractio
 async function handleMessageComponent(client: Client, interaction: MessageComponentInteraction, botUser: BotUser): Promise<[Response, string] | Failure> {
     debug("Message component interaction recieved");
 
-    let statKey = statisticKeys.bot.event.interaction.component;
+    let statKey = "bot.event.interaction.component";
 
     const componentData = interaction.customId.split(";");
 

@@ -2,7 +2,6 @@ import { EventListener } from "../EventListeners";
 import { Commands } from "../Interactions";
 import { debug, error, info, success } from "../Log";
 import mongoose from "mongoose";
-import statisticKeys from "../../data/statistic-keys.json"
 import { config } from "../Essentials";
 import followMenuModel from "../models/followMenu";
 import quoteGuesserModel from "../models/quoteGuesser";
@@ -42,7 +41,7 @@ export const Ready: EventListener = {
 
             statisticModel.create({
                 global: true,
-                key: statisticKeys.bot.event.ready
+                key: "bot.event.ready",
             });
         });
     }

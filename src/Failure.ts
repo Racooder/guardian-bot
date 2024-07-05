@@ -1,7 +1,6 @@
 import { Client, EmbedBuilder } from "discord.js";
 import { localize } from "./Localization";
 import { ReplyType, Response } from "./InteractionEssentials";
-import statisticKeys from "../data/statistic-keys.json"
 import { error, logToDiscord } from "./Log";
 import Colors from "./Colors";
 
@@ -28,7 +27,7 @@ export class Failure {
     }
 
     statKey() {
-        return `${statisticKeys.failure}.${this.type}`;
+        return `failure.${this.type}`;
     }
 
     response(language: string): Response {
