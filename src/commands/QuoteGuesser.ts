@@ -5,6 +5,7 @@ import quoteGuesserModel, { createQuoteGuesserGame, QuoteGuesserGame } from "../
 import { shuffleArray } from "../Essentials";
 import { randomQuote } from "../models/quote";
 import { BotUser } from "../models/botUser";
+import Colors from "../Colors";
 
 export const QuoteGuesser: Command = {
     name: "quote_guesser",
@@ -79,6 +80,7 @@ export function quoteGuesserMessage(document: QuoteGuesserGame, quote: string, r
     }
 
     const embedBuilder = new EmbedBuilder()
+        .setColor(Colors.QUOTE_GUESSER_EMBED)
         .setAuthor({ name: `Quote Guesser - Round ${round}` })
         .setTitle("Who said this quote?")
         .setDescription(`"${quote}" - ???`)

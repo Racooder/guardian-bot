@@ -4,6 +4,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, Compon
 import quoteGuesserModel, { QuoteGuesserGame } from "../models/quoteGuesser";
 import { newRound } from "../commands/QuoteGuesser";
 import discordUserModel from "../models/discordUser";
+import Colors from "../Colors";
 
 export const GAME_NOT_FOUND = {
     replyType: ReplyType.Reply,
@@ -67,9 +68,10 @@ async function roundResultsMessage(gameDocument: QuoteGuesserGame): Promise<Resp
     const correctAuthor = gameDocument.correctAuthor[0];
 
     const embedBuilder = new EmbedBuilder()
-    .setAuthor({ name: `Quote Guesser - Round ${round} Results` })
-    .setTitle(`The correct answer was ${correctAuthor}`)
-    .setDescription(`"${quote}" - ${correctAuthor}`)
+        .setColor(Colors.QUOTE_GUESSER_EMBED)
+        .setAuthor({ name: `Quote Guesser - Round ${round} Results` })
+        .setTitle(`The correct answer was ${correctAuthor}`)
+        .setDescription(`"${quote}" - ${correctAuthor}`)
 
     const answers = gameDocument.answers.entries();
     const choices = gameDocument.choices;
@@ -115,6 +117,7 @@ async function gameResultsMessage(gameDocument: QuoteGuesserGame): Promise<Respo
 
     const round = gameDocument.usedQuotes.length;
     const embedBuilder = new EmbedBuilder()
+        .setColor(Colors.QUOTE_GUESSER_EMBED)
         .setAuthor({ name: `Quote Guesser - Game Results` })
         .setTitle(`Game Over!`)
         .setDescription(`The game has ended after ${round} rounds`)

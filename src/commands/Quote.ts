@@ -5,6 +5,7 @@ import { QuoteList, createQuoteList, getQuoteListQuery } from '../models/quoteLi
 import { parseDate, splitArrayIntoChunks } from "../Essentials";
 import { RawDiscordUser } from "../models/discordUser";
 import { Quote as QuoteType, createQuote, getQuoteByToken } from "../models/quote";
+import Colors from "../Colors";
 
 const MAX_CONVERSATION_LENGTH = 5;
 export const QUOTE_PAGE_SIZE = 15;
@@ -386,6 +387,7 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
     const embedFields = await Promise.all(pageQuotes.map((quote) => quoteEmbedField(quote, client)));
 
     const embedBuilder = new EmbedBuilder()
+        .setColor(Colors.QUOTE_GUESSER_EMBED)
         .setTitle(`Quotes (Page ${page + 1}/${quoteChunks.length})`)
         .setDescription(embedDescription)
         .addFields(embedFields);

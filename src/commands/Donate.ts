@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "@discordjs/builde
 import { APIActionRowComponent, APIMessageActionRowComponent, ApplicationCommandType, ButtonStyle } from "discord.js";
 import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
-import embedColors from "../../data/embed-colors.json";
+import Colors from "../Colors";
 
 const KOFI_URL = "https://ko-fi.com/racooder";
 const PAYPAL_URL = "https://paypal.me/racooder";
@@ -16,9 +16,9 @@ export const Donate: Command = {
         debug("Donate command called");
 
         const embed = new EmbedBuilder()
+            .setColor(Colors.DONATE_EMBED)
             .setTitle("Donate on Ko-fi or directly per PayPal!")
             .setDescription("Consider supporting the developement and hosting of the bot by donating via Ko-fi or PayPal!")
-            .setColor(embedColors.donate_embed)
             .setThumbnail(THUMBNAIL_URL);
 
         const kofiButton = new ButtonBuilder()

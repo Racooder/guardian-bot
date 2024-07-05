@@ -2,6 +2,7 @@ import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } fr
 import { Command, ReplyType } from '../InteractionEssentials';
 import { debug } from "../Log";
 import { QuotePrivacy } from "../models/botUser";
+import Colors from "../Colors";
 
 export const Settings: Command = {
     name: "settings",
@@ -54,6 +55,7 @@ export const Settings: Command = {
                 debug("Settings view subcommand called");
 
                 const embedBuiler = new EmbedBuilder()
+                    .setColor(Colors.SETTINGS_EMBED)
                     .setTitle("Settings")
                     .addFields({
                         name: "Quote Privacy",

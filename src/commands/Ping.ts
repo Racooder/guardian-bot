@@ -1,6 +1,7 @@
 import { ApplicationCommandType, EmbedBuilder } from "discord.js";
 import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
+import Colors from "../Colors";
 
 export const Ping: Command = {
     name: "ping",
@@ -15,18 +16,20 @@ export const Ping: Command = {
         const latencySuffix = getLatencySuffix(latency);
         const apiLatencySuffix = getLatencySuffix(apiLatency);
 
-        const embed = new EmbedBuilder().addFields(
-            {
-                name: ":stopwatch: Latency",
-                value: `${latency}ms ${latencySuffix}`,
-            },
-            {
-                name: ":heartbeat: API Latency",
-                value: apiLatency < 0
-                    ? "Couldn't be calculated"
-                    : `${apiLatency}ms ${apiLatencySuffix}`,
-            }
-        );
+        const embed = new EmbedBuilder()
+            .setColor(Colors.PING_EMBED)
+            .addFields(
+                {
+                    name: ":stopwatch: Latency",
+                    value: `${latency}ms ${latencySuffix}`,
+                },
+                {
+                    name: ":heartbeat: API Latency",
+                    value: apiLatency < 0
+                        ? "Couldn't be calculated"
+                        : `${apiLatency}ms ${apiLatencySuffix}`,
+                }
+            );
 
         return {
             replyType: ReplyType.Reply,

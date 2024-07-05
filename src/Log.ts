@@ -2,7 +2,7 @@ import { Client, EmbedBuilder } from "discord.js";
 import { createReadStream, createWriteStream, existsSync, mkdirSync, writeFileSync } from "fs";
 import { createGzip } from "zlib";
 import { config } from "./Essentials";
-import embedColors from "../data/embed-colors.json";
+import Colors from "./Colors";
 
 const format = {
     Reset: "\x1b[0m",
@@ -44,7 +44,7 @@ export function debug(message: string, force = false): EmbedBuilder {
     return new EmbedBuilder()
         .setTitle("Debug")
         .setDescription(message)
-        .setColor(embedColors.log_debug);
+        .setColor(Colors.LOG_DEBUG);
 }
 
 export function info(message: string): EmbedBuilder {
@@ -52,7 +52,7 @@ export function info(message: string): EmbedBuilder {
     return new EmbedBuilder()
         .setTitle("Info")
         .setDescription(message)
-        .setColor(embedColors.log_info);
+        .setColor(Colors.LOG_INFO);
 }
 
 export function success(message: string): EmbedBuilder {
@@ -60,7 +60,7 @@ export function success(message: string): EmbedBuilder {
     return new EmbedBuilder()
         .setTitle("Success")
         .setDescription(message)
-        .setColor(embedColors.log_success);
+        .setColor(Colors.LOG_SUCCESS);
 }
 
 export function warn(message: string): EmbedBuilder {
@@ -68,7 +68,7 @@ export function warn(message: string): EmbedBuilder {
     return new EmbedBuilder()
         .setTitle("Warn")
         .setDescription(message)
-        .setColor(embedColors.log_warning);
+        .setColor(Colors.LOG_WARN);
 }
 
 export function error(message: string, error?: Error): EmbedBuilder {
@@ -77,7 +77,7 @@ export function error(message: string, error?: Error): EmbedBuilder {
     } else {
         log("[ERROR]  ", message, format.FgRed);
     }
-    const embed = new EmbedBuilder().setColor(embedColors.log_error);
+    const embed = new EmbedBuilder().setColor(Colors.LOG_ERROR);
 
     if (error) {
         embed.setTitle(message);

@@ -3,8 +3,7 @@ import { localize } from "./Localization";
 import { ReplyType, Response } from "./InteractionEssentials";
 import statisticKeys from "../data/statistic-keys.json"
 import { error, logToDiscord } from "./Log";
-
-const EMBED_COLOR = 0xaa0000;
+import Colors from "./Colors";
 
 export class Failure {
     type: string;
@@ -25,7 +24,7 @@ export class Failure {
         return new EmbedBuilder()
             .setTitle("Failure")
             .setDescription(this.localizedString(language))
-            .setColor(EMBED_COLOR);
+            .setColor(Colors.FAILURE_EMBED);
     }
 
     statKey() {

@@ -3,6 +3,7 @@ import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
 import botUserModel, { BotUser, BotUserType } from "../models/botUser";
 import followMenuModel, { FollowMenu } from "../models/followMenu";
+import Colors from "../Colors";
 
 const TYPE_DISPLAY = {
     [BotUserType.USER]: "User",
@@ -101,7 +102,8 @@ export async function connectionListMessage(botUser: BotUser, page: number): Pro
     debug("Creating connection list message");
 
     let targetId = "";
-    let embedBuilder = new EmbedBuilder();
+    let embedBuilder = new EmbedBuilder()
+        .setColor(Colors.CONNECTIONS_EMBED);
 
     if (botUser.following.length === 0) {
         embedBuilder.setTitle("Not following any users or servers")
@@ -153,9 +155,10 @@ export async function followMenuMessage(botUser: BotUser, document: FollowMenu, 
     const followed = botUser.following.includes(targetId);
 
     const embedBuilder = new EmbedBuilder()
+        .setColor(Colors.CONNECTIONS_EMBED)
         .setAuthor({
             name: `Found ${document.targets.length} matching target ${document.targets.length === 1 ? "" : "s"}`,
-        })
+        });
 
     if (target === null) {
         embedBuilder.setTitle("Unknown user or server");
