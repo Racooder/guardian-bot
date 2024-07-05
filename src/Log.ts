@@ -125,7 +125,7 @@ export async function setupLog(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const stream = createReadStream(latestPath);
             stream
-                .pipe(createGzip())
+                .pipe(createGzip() as any)
                 .pipe(createWriteStream(targetPath))
                 .on("finish", () => {
                     createWriteStream(latestPath).write("");
