@@ -7,3 +7,6 @@ log_role: "" # Discord role ID
 database_name: database
 log_to_discord: false
 database_expiration: 7 # In days
+github_repo_owner: "Racooder"
+github_repo_name: "guardian-bot"
+changelog_fetch_delay: 60 # In seconds
