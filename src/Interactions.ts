@@ -11,7 +11,25 @@ import { QuoteGuesserButton } from "./components/QuoteGuesserButton";
 import { FollowMenu } from "./components/FollowMenu";
 import { Command, Component } from "./InteractionEssentials";
 import { QuoteGuesserAnswer } from "./components/QuoteGuesserAnswer";
+import { Changelog } from "./commands/Changelog";
+import { ChangelogList } from "./components/ChangelogList";
 
-export const Commands: Command[] = [Codenames, Feedback, Donate, Ping, Quote, QuoteGuesser, Connections, Settings];
+export const Commands: Command[] = [
+    Codenames,
+    Feedback,
+    Donate,
+    Ping,
+    Quote,
+    QuoteGuesser,
+    Connections,
+    Settings,
+    Changelog,
+];
 
-export const Components: Component<any>[] = [QuoteList, QuoteGuesserButton, QuoteGuesserAnswer, FollowMenu];
+export const Components: Component<any>[] = [
+    QuoteList,
+    QuoteGuesserButton,
+    QuoteGuesserAnswer,
+    FollowMenu,
+    ChangelogList,
+];
