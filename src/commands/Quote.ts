@@ -361,10 +361,15 @@ export const Quote: Command = {
                     };
                 }
 
+                const embedBuilder = new EmbedBuilder()
+                    .setColor(Colors.QUOTE_CONTEXT_EMBED)
+                    .setTitle(`Quote Context (Token: \`${document.token}\`)`)
+                    .setDescription(document.context ?? "No context provided.");
+
                 return {
                     replyType: ReplyType.Reply,
                     ephemeral: true,
-                    content: document.context ?? "No context provided.",
+                    embeds: [embedBuilder],
                 };
             },
         },
