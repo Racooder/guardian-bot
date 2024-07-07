@@ -1,5 +1,5 @@
 import { Client, EmbedBuilder } from "discord.js";
-import { createReadStream, createWriteStream, existsSync, mkdirSync, writeFileSync } from "fs";
+import { createReadStream, createWriteStream, existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from "fs";
 import { createGzip } from "zlib";
 import { config } from "./Essentials";
 import Colors from "./Colors";
@@ -118,13 +118,24 @@ function save(message: string): void {
 
 export async function setupLog(): Promise<void> {
     existsSync(folderPath) || mkdirSync(folderPath);
-    if (existsSync(latestPath)) {
+
+    // Delete old logs
+    if (config.keep_logs >= 0) {
+        let files = readdirSync(folderPath)
+            .filter((file) => file.endsWith(".gz"))
+            .sort()
+        if (config.keep_logs !== 0) {
+            files = files.slice(0, -config.keep_logs);
+        }
+        await Promise.all(files.map(async (file) => unlinkSync(`${folderPath}/${file}`)));
+    }
+
+    // Compress the latest file if it exists
+    if (existsSync(latestPath) && config.keep_logs !== 0) {
         const targetPath = `${folderPath}/${new Date().toISOString()}.txt.gz`.replace(/:/g, "-");
 
-        // Compress the latest file
         return new Promise<void>((resolve, reject) => {
-            const stream = createReadStream(latestPath);
-            stream
+            createReadStream(latestPath)
                 .pipe(createGzip() as any)
                 .pipe(createWriteStream(targetPath))
                 .on("finish", () => {

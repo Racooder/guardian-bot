@@ -18,6 +18,7 @@ export type Config = {
     github_repo_owner: string;
     github_repo_name: string;
     changelog_fetch_delay: number;
+    keep_logs: number;
 }
 
 function loadConfig(): Config {
