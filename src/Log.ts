@@ -1,8 +1,8 @@
 import { Client, EmbedBuilder } from "discord.js";
-import { createReadStream, createWriteStream, existsSync, mkdirSync, writeFileSync } from "fs";
+import { createReadStream, createWriteStream, existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from "fs";
 import { createGzip } from "zlib";
 import { config } from "./Essentials";
-import embedColors from "../data/embed-colors.json";
+import Colors from "./Colors";
 
 const format = {
     Reset: "\x1b[0m",
@@ -44,7 +44,7 @@ export function debug(message: string, force = false): EmbedBuilder {
     return new EmbedBuilder()
         .setTitle("Debug")
         .setDescription(message)
-        .setColor(embedColors.log_debug);
+        .setColor(Colors.LOG_DEBUG);
 }
 
 export function info(message: string): EmbedBuilder {
@@ -52,7 +52,7 @@ export function info(message: string): EmbedBuilder {
     return new EmbedBuilder()
         .setTitle("Info")
         .setDescription(message)
-        .setColor(embedColors.log_info);
+        .setColor(Colors.LOG_INFO);
 }
 
 export function success(message: string): EmbedBuilder {
@@ -60,7 +60,7 @@ export function success(message: string): EmbedBuilder {
     return new EmbedBuilder()
         .setTitle("Success")
         .setDescription(message)
-        .setColor(embedColors.log_success);
+        .setColor(Colors.LOG_SUCCESS);
 }
 
 export function warn(message: string): EmbedBuilder {
@@ -68,7 +68,7 @@ export function warn(message: string): EmbedBuilder {
     return new EmbedBuilder()
         .setTitle("Warn")
         .setDescription(message)
-        .setColor(embedColors.log_warning);
+        .setColor(Colors.LOG_WARN);
 }
 
 export function error(message: string, error?: Error): EmbedBuilder {
@@ -77,7 +77,7 @@ export function error(message: string, error?: Error): EmbedBuilder {
     } else {
         log("[ERROR]  ", message, format.FgRed);
     }
-    const embed = new EmbedBuilder().setColor(embedColors.log_error);
+    const embed = new EmbedBuilder().setColor(Colors.LOG_ERROR);
 
     if (error) {
         embed.setTitle(message);
@@ -118,14 +118,25 @@ function save(message: string): void {
 
 export async function setupLog(): Promise<void> {
     existsSync(folderPath) || mkdirSync(folderPath);
-    if (existsSync(latestPath)) {
+
+    // Delete old logs
+    if (config.keep_logs >= 0) {
+        let files = readdirSync(folderPath)
+            .filter((file) => file.endsWith(".gz"))
+            .sort()
+        if (config.keep_logs !== 0) {
+            files = files.slice(0, -config.keep_logs);
+        }
+        await Promise.all(files.map(async (file) => unlinkSync(`${folderPath}/${file}`)));
+    }
+
+    // Compress the latest file if it exists
+    if (existsSync(latestPath) && config.keep_logs !== 0) {
         const targetPath = `${folderPath}/${new Date().toISOString()}.txt.gz`.replace(/:/g, "-");
 
-        // Compress the latest file
         return new Promise<void>((resolve, reject) => {
-            const stream = createReadStream(latestPath);
-            stream
-                .pipe(createGzip())
+            createReadStream(latestPath)
+                .pipe(createGzip() as any)
                 .pipe(createWriteStream(targetPath))
                 .on("finish", () => {
                     createWriteStream(latestPath).write("");

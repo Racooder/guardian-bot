@@ -1,10 +1,8 @@
 import { ApplicationCommandOptionType, ApplicationCommandType } from "discord.js";
-import { Command, ReplyType, Response } from '../Interactions';
+import { Command, ReplyType } from '../InteractionEssentials';
 import { debug } from "../Log";
-import { RawStatistic } from "../models/statistic";
-import statisticKeys from "../../data/statistic-keys.json"
 import { addWord, removeWord, getWords, RemoveWordResult } from "../models/codename";
-import { RemoveWordFailure, SubcommandExecutionFailure } from "../Failure";
+import { RemoveWordFailure } from "../Failure";
 
 export const Codenames: Command = {
     name: "codenames",
@@ -43,108 +41,85 @@ export const Codenames: Command = {
             description: "Get the codenames wordpack",
         }
     ],
-    run: async (client, interaction, botUser) => {
-        debug("Codenames command called");
-        return new SubcommandExecutionFailure();
-    },
     subcommands: {
-        add: async (client, interaction, botUser) => {
-            debug("Codenames add subcommand called");
+        add: {
+            run: async (client, interaction, botUser) => {
+                debug("Codenames add subcommand called");
 
-            const statistic: RawStatistic = {
-                global: false,
-                key: statisticKeys.bot.event.interaction.command.codenames.add,
-                user: botUser
-            };
+                const word = interaction.options.getString("word", true);
+                const document = await addWord(botUser, interaction.user, word);
+                if (document === undefined) {
+                    return {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: `Word "${word}" already exists in the codenames wordpack`,
+                    };
+                }
 
-            const word = interaction.options.getString("word", true);
-            const document = await addWord(botUser, interaction.user, word);
-            if (document === undefined) {
-                const response: Response = {
+                return {
                     replyType: ReplyType.Reply,
+                    content: `Added word "${word}" to the codenames wordpack`,
                     ephemeral: true,
-                    content: `Word "${word}" already exists in the codenames wordpack`,
                 };
-                return { response, statistic };
             }
-
-            const response: Response = {
-                replyType: ReplyType.Reply,
-                content: `Added word "${word}" to the codenames wordpack`,
-                ephemeral: true,
-            };
-            return { response, statistic };
         },
-        remove: async (client, interaction, botUser) => {
-            debug("Codenames remove subcommand called");
+        remove: {
+            run: async (client, interaction, botUser) => {
+                debug("Codenames remove subcommand called");
 
-            const statistic: RawStatistic = {
-                global: false,
-                key: statisticKeys.bot.event.interaction.command.codenames.remove,
-                user: botUser
-            };
-
-            const word = interaction.options.getString("word", true);
-            const removeSuccess = await removeWord(botUser, word, interaction.inGuild(), interaction.user);
-            switch (removeSuccess) {
-                case RemoveWordResult.NotFound: {
-                    const response: Response = {
-                        replyType: ReplyType.Reply,
-                        ephemeral: true,
-                        content: `Word "${word}" not found in the codenames wordpack`,
-                    };
-                    return { response, statistic };
-                }
-                case RemoveWordResult.NotCreator: {
-                    const response: Response = {
-                        replyType: ReplyType.Reply,
-                        ephemeral: true,
-                        content: `You do not have permission to remove word "${word}" from the codenames wordpack`,
-                    };
-                    return { response, statistic };
-                }
-                case RemoveWordResult.Success: {
-                    const response: Response = {
-                        replyType: ReplyType.Reply,
-                        ephemeral: true,
-                        content: `Removed word "${word}" from the codenames wordpack`,
-                    };
-                    return { response, statistic };
-                }
-                default: {
-                    return new RemoveWordFailure();
+                const word = interaction.options.getString("word", true);
+                const removeSuccess = await removeWord(botUser, word, interaction.inGuild(), interaction.user);
+                switch (removeSuccess) {
+                    case RemoveWordResult.NotFound: {
+                        return {
+                            replyType: ReplyType.Reply,
+                            ephemeral: true,
+                            content: `Word "${word}" not found in the codenames wordpack`,
+                        };
+                    }
+                    case RemoveWordResult.NotCreator: {
+                        return {
+                            replyType: ReplyType.Reply,
+                            ephemeral: true,
+                            content: `You do not have permission to remove word "${word}" from the codenames wordpack`,
+                        };
+                    }
+                    case RemoveWordResult.Success: {
+                        return {
+                            replyType: ReplyType.Reply,
+                            ephemeral: true,
+                            content: `Removed word "${word}" from the codenames wordpack`,
+                        };
+                    }
+                    default: {
+                        return new RemoveWordFailure();
+                    }
                 }
             }
         },
-        wordpack: async (client, interaction, botUser) => {
-            debug("Codenames wordpack subcommand called");
+        wordpack: {
+            run: async (client, interaction, botUser) => {
+                debug("Codenames wordpack subcommand called");
 
-            const statistic: RawStatistic = {
-                global: false,
-                key: statisticKeys.bot.event.interaction.command.codenames.wordpack,
-                user: botUser
-            };
+                const codenames = await getWords(botUser);
+                const words = codenames.map((codename) => codename.word);
+                if (words.length === 0) {
+                    return {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: "No words found in the codenames wordpack",
+                    };
+                }
+                const buffer = Buffer.from(words.join("\n"), "utf-8");
 
-            const codenames = await getWords(botUser);
-            const words = codenames.map((codename) => codename.word);
-            if (words.length === 0) {
-                const response: Response = {
+                return {
                     replyType: ReplyType.Reply,
-                    ephemeral: true,
-                    content: "No words found in the codenames wordpack",
+                    files: [{
+                        name: "wordpack.txt",
+                        attachment: buffer,
+                    }],
                 };
-                return { response, statistic };
-            }
-            const buffer = Buffer.from(words.join("\n"), "utf-8");
-
-            const response: Response = {
-                replyType: ReplyType.Reply,
-                files: [{
-                    name: "wordpack.txt",
-                    attachment: buffer,
-                }],
-            };
-            return { response, statistic };
-        },
+            },
+        }
     }
 };

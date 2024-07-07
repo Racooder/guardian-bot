@@ -1,41 +1,27 @@
 import { debug, error, info, logToDiscord, setupLog, warn } from "./Log";
-import { config } from "./Essentials";
-import { setupRestApi } from "./RestApi";
+import { config, octokit } from "./Essentials";
+// import { setupRestApi } from "./RestApi"; (wip)
 import { setupDiscordBot } from "./Bot";
-import { Server } from "http";
+// import { Server } from "http"; (wip)
 import { Client, HTTPError } from "discord.js";
 import schedule from 'node-schedule';
-import { Octokit } from "octokit";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import dotenv from "dotenv";
 
 dotenv.config({ path: "./meta/.env" });
 
-const GITHUB_REPO_OWNER = "Racooder";
-const GITHUB_REPO_NAME = "guardian-bot";
-const LATEST_GITHUB_RELEASE_FILE = "../github-latest-release.txt";
-const DOWNLOAD_URL_PATH = "../update-url.txt";
+const LATEST_GITHUB_RELEASE_FILE = "./github-latest-release.txt";
+const DOWNLOAD_URL_PATH = "./update-url.txt";
 
-var restApi: Server;
+// var restApi: Server; (wip)
 var discordClient: Client;
-
-const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN,
-    userAgent: "guardian-bot",
-    log: {
-        debug: debug,
-        info: info,
-        warn: warn,
-        error: error,
-    },
-});
 
 async function updateAvailable(discordClient: Client): Promise<boolean> {
     debug("Checking for updates");
 
     const response = await octokit.request("GET /repos/{owner}/{repo}/releases/latest", {
-        owner: GITHUB_REPO_OWNER,
-        repo: GITHUB_REPO_NAME,
+        owner: config.github_repo_owner,
+        repo: config.github_repo_name,
     }).catch((e: HTTPError) => {
         if (e.status === 404) {
             logToDiscord(discordClient, error("GitHub API returned 404, release not found"));
@@ -62,7 +48,7 @@ async function updateAvailable(discordClient: Client): Promise<boolean> {
         return false;
     }
     writeFileSync(LATEST_GITHUB_RELEASE_FILE, latestRelease, { encoding: "utf-8" });
-    writeFileSync(DOWNLOAD_URL_PATH, response.data.html_url, { encoding: "utf-8" });
+    writeFileSync(DOWNLOAD_URL_PATH, artifactUrl, { encoding: "utf-8" });
     return true;
 }
 
@@ -101,7 +87,7 @@ function stopApplication(): void {
         return;
     }
 
-    // restApi.close();
+    // restApi.close(); (wip)
     discordClient.destroy();
     process.exit(0);
 }

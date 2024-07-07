@@ -4,6 +4,7 @@
 /.vscode/
 
 .env
+config.yml
 github-latest-release.txt
 yarn-error.log
 test-report.json

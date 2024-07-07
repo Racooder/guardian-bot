@@ -1,13 +1,11 @@
 import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, Client, EmbedBuilder } from "discord.js";
-import { Command, ReplyType, Response } from "../Interactions";
+import { Command, ReplyType, Response } from "../InteractionEssentials";
 import { debug, error, logToDiscord } from "../Log";
-import { SubcommandExecutionFailure } from "../Failure";
-import { RawStatistic } from "../models/statistic";
-import statisticKeys from "../../data/statistic-keys.json";
 import { QuoteList, createQuoteList, getQuoteListQuery } from '../models/quoteList';
 import { parseDate, splitArrayIntoChunks } from "../Essentials";
 import { RawDiscordUser } from "../models/discordUser";
 import { Quote as QuoteType, createQuote, getQuoteByToken } from "../models/quote";
+import Colors from "../Colors";
 
 const MAX_CONVERSATION_LENGTH = 5;
 export const QUOTE_PAGE_SIZE = 15;
@@ -188,194 +186,197 @@ export const Quote: Command = {
                 }
             ],
         },
+        {
+            name: "context",
+            description: "Get the context of a quote.",
+            type: ApplicationCommandOptionType.Subcommand,
+            options: [
+                {
+                    name: "quote-token",
+                    description: "The quote to get the context of.",
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                },
+            ],
+        },
     ],
-    run: async (client, interaction, botUser) => {
-        debug("Quote command called");
-        return new SubcommandExecutionFailure();
-    },
     subcommands: {
-        add: async (client, interaction, botUser) => {
-            debug("Quote add subcommand called");
+        add: {
+            run: async (client, interaction, botUser) => {
+                debug("Quote add subcommand called");
 
-            const statistic: RawStatistic = {
-                global: false,
-                key: statisticKeys.bot.event.interaction.command.quote.add,
-                user: botUser
-            };
-
-            const context: string | undefined = interaction.options.getString("context", false) ?? undefined;
-            let quotes: string[] = [];
-            let authors: RawDiscordUser[] = [];
-            debug("Getting quote and author options")
-            for (let i = 1; i <= MAX_CONVERSATION_LENGTH; i++) {
-                let optionSuffix;
-                if (i === 1) {
-                    optionSuffix = "";
-                } else {
-                    optionSuffix = "-" + i.toString();
-                }
-
-                const quote = interaction.options.getString(`quote${optionSuffix}`, false);
-                if (quote === null) {
-                    for (let j = i + 1; j <= MAX_CONVERSATION_LENGTH; j++) {
-                        if (interaction.options.getString(`quote-${j}`, false) !== null) {
-                            const response: Response = {
-                                replyType: ReplyType.Reply,
-                                ephemeral: true,
-                                content: `You defined quote ${j} but the quotes ${i} to ${j - 1} are missing.`,
-                            };
-                            return { response, statistic };
-                        }
+                const context: string | undefined = interaction.options.getString("context", false) ?? undefined;
+                let quotes: string[] = [];
+                let authors: RawDiscordUser[] = [];
+                debug("Getting quote and author options")
+                for (let i = 1; i <= MAX_CONVERSATION_LENGTH; i++) {
+                    let optionSuffix;
+                    if (i === 1) {
+                        optionSuffix = "";
+                    } else {
+                        optionSuffix = "-" + i.toString();
                     }
-                    break;
+
+                    const quote = interaction.options.getString(`quote${optionSuffix}`, false);
+                    if (quote === null) {
+                        for (let j = i + 1; j <= MAX_CONVERSATION_LENGTH; j++) {
+                            if (interaction.options.getString(`quote-${j}`, false) !== null) {
+                                return {
+                                    replyType: ReplyType.Reply,
+                                    ephemeral: true,
+                                    content: `You defined quote ${j} but the quotes ${i} to ${j - 1} are missing.`,
+                                };
+                            }
+                        }
+                        break;
+                    }
+
+                    const discordAuthor = interaction.options.getUser(`author${optionSuffix}`, false);
+                    const nonDiscordAuthor = interaction.options.getString(`non-discord-author${optionSuffix}`, false);
+                    if (discordAuthor === null && nonDiscordAuthor === null) {
+                        return {
+                            replyType: ReplyType.Reply,
+                            ephemeral: true,
+                            content: `Quote ${i} is missing an author.`,
+                        };
+                    }
+                    if (discordAuthor !== null && nonDiscordAuthor !== null) {
+                        return {
+                            replyType: ReplyType.Reply,
+                            ephemeral: true,
+                            content: `Quote ${i} can only have a discord or a non-discord author not both.`,
+                        };
+                    }
+
+                    quotes.push(quote);
+                    if (discordAuthor !== null) {
+                        authors.push(discordAuthor);
+                    } else {
+                        authors.push(nonDiscordAuthor!);
+                    }
                 }
 
-                const discordAuthor = interaction.options.getUser(`author${optionSuffix}`, false);
-                const nonDiscordAuthor = interaction.options.getString(`non-discord-author${optionSuffix}`, false);
-                if (discordAuthor === null && nonDiscordAuthor === null) {
-                    const response: Response = {
+                await createQuote(botUser, interaction.user, quotes, authors, context);
+
+                return {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: "Your quote was added.",
+                };
+            },
+        },
+        remove: {
+            run: async (client, interaction, botUser) => {
+                debug("Quote remove subcommand called");
+
+                const token = interaction.options.getString("quote-token", true);
+                const document = await getQuoteByToken(botUser, token);
+                if (document === null) {
+                    return {
                         replyType: ReplyType.Reply,
                         ephemeral: true,
-                        content: `Quote ${i} is missing an author.`,
+                        content: "Quote not found.",
                     };
-                    return { response, statistic };
                 }
-                if (discordAuthor !== null && nonDiscordAuthor !== null) {
-                    const response: Response = {
+
+                if (document.creator.userId !== interaction.user.id) { // && !hasPermission(interaction.member, PermissionsBitField.Flags.ManageMessages)
+                    return {
                         replyType: ReplyType.Reply,
                         ephemeral: true,
-                        content: `Quote ${i} can only have a discord or a non-discord author not both.`,
+                        content: "You do not have permission to remove this quote.",
                     };
-                    return { response, statistic };
                 }
 
-                quotes.push(quote);
-                if (discordAuthor !== null) {
-                    authors.push(discordAuthor);
-                } else {
-                    authors.push(nonDiscordAuthor!);
+                await document.deleteOne();
+                return {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    content: "Quote removed.",
+                };
+            },
+        },
+        list: {
+            run: async (client, interaction, botUser) => {
+                debug("Quote list subcommand called");
+
+                const content = interaction.options.getString("content", false) ?? undefined;
+                const authorUser = interaction.options.getUser("discord-author", false) ?? undefined;
+                const authorName = interaction.options.getString("author-name", false) ?? undefined;
+                const context = interaction.options.getString("context", false) ?? undefined;
+                const creatorUser = interaction.options.getUser("creator", false) ?? undefined;
+                const creatorName = interaction.options.getString("creator-name", false) ?? undefined;
+                const dateString = interaction.options.getString("date", false) ?? undefined;
+                const dateRange = interaction.options.getInteger("date-range", false) ?? undefined;
+
+                if (authorUser !== undefined && authorName !== undefined) {
+                    return {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: "You cannot specify both an author and an author name.",
+                    };
                 }
-            }
+                if (creatorUser !== undefined && creatorName !== undefined) {
+                    return {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: "You cannot specify both a creator and a creator name.",
+                    };
+                }
 
-            await createQuote(botUser, interaction.user, quotes, authors, context);
+                const author = authorUser ?? authorName;
+                const creator = creatorUser ?? creatorName;
 
-            const response: Response = {
-                replyType: ReplyType.Reply,
-                ephemeral: true,
-                content: "Your quote was added.",
-            };
+                const date = parseDate(dateString);
+                if (dateString !== undefined && date === undefined) {
+                    return {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: "Invalid date format. The correct format is YYYY-MM-DD.",
+                    };
+                }
 
-            return { response, statistic };
+                const [list, quotes] = await createQuoteList(botUser, content, author, context, creator, date, dateRange);
+                if (quotes.length === 0) {
+                    return {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: "No quotes found.",
+                    };
+                }
+
+                return await quoteListMessage(list, quotes, client, 0, ReplyType.Reply);
+            },
         },
-        remove: async (client, interaction, botUser) => {
-            debug("Quote remove subcommand called");
+        context: {
+            run: async (client, interaction, botUser) => {
+                debug("Quote context subcommand called");
 
-            const statistic: RawStatistic = {
-                global: false,
-                key: statisticKeys.bot.event.interaction.command.quote.remove,
-                user: botUser
-            };
+                const token = interaction.options.getString("quote-token", true);
+                const document = await getQuoteByToken(botUser, token);
+                if (document === null) {
+                    return {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: "Quote not found.",
+                    };
+                }
 
-            const token = interaction.options.getString("quote-token", true);
-            const document = await getQuoteByToken(botUser, token);
-            if (document === null) {
-                const response: Response = {
+                const embedBuilder = new EmbedBuilder()
+                    .setColor(Colors.QUOTE_CONTEXT_EMBED)
+                    .setTitle(`Quote Context (Token: \`${document.token}\`)`)
+                    .setDescription(document.context ?? "No context provided.");
+
+                return {
                     replyType: ReplyType.Reply,
                     ephemeral: true,
-                    content: "Quote not found.",
+                    embeds: [embedBuilder],
                 };
-                return { response, statistic };
-            }
-
-            if (document.creator.userId !== interaction.user.id) { // && !hasPermission(interaction.member, PermissionsBitField.Flags.ManageMessages)
-                const response: Response = {
-                    replyType: ReplyType.Reply,
-                    ephemeral: true,
-                    content: "You do not have permission to remove this quote.",
-                };
-                return { response, statistic };
-            }
-
-            await document.deleteOne();
-            const response: Response = {
-                replyType: ReplyType.Reply,
-                ephemeral: true,
-                content: "Quote removed.",
-            };
-            return { response, statistic };
-        },
-        list: async (client, interaction, botUser) => {
-            debug("Quote list subcommand called");
-
-            const statistic: RawStatistic = {
-                global: false,
-                key: statisticKeys.bot.event.interaction.command.quote.list,
-                user: botUser
-            };
-
-            const content = interaction.options.getString("content", false) ?? undefined;
-            const authorUser = interaction.options.getUser("discord-author", false) ?? undefined;
-            const authorName = interaction.options.getString("author-name", false) ?? undefined;
-            const context = interaction.options.getString("context", false) ?? undefined;
-            const creatorUser = interaction.options.getUser("creator", false) ?? undefined;
-            const creatorName = interaction.options.getString("creator-name", false) ?? undefined;
-            const dateString = interaction.options.getString("date", false) ?? undefined;
-            const dateRange = interaction.options.getInteger("date-range", false) ?? undefined;
-
-            if (authorUser !== undefined && authorName !== undefined) {
-                const response: Response = {
-                    replyType: ReplyType.Reply,
-                    ephemeral: true,
-                    content: "You cannot specify both an author and an author name.",
-                };
-                return { response, statistic };
-            }
-            if (creatorUser !== undefined && creatorName !== undefined) {
-                const response: Response = {
-                    replyType: ReplyType.Reply,
-                    ephemeral: true,
-                    content: "You cannot specify both a creator and a creator name.",
-                };
-                return { response, statistic };
-            }
-
-            const author = authorUser ?? authorName;
-            const creator = creatorUser ?? creatorName;
-
-            const date = parseDate(dateString);
-            if (dateString !== undefined && date === undefined) {
-                const response: Response = {
-                    replyType: ReplyType.Reply,
-                    ephemeral: true,
-                    content: "Invalid date format. The correct format is YYYY-MM-DD.",
-                };
-                return { response, statistic };
-            }
-
-            const [list, quotes] = await createQuoteList(botUser, content, author, context, creator, date, dateRange);
-            if (quotes.length === 0) {
-                const response: Response = {
-                    replyType: ReplyType.Reply,
-                    ephemeral: true,
-                    content: "No quotes found.",
-                };
-                return { response, statistic };
-            }
-
-            const [embedBuilder, actionRow] = await quoteListMessage(list, quotes, client, 0);
-
-            const response: Response = {
-                replyType: ReplyType.Reply,
-                embeds: [embedBuilder],
-                components: [actionRow],
-            };
-
-            return { response, statistic };
+            },
         },
     },
 };
 
-export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], client: Client, page: number): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
+export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], client: Client, page: number, replyType: ReplyType): Promise<Response> {
     debug("Creating quote list message");
 
     const query = getQuoteListQuery(list);
@@ -391,6 +392,7 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
     const embedFields = await Promise.all(pageQuotes.map((quote) => quoteEmbedField(quote, client)));
 
     const embedBuilder = new EmbedBuilder()
+        .setColor(Colors.QUOTE_GUESSER_EMBED)
         .setTitle(`Quotes (Page ${page + 1}/${quoteChunks.length})`)
         .setDescription(embedDescription)
         .addFields(embedFields);
@@ -398,32 +400,36 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
     const actionRow = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`quote-page:first:${list._id}`)
+                .setCustomId(`quote_list;page;${list._id};-Infinity`)
                 .setEmoji('⏪')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
-                .setCustomId(`quote-page:page:${list._id}:${page - 1}`)
+                .setCustomId(`quote_list;page;${list._id};${page - 1}`)
                 .setEmoji('◀️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
-                .setCustomId(`quote-page:page:${list._id}:${page + 1}`)
+                .setCustomId(`quote_list;page;${list._id};${page + 1}`)
                 .setEmoji('▶️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === quoteChunks.length - 1),
             new ButtonBuilder()
-                .setCustomId(`quote-page:last:${list._id}`)
+                .setCustomId(`quote_list;page;${list._id};Infinity`)
                 .setEmoji('⏩')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === quoteChunks.length - 1),
             new ButtonBuilder()
-                .setCustomId(`quote-page:page:${list._id}:${page}`)
+                .setCustomId(`quote_list;page;${list._id};${page}`)
                 .setEmoji('🔄')
                 .setStyle(ButtonStyle.Secondary)
         );
 
-    return [embedBuilder, actionRow];
+    return {
+        replyType,
+        embeds: [embedBuilder],
+        components: [actionRow],
+    };
 }
 
 async function quoteEmbedField(quote: QuoteType, client: Client) {

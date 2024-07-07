@@ -1,6 +1,9 @@
 import { APIInteractionGuildMember, GuildMember, PermissionResolvable } from "discord.js";
 import botUserModel, { BotUser, QuotePrivacy } from "./models/botUser";
 import * as yaml from "js-yaml";
+import { copyFileSync, existsSync, readFileSync } from "fs";
+import { Octokit } from "octokit";
+import { debug, error, info, warn } from "./Log";
 
 export type Config = {
     debug: boolean;
@@ -11,9 +14,35 @@ export type Config = {
     log_role: string;
     database_name: string;
     log_to_discord: boolean;
+    database_expiration: number;
+    github_repo_owner: string;
+    github_repo_name: string;
+    changelog_fetch_delay: number;
+    keep_logs: number;
 }
 
-export const config: Config = yaml.load(require("fs").readFileSync("meta/config.yml", "utf8")) as Config;
+function loadConfig(): Config {
+    if (!existsSync("meta/config.yml")) {
+        if (!existsSync("meta/config.yml.template")) {
+            throw new Error("meta/config.yml.template does not exist");
+        }
+        copyFileSync("meta/config.yml.template", "meta/config.yml");
+    }
+    return yaml.load(readFileSync("meta/config.yml", "utf8")) as Config;
+}
+
+export const config = loadConfig();
+
+export const octokit = new Octokit({
+    auth: process.env.GITHUB_TOKEN,
+    userAgent: "guardian-bot",
+    log: {
+        debug: debug,
+        info: info,
+        warn: warn,
+        error: error,
+    },
+});
 
 export function splitArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {
     if (chunkSize <= 0) throw new Error("chunkSize must be greater than 0");

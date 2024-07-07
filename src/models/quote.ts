@@ -9,6 +9,7 @@ export interface Quote extends Document {
     token: string;
     user: BotUser['_id'];
     creator: DiscordUser['_id'];
+    isConversation: boolean;
     statements: string[];
     authors: DiscordUser['_id'][];
     context?: string;
@@ -24,6 +25,7 @@ const quoteSchema = new Schema<Quote, QuoteModel>({
     user: { type: Schema.Types.ObjectId, ref: 'BotUsers', required: true },
     creator: { type: Schema.Types.ObjectId, ref: 'DiscordUsers', required: true },
     statements: { type: [String], required: true },
+    isConversation: { type: Boolean, required: true },
     authors: [{ type: Schema.Types.ObjectId, ref: 'DiscordUsers', required: true }],
     context: { type: String, required: false }
 }, { timestamps: true });
@@ -47,8 +49,9 @@ export async function createQuote(botUser: BotUser, creatorUser: User, statement
             authorIds.push(authorUser._id);
         }
     }
+    const isConversation = statements.length > 1;
 
-    return await quoteModel.create({ token, user: botUser._id, creator: creator._id, statements: statements, authors: authorIds, context });
+    return await quoteModel.create({ token, user: botUser._id, creator: creator._id, isConversation, statements, authors: authorIds, context });
 }
 
 export async function getQuotes(botUser: BotUser): Promise<Quote[]> {
@@ -72,22 +75,41 @@ export async function randomQuote(botUser: BotUser, exclude: Quote['_id'][] = []
 
     const targets = await getAccessableConnections(botUser);
 
-    const documents = await quoteModel.find({ _id: { $nin: exclude }, user: { $in: targets } }).populate('user').populate('creator').populate('authors').exec();
-    if (documents.length === 0) return [];
-    const quote = documents[Math.floor(Math.random() * documents.length)];
+    const query = { _id: { $nin: exclude }, user: { $in: targets }, isConversation: false };
+    const documentCount = await quoteModel.countDocuments(query).exec();
+    const randomIndex = Math.floor(Math.random() * documentCount);
+    const quote = await quoteModel.findOne(query).skip(randomIndex).populate('user').populate('creator').populate('authors').exec();
 
-    debug("Getting correct author for the quote")
+    if (!quote) return [];
+
     const correctAuthor = [quote.authors[0].name.toLowerCase(), quote.authors[0].name] as [string, string];
 
-    debug("Getting all quote authors for the bot user")
-    let authors = new Map<string, string>();
-    for (const doc of documents) {
-        for (const author of doc.authors) {
+    const authorCollections = await quoteModel.find({ user: { $in: targets } }).populate('authors').select('authors').exec();
+    const authors = new Map<string, string>();
+    for (const collection of authorCollections) {
+        for (const author of collection.authors) {
             if (author.name.toLowerCase() === correctAuthor[0]) continue;
 
             authors.set(author.name.toLowerCase(), author.name);
         }
     }
+
+    // const documents = await quoteModel.find({ _id: { $nin: exclude }, user: { $in: targets }, isConversation: false }).populate('user').populate('creator').populate('authors').exec();
+    // if (documents.length === 0) return [];
+    // const quote = documents[Math.floor(Math.random() * documents.length)];
+
+    // debug("Getting correct author for the quote")
+    // const correctAuthor = [quote.authors[0].name.toLowerCase(), quote.authors[0].name] as [string, string];
+
+    // debug("Getting all quote authors for the bot user")
+    // let authors = new Map<string, string>();
+    // for (const doc of documents) {
+    //     for (const author of doc.authors) {
+    //         if (author.name.toLowerCase() === correctAuthor[0]) continue;
+
+    //         authors.set(author.name.toLowerCase(), author.name);
+    //     }
+    // }
 
     return [quote, authors, correctAuthor];
 }

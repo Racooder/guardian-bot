@@ -1,14 +1,17 @@
-import { insertStatistic } from "../models/statistic";
 import { EventListener } from "../EventListeners";
 import { Commands } from "../Interactions";
 import { debug, error, info, success } from "../Log";
 import mongoose from "mongoose";
-import statisticKeys from "../../data/statistic-keys.json"
 import { config } from "../Essentials";
+import followMenuModel from "../models/followMenu";
+import quoteGuesserModel from "../models/quoteGuesser";
+import quoteListModel from "../models/quoteList";
+import { Model } from 'mongoose';
+import statisticModel from "../models/statistic";
 
 export const Ready: EventListener = {
     start: (client) =>{
-        client.on("ready", async () => {
+        client.once("ready", async () => {
             debug("Ready event triggered");
 
             if (client.user === null || client.application === null) {
@@ -22,6 +25,9 @@ export const Ready: EventListener = {
             });
             success("Database connected");
 
+            info("Clearing old database entries...");
+            await clearOldEntries();
+
             info("Registering commands...");
             await client.application.commands.set(Commands);
             debug("Registered commands: (" + Commands.map((command) => command.name).join(", ") + ")");
@@ -33,10 +39,22 @@ export const Ready: EventListener = {
 
             success(`${client.user.tag} is online`);
 
-            insertStatistic({
+            statisticModel.create({
                 global: true,
-                key: statisticKeys.bot.event.ready,
+                key: "bot.event.ready",
             });
         });
+    }
+}
+
+export async function clearOldEntries() {
+    const models = [
+        followMenuModel,
+        quoteGuesserModel,
+        quoteListModel
+    ] as Model<any>[];
+
+    for (const model of models) {
+        await model.deleteMany({ updatedAt: { $lt: new Date(Date.now() - (config.database_expiration * 24 * 60 * 60 * 1000)) } });
     }
 }

@@ -1,10 +1,8 @@
 import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from "discord.js";
-import { Command, ReplyType, Response } from '../Interactions';
+import { Command, ReplyType } from '../InteractionEssentials';
 import { debug } from "../Log";
-import { SubcommandExecutionFailure } from "../Failure";
 import { QuotePrivacy } from "../models/botUser";
-import { RawStatistic } from "../models/statistic";
-import statisticKeys from "../../data/statistic-keys.json";
+import Colors from "../Colors";
 
 export const Settings: Command = {
     name: "settings",
@@ -51,61 +49,46 @@ export const Settings: Command = {
             ]
         }
     ],
-    run: async (client, interaction, botUser) => {
-        debug("Settings command called");
-        return new SubcommandExecutionFailure();
-    },
-    subcommandGroups: {
-        change: {
-            quote_privacy: async (client, interaction, botUser) => {
-                debug("Settings change quote-privacy subcommand called");
+    subcommands: {
+        view: {
+            run: async (client, interaction, botUser) => {
+                debug("Settings view subcommand called");
 
-                const privacy = interaction.options.getString("privacy", true);
-                botUser.settings.quote_privacy = privacy as QuotePrivacy;
-                botUser.markModified("settings");
-                await botUser.save();
+                const embedBuiler = new EmbedBuilder()
+                    .setColor(Colors.SETTINGS_EMBED)
+                    .setTitle("Settings")
+                    .addFields({
+                        name: "Quote Privacy",
+                        value: botUser.settings.quote_privacy,
+                        inline: true
+                    });
 
-                const statistic: RawStatistic = {
-                    global: false,
-                    key: statisticKeys.bot.event.interaction.command.settings.change.quote_privacy,
-                    user: botUser
-                };
-
-                const response: Response = {
+                return {
                     replyType: ReplyType.Reply,
-                    content: "Your quote privacy has been updated.",
+                    embeds: [embedBuiler],
                     ephemeral: true
                 };
-
-                return { response, statistic };
             }
-        }
-    },
-    subcommands: {
-        view: async (client, interaction, botUser) => {
-            debug("Settings view subcommand called");
+        },
+        change: {
+            subcommands: {
+                quote_privacy: {
+                    run: async (client, interaction, botUser) => {
+                        debug("Settings change quote-privacy subcommand called");
 
-            const statistic: RawStatistic = {
-                global: false,
-                key: statisticKeys.bot.event.interaction.command.settings.view,
-                user: botUser
-            };
+                        const privacy = interaction.options.getString("privacy", true);
+                        botUser.settings.quote_privacy = privacy as QuotePrivacy;
+                        botUser.markModified("settings");
+                        await botUser.save();
 
-            const embedBuiler = new EmbedBuilder()
-                .setTitle("Settings")
-                .addFields({
-                    name: "Quote Privacy",
-                    value: botUser.settings.quote_privacy,
-                    inline: true
-                });
-
-            const response: Response = {
-                replyType: ReplyType.Reply,
-                embeds: [embedBuiler],
-                ephemeral: true
-            };
-
-            return { response, statistic };
+                        return {
+                            replyType: ReplyType.Reply,
+                            content: "Your quote privacy has been updated.",
+                            ephemeral: true
+                        };
+                    }
+                }
+            }
         }
     },
 };

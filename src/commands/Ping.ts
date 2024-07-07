@@ -1,8 +1,7 @@
 import { ApplicationCommandType, EmbedBuilder } from "discord.js";
-import { Command, ReplyType, Response } from "../Interactions";
+import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
-import statisticKeys from "../../data/statistic-keys.json";
-import { RawStatistic } from "../models/statistic";
+import Colors from "../Colors";
 
 export const Ping: Command = {
     name: "ping",
@@ -17,31 +16,26 @@ export const Ping: Command = {
         const latencySuffix = getLatencySuffix(latency);
         const apiLatencySuffix = getLatencySuffix(apiLatency);
 
-        const embed = new EmbedBuilder().addFields(
-            {
-                name: ":stopwatch: Latency",
-                value: `${latency}ms ${latencySuffix}`,
-            },
-            {
-                name: ":heartbeat: API Latency",
-                value: apiLatency < 0
-                    ? "Couldn't be calculated"
-                    : `${apiLatency}ms ${apiLatencySuffix}`,
-            }
-        );
+        const embed = new EmbedBuilder()
+            .setColor(Colors.PING_EMBED)
+            .addFields(
+                {
+                    name: ":stopwatch: Latency",
+                    value: `${latency}ms ${latencySuffix}`,
+                },
+                {
+                    name: ":heartbeat: API Latency",
+                    value: apiLatency < 0
+                        ? "Couldn't be calculated"
+                        : `${apiLatency}ms ${apiLatencySuffix}`,
+                }
+            );
 
-        const response: Response = {
+        return {
             replyType: ReplyType.Reply,
             embeds: [embed],
             ephemeral: true,
         };
-        const statistic: RawStatistic = {
-            global: false,
-            key: statisticKeys.bot.event.interaction.command.ping,
-            user: botUser
-        };
-
-        return { response, statistic };
     },
 };
 

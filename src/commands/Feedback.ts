@@ -1,8 +1,6 @@
 import { ApplicationCommandOptionType, ApplicationCommandType } from "discord.js";
-import { Command, ReplyType, Response } from "../Interactions";
+import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
-import statisticKeys from "../../data/statistic-keys.json"
-import { RawStatistic } from "../models/statistic";
 import { IsChatInputCommandFailure } from "../Failure";
 import { FeedbackType, createFeedback } from "../models/feedback";
 
@@ -41,12 +39,6 @@ export const Feedback: Command = {
     run: async (client, interaction, botUser) => {
         debug("Feedback command called");
 
-        const statistic: RawStatistic = {
-            global: false,
-            key: statisticKeys.bot.event.interaction.command.feedback,
-            user: botUser
-        };
-
         if (!interaction.isChatInputCommand()) {
             return new IsChatInputCommandFailure();
         }
@@ -55,11 +47,10 @@ export const Feedback: Command = {
         const feedbackDescription = interaction.options.getString("description", true);
         await createFeedback(interaction.user, feedbackType, feedbackDescription);
 
-        const response: Response = {
+        return {
             replyType: ReplyType.Reply,
             content: "Thank you for your feedback!",
             ephemeral: true,
         };
-        return { response, statistic };
     },
 };
