@@ -1,12 +1,12 @@
 import { Document, Model, Schema, model } from 'mongoose';
-import { Dict, generateToken } from '../Essentials';
-import { Quote } from './quote';
+import { generateToken } from '../Essentials';
+import { QuoteDoc } from './quote';
 import { debug } from '../Log';
 
-export interface QuoteGuesserGame extends Document {
+export interface QuoteGuesserDoc extends Document {
     token: string;
-    usedQuotes: Quote["_id"][];
-    currentQuote: Quote["_id"];
+    usedQuotes: QuoteDoc["_id"][];
+    currentQuote: QuoteDoc["_id"];
     scores: Map<string, number>;
     answers: Map<string, string>;
     choices: Map<string, string>;
@@ -16,9 +16,18 @@ export interface QuoteGuesserGame extends Document {
     updatedAt: Date;
 }
 
-interface QuoteGuesserModel extends Model<QuoteGuesserGame> { }
+export interface QuoteGuesserPopulated extends QuoteGuesserDoc {
+    usedQuotes: QuoteDoc[];
+    currentQuote: QuoteDoc;
+}
 
-const quoteGuesserSchema = new Schema<QuoteGuesserGame, QuoteGuesserModel>({
+export interface QuoteGuesserPopulatedCurrentQuote extends QuoteGuesserDoc {
+    currentQuote: QuoteDoc;
+}
+
+interface QuoteGuesserModel extends Model<QuoteGuesserDoc> { }
+
+const quoteGuesserSchema = new Schema<QuoteGuesserDoc, QuoteGuesserModel>({
     token: { type: String, required: true },
     usedQuotes: [{ type: Schema.Types.ObjectId, ref: 'Quotes', required: true }],
     currentQuote: { type: Schema.Types.ObjectId, ref: 'Quotes', required: true },
@@ -28,13 +37,13 @@ const quoteGuesserSchema = new Schema<QuoteGuesserGame, QuoteGuesserModel>({
     correctAuthor: { type: [String, String], of: String, required: true }
 }, { timestamps: true});
 
-const quoteGuesserModel = model<QuoteGuesserGame, QuoteGuesserModel>('QuoteGuesser', quoteGuesserSchema);
+const quoteGuesserModel = model<QuoteGuesserDoc, QuoteGuesserModel>('QuoteGuesser', quoteGuesserSchema);
 
-export async function createQuoteGuesserGame(firstQuote: Quote, choices: Map<string, string>, correctAuthor: [string, string]): Promise<QuoteGuesserGame> {
+export async function createQuoteGuesserGame(firstQuote: QuoteDoc, choices: Map<string, string>, correctAuthor: [string, string]): Promise<QuoteGuesserPopulated> {
     debug("Creating quote guesser game")
 
     const token = generateToken();
-    return quoteGuesserModel.create({ token, usedQuotes: [firstQuote._id], currentQuote: firstQuote._id, scores: {}, answers: {}, choices, correctAuthor });
+    return quoteGuesserModel.create({ token, usedQuotes: [firstQuote], currentQuote: firstQuote, scores: {}, answers: {}, choices, correctAuthor }) as Promise<QuoteGuesserPopulated>;
 }
 
 export default quoteGuesserModel;

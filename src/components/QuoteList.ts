@@ -23,7 +23,7 @@ export const QuoteList: Component<ButtonInteraction> = {
                     return new UnknownQuotePageDataFailure();
                 }
 
-                let page = clamp(parseFloat(data[1]), 0, lastPage);
+                const page = clamp(parseFloat(data[1]), 0, lastPage);
                 return quoteListMessage(quoteList, quotes, client, page, ReplyType.Update);
             },
         }

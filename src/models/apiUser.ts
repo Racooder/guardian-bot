@@ -1,23 +1,23 @@
 import { Document, Model, Schema, model } from 'mongoose';
-import { BotUser } from './botUser';
+import { BotUserDoc } from './botUser';
 
 type ApiPermission = {
     permission: string;
-    environment?: BotUser;
+    environment?: BotUserDoc;
 }
 
-export interface ApiUser extends Document {
+export interface ApiUserDoc extends Document {
     token: string;
     permissions: ApiPermission[];
 }
 
-interface ApiUserModel extends Model<ApiUser> { }
+interface ApiUserModel extends Model<ApiUserDoc> { }
 
-const apiUserSchema = new Schema<ApiUser, ApiUserModel>({
+const apiUserSchema = new Schema<ApiUserDoc, ApiUserModel>({
     token: { type: String, required: true, unique: true },
     permissions: { type: [Object], required: true},
 });
 
-const apiUserModel = model<ApiUser, ApiUserModel>('ApiUsers', apiUserSchema);
+const apiUserModel = model<ApiUserDoc, ApiUserModel>('ApiUsers', apiUserSchema);
 
 export default apiUserModel;

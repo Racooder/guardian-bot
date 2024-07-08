@@ -1,9 +1,10 @@
 import { debug } from "../Log";
 import { Component, ReplyType } from '../InteractionEssentials';
 import { ButtonInteraction, ComponentType } from "discord.js";
-import followMenuModel from "../models/followMenu";
+import followMenuModel, { FollowMenuDoc } from "../models/followMenu";
 import { followMenuMessage } from "../commands/Connections";
-import botUserModel from "../models/botUser";
+import botUserModel, { BotUserDoc } from "../models/botUser";
+import { Types } from "mongoose";
 
 export const FollowMenu: Component<ButtonInteraction> = {
     name: "follow_menu",
@@ -13,7 +14,9 @@ export const FollowMenu: Component<ButtonInteraction> = {
             run: async (client, interaction, botUser, data) => {
                 debug("FollowMenu page button pressed");
 
-                const document = await followMenuModel.findById(data[0]);
+                const document = await followMenuModel
+                    .findById(data[0])
+                    .exec() as FollowMenuDoc | null;
 
                 if (document) {
                     const page = parseInt(data[1]);
@@ -38,13 +41,16 @@ export const FollowMenu: Component<ButtonInteraction> = {
         follow: {
             run: async (client, interaction, botUser, data) => {
                 debug("FollowMenu follow button pressed");
-                const targetDocument = await botUserModel.findById(data[0]);
+                const targetDocument = await botUserModel
+                    .findById(data[0])
+                    .exec() as BotUserDoc | null;
 
                 let responseContent = "Could not find the user or server you were looking for";
+                const following = botUser.following as Types.ObjectId[];
                 if (targetDocument) {
                     responseContent = `Successfully followed **${targetDocument.name}**`;
-                    if (!botUser.following.includes(targetDocument.id)) {
-                        botUser.following.push(targetDocument);
+                    if (!following.some((id) => id.equals(targetDocument._id as Types.ObjectId))) {
+                        botUser.following.push(targetDocument._id);
                     }
                     await botUser.save();
                 }

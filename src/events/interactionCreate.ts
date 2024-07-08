@@ -1,6 +1,6 @@
 import { debug, error, logToDiscord } from "../Log";
 import { EventListener } from "../EventListeners";
-import { BotUser, BotUserType, updateBotUser } from "../models/botUser";
+import { BotUserDoc, BotUserType, updateBotUser } from "../models/botUser";
 import { CommandFormatFailure, CommandNotFoundFailure, ComponentNotFoundFailure, Failure, MessageComponentExecutionFailure, SlashCommandExecutionFailure } from "../Failure";
 import statisticModel from "../models/statistic";
 import { ButtonInteraction, Client, CommandInteraction, ComponentType, InteractionUpdateOptions, MessageComponentInteraction } from "discord.js";
@@ -12,7 +12,7 @@ export const InteractionCreate: EventListener = {
         client.on("interactionCreate", async (interaction) => {
             debug("Interaction event triggered");
 
-            let botUser: BotUser;
+            let botUser: BotUserDoc;
             if (interaction.inGuild()) {
                 botUser = await updateBotUser(interaction.guildId!, BotUserType.GUILD, interaction.guild!.name, interaction.guild!.memberCount);
             } else {
@@ -48,15 +48,13 @@ export const InteractionCreate: EventListener = {
     }
 }
 
-async function handleSlashCommand(client: Client, interaction: CommandInteraction, botUser: BotUser): Promise<[Response, string] | Failure> {
+async function handleSlashCommand(client: Client, interaction: CommandInteraction, botUser: BotUserDoc): Promise<[Response, string] | Failure> {
     debug("Slash command interaction recieved");
 
     let statKey = "bot.event.interaction.command";
 
     debug(`Getting command ${interaction.commandName}`);
-    const commandHandler = Commands.find(
-        (command) => command.name === interaction.commandName
-    );
+    const commandHandler = Commands.find((command) => command.name === interaction.commandName);
 
     if (!commandHandler) {
         logToDiscord(client, error(`Command ${interaction.commandName} not found`));
@@ -131,7 +129,7 @@ async function handleSlashCommand(client: Client, interaction: CommandInteractio
     }
 }
 
-async function handleMessageComponent(client: Client, interaction: MessageComponentInteraction, botUser: BotUser): Promise<[Response, string] | Failure> {
+async function handleMessageComponent(client: Client, interaction: MessageComponentInteraction, botUser: BotUserDoc): Promise<[Response, string] | Failure> {
     debug("Message component interaction recieved");
 
     let statKey = "bot.event.interaction.component";
@@ -140,9 +138,7 @@ async function handleMessageComponent(client: Client, interaction: MessageCompon
 
     const componentName = componentData.shift();
     debug(`Getting component ${componentName}`);
-    const component = Components.find(
-        (c) => c.name === componentName
-    );
+    const component = Components.find((c) => c.name === componentName);
 
     if (!component) {
         logToDiscord(client, error(`Component ${componentName} not found`));

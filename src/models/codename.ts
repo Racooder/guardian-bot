@@ -1,20 +1,29 @@
 import { Document, Model, Schema, model } from 'mongoose';
-import { BotUser } from './botUser';
-import { DiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
+import { BotUserDoc } from './botUser';
+import { DiscordUserDoc, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
 import { User } from 'discord.js';
 import { debug } from '../Log';
 import { getAccessableConnections } from '../Essentials';
 
-export interface Codename extends Document {
-    user: BotUser['_id'];
-    creator: DiscordUser['_id'];
+export interface CodenameDoc extends Document {
+    user: BotUserDoc['_id'];
+    creator: DiscordUserDoc['_id'];
     word: string;
     word_lower: string;
 }
 
-interface CodenameModel extends Model<Codename> { }
+export interface CodenamePopulated extends CodenameDoc {
+    user: BotUserDoc;
+    creator: DiscordUserDoc;
+}
 
-const codenameSchema = new Schema<Codename, CodenameModel>({
+export interface CodenamePopulatedCreator extends CodenameDoc {
+    creator: DiscordUserDoc;
+}
+
+interface CodenameModel extends Model<CodenameDoc> { }
+
+const codenameSchema = new Schema<CodenameDoc, CodenameModel>({
     user: { type: Schema.Types.ObjectId, ref: 'BotUsers', required: true },
     creator: { type: Schema.Types.ObjectId, ref: 'DiscordUsers', required: true },
     word: { type: String, required: true },
@@ -23,14 +32,16 @@ const codenameSchema = new Schema<Codename, CodenameModel>({
 
 codenameSchema.index({ user: 1, word: 1 }, { unique: true });
 
-const codenameModel = model<Codename, CodenameModel>('Codenames', codenameSchema);
+const codenameModel = model<CodenameDoc, CodenameModel>('Codenames', codenameSchema);
 
-export async function getWords(botUser: BotUser): Promise<Codename[]> {
+export async function getWords(botUser: BotUserDoc): Promise<CodenameDoc[]> {
     debug(`Getting codenames words for bot user ${botUser.name}`);
 
     const targets = await getAccessableConnections(botUser);
 
-    return await codenameModel.find({ user: { $in: targets } });
+    return await codenameModel
+        .find({ user: { $in: targets } })
+        .exec() as CodenameDoc[];
 }
 
 export enum RemoveWordResult {
@@ -39,10 +50,13 @@ export enum RemoveWordResult {
     NotCreator
 }
 
-export async function removeWord(botUser: BotUser, word: string, inGuild: boolean, remover: User): Promise<RemoveWordResult> {
+export async function removeWord(botUser: BotUserDoc, word: string, inGuild: boolean, remover: User): Promise<RemoveWordResult> {
     debug(`Getting codename word ${word} for bot user ${botUser.name}`);
     const targets = await getAccessableConnections(botUser);
-    const documents = await codenameModel.find({ user: { $in: targets }, word_lower: word.toLowerCase() }).populate('creator');
+    const documents = await codenameModel
+        .find({ user: { $in: targets }, word_lower: word.toLowerCase() })
+        .populate('creator')
+        .exec() as CodenamePopulatedCreator[];
     if (documents.length === 0) {
         return RemoveWordResult.NotFound;
     }
@@ -50,10 +64,14 @@ export async function removeWord(botUser: BotUser, word: string, inGuild: boolea
     let deleted = RemoveWordResult.NotCreator;
     for (const document of documents) {
         if (!inGuild) {
-            codenameModel.findByIdAndDelete(document._id).exec();
+            codenameModel
+                .findByIdAndDelete(document._id)
+                .exec();
             deleted = RemoveWordResult.Success;
         } else if (document.creator.userId === remover.id){
-            codenameModel.findByIdAndDelete(document._id).exec();
+            codenameModel
+                .findByIdAndDelete(document._id)
+                .exec();
             deleted = RemoveWordResult.Success;
         }
     }
@@ -61,17 +79,19 @@ export async function removeWord(botUser: BotUser, word: string, inGuild: boolea
     return deleted;
 }
 
-export async function addWord(botUser: BotUser, creatorUser: User, word: string): Promise<Codename | undefined> {
+export async function addWord(botUser: BotUserDoc, creatorUser: User, word: string): Promise<CodenamePopulated | undefined> {
     debug(`Adding codename word ${word} for bot user ${botUser.name}`);
 
     const creatorData = getDiscordUserData(creatorUser);
     const creator = await getOrCreateDiscordUser(creatorData.name, creatorData.type, creatorUser.id);
     const word_lower = word.toLowerCase();
-    const existing = await codenameModel.findOne({ user: botUser._id, word_lower });
+    const existing = await codenameModel
+        .findOne({ user: botUser._id, word_lower })
+        .exec() as CodenameDoc | null;
     if (existing) {
         return undefined;
     }
-    return await codenameModel.create({ user: botUser._id, creator: creator._id, word, word_lower });
+    return await codenameModel.create({ user: botUser, creator, word, word_lower }) as CodenamePopulated;
 }
 
 export default codenameModel;

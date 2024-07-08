@@ -1,6 +1,6 @@
 import { Component, ReplyType } from '../InteractionEssentials';
 import { ComponentType, StringSelectMenuInteraction } from "discord.js";
-import quoteGuesserModel from "../models/quoteGuesser";
+import quoteGuesserModel, { QuoteGuesserPopulatedCurrentQuote } from "../models/quoteGuesser";
 import { quoteGuesserMessage } from "../commands/QuoteGuesser";
 import { SubcomponentExecutionFailure } from "../Failure";
 import { GAME_NOT_FOUND } from './QuoteGuesserButton';
@@ -13,7 +13,10 @@ export const QuoteGuesserAnswer: Component<StringSelectMenuInteraction> = {
             return new SubcomponentExecutionFailure();
         }
 
-        const gameDocument = await quoteGuesserModel.findById(data[0]).populate("currentQuote").exec();
+        const gameDocument = await quoteGuesserModel
+            .findById(data[0])
+            .populate("currentQuote")
+            .exec() as QuoteGuesserPopulatedCurrentQuote | null;
         if (gameDocument === null) {
             return GAME_NOT_FOUND;
         }

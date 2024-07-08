@@ -1,21 +1,25 @@
 import { Document, Model, Schema, model } from 'mongoose';
-import { BotUser } from './botUser';
+import { BotUserDoc } from './botUser';
 
-export interface FollowMenu extends Document {
-    targets: BotUser['_id'][];
+export interface FollowMenuDoc extends Document {
+    targets: BotUserDoc['_id'][];
     extendedSearch: boolean;
 
     createdAt: Date;
     updatedAt: Date;
 }
 
-interface FollowMenuModel extends Model<FollowMenu> { }
+export interface FollowMenuPopulated extends FollowMenuDoc {
+    targets: BotUserDoc[];
+}
 
-const followMenuSchema = new Schema<FollowMenu, FollowMenuModel>({
+interface FollowMenuModel extends Model<FollowMenuDoc> { }
+
+const followMenuSchema = new Schema<FollowMenuDoc, FollowMenuModel>({
     targets: { type: [{ type: Schema.Types.ObjectId, ref: 'BotUsers' }], required: true, default: [] },
     extendedSearch: { type: Boolean, required: true },
 }, { timestamps: true });
 
-const followMenuModel = model<FollowMenu, FollowMenuModel>('FollowMenus', followMenuSchema);
+const followMenuModel = model<FollowMenuDoc, FollowMenuModel>('FollowMenus', followMenuSchema);
 
 export default followMenuModel;

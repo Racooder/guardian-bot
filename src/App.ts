@@ -1,4 +1,4 @@
-import { debug, error, info, logToDiscord, setupLog, warn } from "./Log";
+import { debug, error, info, logToDiscord, setupLog } from "./Log";
 import { config, octokit } from "./Essentials";
 // import { setupRestApi } from "./RestApi"; (wip)
 import { setupDiscordBot } from "./Bot";
