@@ -40,6 +40,23 @@ Just [invite](https://discord.com/api/oauth2/authorize?client_id=821713905692573
 5. Run `npm install` in the target directory
 6. Run `npm run start` in the target directory
 
+## Roadmap
+
+* [x] 3.0 Makeover Update
+  * DM Support
+  * Delete Quotes and Codenames
+  * Following System
+* [x] 3.1 Changelog Update
+  * Changelog Command
+  * Quote Context
+* [ ] 3.2 Api Update
+  * Rest API
+  * Admin Dashboard
+* [ ] 3.3 Modal Update
+  * Quote creation with modals
+  * Localization
+  * Design Improvements
+
 ## License
 
 The license applies only to the code in this repository.
