@@ -1,8 +1,8 @@
 import { Client } from "discord.js";
-import { Ready } from "./events/ready";
-import { InteractionCreate } from "./events/interactionCreate";
+import { EvtReady } from "./events/ready";
+import { EvtInteractionCreate } from "./events/interactionCreate";
 
-export const Listeners: EventListener[] = [Ready, InteractionCreate];
+export const Listeners: EventListener[] = [EvtReady, EvtInteractionCreate];
 
 export interface EventListener {
     start: (client: Client) => void;

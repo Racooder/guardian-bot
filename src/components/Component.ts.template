@@ -3,8 +3,8 @@ import { Component } from '../InteractionEssentials';
 import { FeatureNotImplementedFailure } from "../Failure";
 import { ButtonInteraction, ComponentType } from "discord.js";
 
-export const Template: Component<ButtonInteraction> = {
-    name: "template",
+export const BtnTemplate: Component<ButtonInteraction> = {
+    name: "btn_template",
     type: ComponentType.Button,
     run: async (client, interaction, botUser, data) => {
         debug("Template component called");

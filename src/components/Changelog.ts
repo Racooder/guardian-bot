@@ -4,8 +4,8 @@ import { ButtonInteraction, ComponentType } from "discord.js";
 import { getReleases, releaseMessage } from "../commands/Changelog";
 import { clamp } from "../Essentials";
 
-export const ChangelogList: Component<ButtonInteraction> = {
-    name: "changelog_list",
+export const BtnChangelog: Component<ButtonInteraction> = {
+    name: "btn_changelog",
     type: ComponentType.Button,
     subcomponents: {
         page: {

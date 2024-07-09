@@ -3,7 +3,7 @@ import { Command } from "../InteractionEssentials";
 import { debug } from "../Log";
 import { FeatureNotImplementedFailure } from "../Failure";
 
-export const Template: Command = {
+export const CmdTemplate: Command = {
     name: "template",
     description: "Template description",
     type: ApplicationCommandType.ChatInput,

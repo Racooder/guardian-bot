@@ -4,7 +4,7 @@ import { debug } from "../Log";
 import { QuotePrivacy } from "../models/botUser";
 import Colors from "../Colors";
 
-export const Settings: Command = {
+export const CmdSettings: Command = {
     name: "settings",
     description: "Change your settings.",
     type: ApplicationCommandType.ChatInput,

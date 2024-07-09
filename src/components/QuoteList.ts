@@ -7,8 +7,8 @@ import { getQuotes } from "../models/quote";
 import { QUOTE_PAGE_SIZE, quoteListMessage } from "../commands/Quote";
 import { clamp } from "../Essentials";
 
-export const QuoteList: Component<ButtonInteraction> = {
-    name: "quote_list",
+export const BtnQuoteList: Component<ButtonInteraction> = {
+    name: "btn_quote_list",
     type: ComponentType.Button,
     subcomponents: {
         page: {

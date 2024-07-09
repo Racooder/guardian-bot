@@ -7,7 +7,7 @@ import { randomQuote } from "../models/quote";
 import { BotUserDoc } from "../models/botUser";
 import Colors from "../Colors";
 
-export const QuoteGuesser: Command = {
+export const CmdQuoteGuesser: Command = {
     name: "quote_guesser",
     description: "Play the quote guesser game.",
     type: ApplicationCommandType.ChatInput,
@@ -91,11 +91,11 @@ export function quoteGuesserMessage(document: QuoteGuesserDoc, quote: string, re
     const buttonRow = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`quote_guesser_button;finish;${id}`)
+                .setCustomId(`btn_quote_guesser;finish;${id}`)
                 .setLabel("Finish Round")
                 .setStyle(ButtonStyle.Primary),
             new ButtonBuilder()
-                .setCustomId(`quote_guesser_button;end;${id}`)
+                .setCustomId(`btn_quote_guesser;end;${id}`)
                 .setLabel("End Game")
                 .setStyle(ButtonStyle.Danger),
         ) as ActionRowBuilder<ButtonBuilder>;
@@ -108,7 +108,7 @@ export function quoteGuesserMessage(document: QuoteGuesserDoc, quote: string, re
     const selectionRow = new ActionRowBuilder()
         .addComponents(
             new StringSelectMenuBuilder()
-                .setCustomId(`quote_guesser_answer;${id}`)
+                .setCustomId(`ssm_quote_guesser;${id}`)
                 .setPlaceholder("Select the correct answer")
                 .addOptions(optionObjects)
                 .setMinValues(1)

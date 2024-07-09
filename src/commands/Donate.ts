@@ -8,7 +8,7 @@ const KOFI_URL = "https://ko-fi.com/racooder";
 const PAYPAL_URL = "https://paypal.me/racooder";
 const THUMBNAIL_URL = "https://storage.ko-fi.com/cdn/brandasset/kofi_s_logo_nolabel.png?_gl=1*1vvq19e*_ga*NjQ5OTU3ODE0LjE2OTAyMDY1NjY.*_ga_M13FZ7VQ2C*MTY5MTQyNDc2Mi45LjEuMTY5MTQyNjA4NC41Ni4wLjA.";
 
-export const Donate: Command = {
+export const CmdDonate: Command = {
     name: "donate",
     description: "Support the developement of the bot!",
     type: ApplicationCommandType.ChatInput,

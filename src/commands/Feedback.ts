@@ -4,7 +4,7 @@ import { debug } from "../Log";
 import { IsChatInputCommandFailure } from "../Failure";
 import { FeedbackType, createFeedback } from "../models/feedback";
 
-export const Feedback: Command = {
+export const CmdFeedback: Command = {
     name: "feedback",
     description: "Send feedback to the bot developer",
     type: ApplicationCommandType.ChatInput,

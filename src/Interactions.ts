@@ -1,37 +1,37 @@
-import { Ping } from "./commands/Ping";
-import { Donate } from "./commands/Donate";
-import { Codenames } from "./commands/Codenames";
-import { Feedback } from "./commands/Feedback";
-import { Quote } from "./commands/Quote";
-import { QuoteGuesser } from "./commands/QuoteGuesser";
-import { Connections } from "./commands/Connections";
-import { Settings } from "./commands/Settings";
-import { QuoteList } from "./components/QuoteList";
-import { QuoteGuesserButton } from "./components/QuoteGuesserButton";
-import { FollowMenu } from "./components/FollowMenu";
 import { Command, Component } from "./InteractionEssentials";
-import { QuoteGuesserAnswer } from "./components/QuoteGuesserAnswer";
-import { Changelog } from "./commands/Changelog";
-import { ConnectionList } from "./components/ConnectionList";
-import { ChangelogList } from "./components/ChangelogList";
+
+import { CmdPing } from "./commands/Ping";
+import { CmdDonate } from "./commands/Donate";
+import { CmdCodenames } from "./commands/Codenames";
+import { CmdFeedback } from "./commands/Feedback";
+import { CmdQuote } from "./commands/Quote";
+import { CmdQuoteGuesser } from "./commands/QuoteGuesser";
+import { CmdConnections } from "./commands/Connections";
+import { CmdSettings } from "./commands/Settings";
+import { CmdChangelog } from "./commands/Changelog";
+
+import { BtnQuoteList } from "./components/QuoteList";
+import { BtnQuoteGuesser, SsmQuoteGuesser } from "./components/QuoteGuesser";
+import { BtnConnectionList, BtnFollowMenu } from "./components/Connections";
+import { BtnChangelog } from "./components/Changelog";
 
 export const Commands: Command[] = [
-    Codenames,
-    Feedback,
-    Donate,
-    Ping,
-    Quote,
-    QuoteGuesser,
-    Connections,
-    Settings,
-    Changelog,
+    CmdCodenames,
+    CmdFeedback,
+    CmdDonate,
+    CmdPing,
+    CmdQuote,
+    CmdQuoteGuesser,
+    CmdConnections,
+    CmdSettings,
+    CmdChangelog,
 ];
 
 export const Components: Component<any>[] = [
-    QuoteList,
-    QuoteGuesserButton,
-    QuoteGuesserAnswer,
-    FollowMenu,
-    ConnectionList,
-    ChangelogList,
+    BtnQuoteList,
+    BtnQuoteGuesser,
+    SsmQuoteGuesser,
+    BtnFollowMenu,
+    BtnConnectionList,
+    BtnChangelog,
 ];

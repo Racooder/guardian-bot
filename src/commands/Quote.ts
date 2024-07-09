@@ -11,7 +11,7 @@ import { Types } from "mongoose";
 const MAX_CONVERSATION_LENGTH = 5;
 export const QUOTE_PAGE_SIZE = 15;
 
-export const Quote: Command = {
+export const CmdQuote: Command = {
     name: "quote",
     description: "Add, remove, or list quotes.",
     type: ApplicationCommandType.ChatInput,
@@ -376,25 +376,25 @@ function quoteListButtons(listId: Types.ObjectId, page: number): ActionRowBuilde
     const actionRow = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`quote_list;page;${idString};-Infinity`)
+                .setCustomId(`btn_quote_list;page;${idString};-Infinity`)
                 .setEmoji('⏪')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page <= 0),
             new ButtonBuilder()
-                .setCustomId(`quote_list;page;${idString};${page - 1}`)
+                .setCustomId(`btn_quote_list;page;${idString};${page - 1}`)
                 .setEmoji('◀️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page <= 0),
             new ButtonBuilder()
-                .setCustomId(`quote_list;page;${idString};${page + 1}`)
+                .setCustomId(`btn_quote_list;page;${idString};${page + 1}`)
                 .setEmoji('▶️')
                 .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
-                .setCustomId(`quote_list;page;${idString};Infinity`)
+                .setCustomId(`btn_quote_list;page;${idString};Infinity`)
                 .setEmoji('⏩')
                 .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
-                .setCustomId(`quote_list;page;${idString};${page}`)
+                .setCustomId(`btn_quote_list;page;${idString};${page}`)
                 .setEmoji('🔄')
                 .setStyle(ButtonStyle.Secondary)
         );

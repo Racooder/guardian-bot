@@ -11,7 +11,7 @@ const TYPE_DISPLAY = {
     [BotUserType.GUILD]: "Server"
 };
 
-export const Connections: Command = {
+export const CmdConnections: Command = {
     name: "connections",
     description: "Manage connections to other users and guilds",
     type: ApplicationCommandType.ChatInput,
@@ -135,17 +135,17 @@ export async function connectionListMessage(botUser: BotUserDoc, page: number): 
     const actionRow = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`connection_list;page;${page - 1}`)
+                .setCustomId(`btn_connection_list;page;${page - 1}`)
                 .setEmoji('◀️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
-                .setCustomId(`connection_list;page;${page + 1}`)
+                .setCustomId(`btn_connection_list;page;${page + 1}`)
                 .setEmoji('▶️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page >= botUser.following.length - 1),
             new ButtonBuilder()
-                .setCustomId(`connection_list;unfollow;${targetId}`)
+                .setCustomId(`btn_connection_list;unfollow;${targetId}`)
                 .setLabel("Unfollow")
                 .setStyle(ButtonStyle.Danger)
                 .setDisabled(targetId === "")
@@ -192,17 +192,17 @@ export async function followMenuMessage(botUser: BotUserDoc, document: FollowMen
     const actionRow = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`follow_menu;page;${document._id};${page - 1}`)
+                .setCustomId(`btn_follow_menu;page;${document._id};${page - 1}`)
                 .setEmoji('◀️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
-                .setCustomId(`follow_menu;page;${document._id};${page + 1}`)
+                .setCustomId(`btn_follow_menu;page;${document._id};${page + 1}`)
                 .setEmoji('▶️')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === document.targets.length - 1),
             new ButtonBuilder()
-                .setCustomId(`follow_menu;follow;${targetId.toString()}`)
+                .setCustomId(`btn_follow_menu;follow;${targetId.toString()}`)
                 .setLabel("Follow")
                 .setStyle(ButtonStyle.Primary)
                 .setDisabled(target === null || followed)

@@ -7,7 +7,7 @@ import { ButtonInteraction, Client, CommandInteraction, ComponentType, Interacti
 import { Commands, Components } from "../Interactions";
 import { ReplyType, Response } from "../InteractionEssentials";
 
-export const InteractionCreate: EventListener = {
+export const EvtInteractionCreate: EventListener = {
     start: (client) => {
         client.on("interactionCreate", async (interaction) => {
             debug("Interaction event triggered");

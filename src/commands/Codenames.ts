@@ -4,7 +4,7 @@ import { debug } from "../Log";
 import { addWord, removeWord, getWords, RemoveWordResult } from "../models/codename";
 import { RemoveWordFailure } from "../Failure";
 
-export const Codenames: Command = {
+export const CmdCodenames: Command = {
     name: "codenames",
     description: "Add words to the codenames wordpack",
     type: ApplicationCommandType.ChatInput,

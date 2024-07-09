@@ -3,7 +3,7 @@ import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
 import Colors from "../Colors";
 
-export const Ping: Command = {
+export const CmdPing: Command = {
     name: "ping",
     description: "A ping command",
     type: ApplicationCommandType.ChatInput,

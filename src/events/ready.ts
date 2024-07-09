@@ -9,7 +9,7 @@ import quoteListModel from "../models/quoteList";
 import { Model } from 'mongoose';
 import statisticModel from "../models/statistic";
 
-export const Ready: EventListener = {
+export const EvtReady: EventListener = {
     start: (client) =>{
         client.once("ready", async () => {
             debug("Ready event triggered");

@@ -7,7 +7,7 @@ import Colors from "../Colors";
 var cachedReleases: any[] = [];
 var lastFetch: number = 0;
 
-export const Changelog: Command = {
+export const CmdChangelog: Command = {
     name: "changelog",
     description: "What's new in the latest version?",
     type: ApplicationCommandType.ChatInput,
@@ -75,27 +75,27 @@ export function releaseMessage(releases: any[], page: number, replyType: ReplyTy
     const actionRow = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`changelog_list;page;-Infinity`)
+                .setCustomId(`btn_changelog;page;-Infinity`)
                 .setEmoji("⏪")
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
-                .setCustomId(`changelog_list;page;${page - 1}`)
+                .setCustomId(`btn_changelog;page;${page - 1}`)
                 .setEmoji("◀️")
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === 0),
             new ButtonBuilder()
-                .setCustomId(`changelog_list;page;${page + 1}`)
+                .setCustomId(`btn_changelog;page;${page + 1}`)
                 .setEmoji("▶️")
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === releases.length - 1),
             new ButtonBuilder()
-                .setCustomId(`changelog_list;page;Infinity`)
+                .setCustomId(`btn_changelog;page;Infinity`)
                 .setEmoji("⏩")
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === releases.length - 1),
             new ButtonBuilder()
-                .setCustomId(`changelog_list;page;${page}`)
+                .setCustomId(`btn_changelog;page;${page}`)
                 .setEmoji("🔄")
                 .setStyle(ButtonStyle.Secondary),
         );

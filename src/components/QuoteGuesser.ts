@@ -1,10 +1,11 @@
 import { debug } from "../Log";
 import { Component, ReplyType, Response } from '../InteractionEssentials';
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder, StringSelectMenuInteraction } from "discord.js";
 import quoteGuesserModel, { QuoteGuesserDoc, QuoteGuesserPopulatedCurrentQuote } from "../models/quoteGuesser";
-import { newRound } from "../commands/QuoteGuesser";
+import { newRound, quoteGuesserMessage } from "../commands/QuoteGuesser";
 import discordUserModel, { DiscordUserDoc } from "../models/discordUser";
 import Colors from "../Colors";
+import { SubcommandExecutionFailure } from "src/Failure";
 
 export const GAME_NOT_FOUND = {
     replyType: ReplyType.Reply,
@@ -12,8 +13,8 @@ export const GAME_NOT_FOUND = {
     content: "Game not found",
 };
 
-export const QuoteGuesserButton: Component<ButtonInteraction> = {
-    name: "quote_guesser_button",
+export const BtnQuoteGuesser: Component<ButtonInteraction> = {
+    name: "btn_quote_guesser",
     type: ComponentType.Button,
     subcomponents: {
         finish: {
@@ -70,6 +71,31 @@ export const QuoteGuesserButton: Component<ButtonInteraction> = {
     },
 };
 
+export const SsmQuoteGuesser: Component<StringSelectMenuInteraction> = {
+    name: "ssm_quote_guesser",
+    type: ComponentType.StringSelect,
+    run: async (client, interaction, botUser, data) => {
+        if (!interaction.isStringSelectMenu()) {
+            return new SubcommandExecutionFailure();
+        }
+
+        const gameDocument = await quoteGuesserModel
+            .findById(data[0])
+            .populate("currentQuote")
+            .exec() as QuoteGuesserPopulatedCurrentQuote | null;
+        if (gameDocument === null) {
+            return GAME_NOT_FOUND;
+        }
+
+        const answer = interaction.values[0];
+        gameDocument.answers.set(interaction.user.id, answer);
+        gameDocument.save();
+
+        return quoteGuesserMessage(gameDocument, gameDocument.currentQuote.statements[0], ReplyType.Update);
+    },
+};
+
+
 async function roundResultsMessage(gameDocument: QuoteGuesserPopulatedCurrentQuote): Promise<Response> {
     debug("Creating round results message");
 
@@ -108,11 +134,11 @@ async function roundResultsMessage(gameDocument: QuoteGuesserPopulatedCurrentQuo
     const actionRow = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`quote_guesser_button;next;${gameDocument._id}`)
+                .setCustomId(`btn_quote_guesser;next;${gameDocument._id}`)
                 .setLabel("Next Round")
                 .setStyle(ButtonStyle.Primary),
             new ButtonBuilder()
-                .setCustomId(`quote_guesser_button;end;${gameDocument._id}`)
+                .setCustomId(`btn_quote_guesser;end;${gameDocument._id}`)
                 .setLabel("End Game")
                 .setStyle(ButtonStyle.Danger),
         ) as ActionRowBuilder<ButtonBuilder>;
