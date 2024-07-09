@@ -56,7 +56,7 @@ export async function newRound(botUser: BotUserDoc, document?: QuoteGuesserDoc):
     return quoteGuesserMessage(document, quote.statements[0], ReplyType.Reply);
 }
 
-export async function finishRound(id: string) {
+async function finishRound(id: string) {
     debug("Finishing round");
 
     const document = await quoteGuesserModel

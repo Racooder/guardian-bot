@@ -47,7 +47,7 @@ export const Ready: EventListener = {
     }
 }
 
-export async function clearOldEntries() {
+async function clearOldEntries() {
     const models = [
         followMenuModel,
         quoteGuesserModel,
