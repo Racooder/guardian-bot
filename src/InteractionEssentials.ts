@@ -3,7 +3,6 @@ import { Failure } from "./Failure";
 import { Dict } from "./Essentials";
 import { BotUserDoc } from './models/botUser';
 
-
 export enum ReplyType {
     Reply,
     FollowUp,

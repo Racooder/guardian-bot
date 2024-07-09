@@ -62,7 +62,7 @@ export async function createQuote(botUser: BotUserDoc, creatorUser: User, statem
     }
     const isConversation = statements.length > 1;
 
-    return await quoteModel.create({ token, user: botUser, creator, isConversation, statements, authors: authorDocs, context }) as QuotePopulated;
+    return quoteModel.create({ token, user: botUser, creator, isConversation, statements, authors: authorDocs, context }) as Promise<QuotePopulated>;
 }
 
 export async function getQuotes(botUser: BotUserDoc): Promise<QuotePopulated[]> {

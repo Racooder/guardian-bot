@@ -5,7 +5,7 @@ import { setupDiscordBot } from "./Bot";
 // import { Server } from "http"; (wip)
 import { Client, HTTPError } from "discord.js";
 import schedule from 'node-schedule';
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFile, writeFileSync } from "fs";
 import dotenv from "dotenv";
 
 dotenv.config({ path: "./meta/.env" });
@@ -16,9 +16,7 @@ const DOWNLOAD_URL_PATH = "./update-url.txt";
 // var restApi: Server; (wip)
 var discordClient: Client;
 
-async function updateAvailable(discordClient: Client): Promise<boolean> {
-    debug("Checking for updates");
-
+async function fetchLatestRelease() {
     const response = await octokit.request("GET /repos/{owner}/{repo}/releases/latest", {
         owner: config.github_repo_owner,
         repo: config.github_repo_name,
@@ -30,9 +28,19 @@ async function updateAvailable(discordClient: Client): Promise<boolean> {
         }
     });
     if (response === undefined || response.status !== 200) {
+        return;
+    }
+    return response.data;
+}
+
+async function updateAvailable(discordClient: Client): Promise<boolean> {
+    debug("Checking for updates");
+
+    const response = await fetchLatestRelease();
+    if (response === undefined) {
         return false;
     }
-    const latestRelease = response.data.tag_name;
+    const latestRelease = response.tag_name;
 
     let currentRelease: string;
     if (existsSync(LATEST_GITHUB_RELEASE_FILE)) {
@@ -42,17 +50,17 @@ async function updateAvailable(discordClient: Client): Promise<boolean> {
         writeFileSync(LATEST_GITHUB_RELEASE_FILE, "", { encoding: "utf-8" });
     }
 
-    const artifactUrl = response.data.assets[0].browser_download_url;
+    const artifactUrl = response.assets[0].browser_download_url;
 
     if (currentRelease === latestRelease) {
         return false;
     }
-    writeFileSync(LATEST_GITHUB_RELEASE_FILE, latestRelease, { encoding: "utf-8" });
-    writeFileSync(DOWNLOAD_URL_PATH, artifactUrl, { encoding: "utf-8" });
+    writeFile(LATEST_GITHUB_RELEASE_FILE, latestRelease, { encoding: "utf-8" }, () => {});
+    writeFile(DOWNLOAD_URL_PATH, artifactUrl, { encoding: "utf-8" }, () => {});
     return true;
 }
 
-async function scheduleUpdateChecks(discordClient: Client): Promise<void> {
+function scheduleUpdateChecks(discordClient: Client): void {
     debug("Scheduling update checks");
 
     if (!config.do_update_check) {
@@ -70,13 +78,15 @@ async function scheduleUpdateChecks(discordClient: Client): Promise<void> {
     schedule.scheduleJob(config.update_check_cron, updateCheck);
 }
 
-async function updateCheck() {
+function updateCheck() {
     debug("Running update check");
 
-    if (await updateAvailable(discordClient)) {
-        info("Update available, restarting");
-        stopApplication();
-    }
+    updateAvailable(discordClient).then((update) => {
+        if (update) {
+            info("Update available, restarting");
+            stopApplication();
+        }
+    });
 }
 
 function stopApplication(): void {
@@ -87,9 +97,11 @@ function stopApplication(): void {
         return;
     }
 
-    // restApi.close(); (wip)
-    discordClient.destroy();
-    process.exit(0);
+    // const apiClose = restApi.close(); (wip)
+    const discordClose = discordClient.destroy();
+    Promise.all([ discordClose ]).then(() => {
+        process.exit(0);
+    });
 }
 
 function ready(discordClient: Client): void {

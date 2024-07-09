@@ -34,7 +34,7 @@ export async function createFeedback(creatorUser: User, type: FeedbackType, desc
 
     const creatorData = getDiscordUserData(creatorUser);
     const creator = await getOrCreateDiscordUser(creatorData.name, creatorData.type, creatorUser.id);
-    return await feedbackModel.create({ creator, type, description }) as FeedbackPopulated;
+    return feedbackModel.create({ creator, type, description }) as Promise<FeedbackPopulated>;
 }
 
 export default feedbackModel;

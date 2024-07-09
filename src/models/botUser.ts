@@ -57,12 +57,12 @@ export async function updateBotUser(id: string, type: BotUserType, name: string,
         .exec() as BotUserDoc | null;
 
     if (document === null) {
-        return await botUserModel.create({ id, type, name, memberCount });
+        return botUserModel.create({ id, type, name, memberCount });
     }
 
     document.name = name;
     document.memberCount = memberCount;
-    return await document.save();
+    return document.save();
 }
 
 export default botUserModel;

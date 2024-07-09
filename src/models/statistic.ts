@@ -66,21 +66,19 @@ export async function getStatistics(filter?: StatisticFilter): Promise<Statistic
         query['user'] = filter.userId;
     }
 
-    return await statisticModel
+    return statisticModel
         .find(query)
-        .exec() as StatisticDoc[];
+        .exec() as Promise<StatisticDoc[]>;
 }
 
 export async function getGlobalStatistics(filter?: StatisticFilter) {
     debug("Getting global statistics")
-
-    return await getStatistics({ ...filter, global: true });
+    return getStatistics({ ...filter, global: true });
 }
 
 export async function getUserStatistics(user: string, filter?: StatisticFilter) {
     debug("Getting user statistics")
-
-    return await getStatistics({ ...filter, userId: user });
+    return getStatistics({ ...filter, userId: user });
 }
 
 export default statisticModel;

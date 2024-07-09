@@ -68,7 +68,7 @@ export async function getOrCreateDiscordUser(username: string, type: DiscordUser
     }
 
     if (document === null) {
-        return await discordUserModel.create({ type: type, userId: id, name: username });
+        return discordUserModel.create({ type: type, userId: id, name: username });
     }
     return document;
 }

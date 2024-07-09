@@ -91,7 +91,7 @@ export async function addWord(botUser: BotUserDoc, creatorUser: User, word: stri
     if (existing) {
         return undefined;
     }
-    return await codenameModel.create({ user: botUser, creator, word, word_lower }) as CodenamePopulated;
+    return codenameModel.create({ user: botUser, creator, word, word_lower }) as Promise<CodenamePopulated>;
 }
 
 export default codenameModel;

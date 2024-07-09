@@ -13,7 +13,7 @@ export const CmdQuoteGuesser: Command = {
     type: ApplicationCommandType.ChatInput,
     run: async (client, interaction, botUser) => {
         debug("QuoteGuesser command called");
-        return await newRound(botUser);
+        return newRound(botUser);
     },
 };
 
@@ -54,17 +54,6 @@ export async function newRound(botUser: BotUserDoc, document?: QuoteGuesserDoc):
     }
 
     return quoteGuesserMessage(document, quote.statements[0], ReplyType.Reply);
-}
-
-async function finishRound(id: string) {
-    debug("Finishing round");
-
-    const document = await quoteGuesserModel
-        .findById(id)
-        .exec() as QuoteGuesserDoc | null;
-    if (document === null) {
-        return; // Game not found
-    }
 }
 
 export function quoteGuesserMessage(document: QuoteGuesserDoc, quote: string, replyType: ReplyType): Response {

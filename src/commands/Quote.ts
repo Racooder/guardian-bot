@@ -4,7 +4,7 @@ import { debug, error, logToDiscord } from "../Log";
 import { QuoteListPopulated, createQuoteList, getQuoteListQuery } from '../models/quoteList';
 import { parseDate, splitArrayIntoChunks } from "../Essentials";
 import { RawDiscordUser } from "../models/discordUser";
-import { QuoteDoc, QuotePopulatedCreatorAuthors, createQuote, getQuoteByToken } from "../models/quote";
+import { QuotePopulatedCreatorAuthors, createQuote, getQuoteByToken } from "../models/quote";
 import Colors from "../Colors";
 import { Types } from "mongoose";
 
@@ -257,7 +257,7 @@ export const CmdQuote: Command = {
                     }
                 }
 
-                await createQuote(botUser, interaction.user, quotes, authors, context);
+                createQuote(botUser, interaction.user, quotes, authors, context);
 
                 return {
                     replyType: ReplyType.Reply,
@@ -337,7 +337,7 @@ export const CmdQuote: Command = {
                 }
 
                 const [list, quotes] = await createQuoteList(botUser, content, author, context, creator, date, dateRange);
-                return await quoteListMessage(list, quotes, client, 0, ReplyType.Reply);
+                return quoteListMessage(list, quotes, client, 0, ReplyType.Reply);
             },
         },
         context: {

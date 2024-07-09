@@ -121,12 +121,12 @@ export async function createQuoteList(botUser: BotUserDoc, content?: string, aut
 export async function getQuoteList(id: QuoteListDoc['_id']): Promise<QuoteListPopulated | null> {
     debug(`Getting quote list ${id}`);
 
-    return await quoteListModel
+    return quoteListModel
         .findById(id)
         .populate('user')
         .populate('author')
         .populate('creator')
-        .exec() as QuoteListPopulated | null;
+        .exec() as Promise<QuoteListPopulated | null>;
 }
 
 export default quoteListModel;
