@@ -12,6 +12,7 @@ import { FollowMenu } from "./components/FollowMenu";
 import { Command, Component } from "./InteractionEssentials";
 import { QuoteGuesserAnswer } from "./components/QuoteGuesserAnswer";
 import { Changelog } from "./commands/Changelog";
+import { ConnectionList } from "./components/ConnectionList";
 import { ChangelogList } from "./components/ChangelogList";
 
 export const Commands: Command[] = [
@@ -31,5 +32,6 @@ export const Components: Component<any>[] = [
     QuoteGuesserButton,
     QuoteGuesserAnswer,
     FollowMenu,
+    ConnectionList,
     ChangelogList,
 ];

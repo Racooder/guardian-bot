@@ -1,9 +1,10 @@
 import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
-import botUserModel, { BotUser, BotUserType } from "../models/botUser";
-import followMenuModel, { FollowMenu } from "../models/followMenu";
+import botUserModel, { BotUserDoc, BotUserType } from "../models/botUser";
+import followMenuModel, { FollowMenuDoc, FollowMenuPopulated } from "../models/followMenu";
 import Colors from "../Colors";
+import { Types } from "mongoose";
 
 const TYPE_DISPLAY = {
     [BotUserType.USER]: "User",
@@ -58,12 +59,16 @@ export const Connections: Command = {
                 const name = interaction.options.getString("name", true);
                 const type = interaction.options.getString("type", true) as BotUserType;
 
-                let targets = await botUserModel.find({ name, type });
+                let targets = await botUserModel
+                    .find({ name, type })
+                    .exec() as BotUserDoc[];
                 removeSelfFromTargets(targets, botUser);
                 const extendedSearch = targets.length === 0;
 
                 if (extendedSearch) {
-                    targets = await botUserModel.find({ name: { $regex: new RegExp(name, "i") } });
+                    targets = await botUserModel
+                        .find({ name: { $regex: new RegExp(name, "i") }})
+                        .exec() as BotUserDoc[];
                     removeSelfFromTargets(targets, botUser);
                     if (targets.length === 0) {
                         return {
@@ -74,7 +79,7 @@ export const Connections: Command = {
                     }
                 }
 
-                const document = await followMenuModel.create({ targets, extendedSearch });
+                const document = await followMenuModel.create({ targets, extendedSearch }) as FollowMenuPopulated;
                 const [embed, actionRow] = await followMenuMessage(botUser, document);
                 return {
                     embeds: [embed],
@@ -98,7 +103,7 @@ export const Connections: Command = {
     }
 };
 
-export async function connectionListMessage(botUser: BotUser, page: number): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
+export async function connectionListMessage(botUser: BotUserDoc, page: number): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
     debug("Creating connection list message");
 
     let targetId = "";
@@ -109,13 +114,15 @@ export async function connectionListMessage(botUser: BotUser, page: number): Pro
         embedBuilder.setTitle("Not following any users or servers")
     } else {
         embedBuilder.setAuthor({ name: `Following ${botUser.following.length} user${botUser.following.length === 1 ? "" : "s"}` })
-        const target = await botUserModel.findById(botUser.following[page]);
+        const target = await botUserModel
+            .findById(botUser.following[page])
+            .exec() as BotUserDoc | null;
 
         if (target === null) {
             embedBuilder.setTitle("Unknown user or server");
             embedBuilder.setDescription("The data for this user or server could not be found");
         } else {
-            targetId = target._id;
+            targetId = (target._id as Types.ObjectId).toString();
             embedBuilder.setTitle(target.name);
             let targetDescription = `Type: ${TYPE_DISPLAY[target.type]}`;
             if (target.type === BotUserType.GUILD) {
@@ -147,12 +154,16 @@ export async function connectionListMessage(botUser: BotUser, page: number): Pro
     return [embedBuilder, actionRow];
 }
 
-export async function followMenuMessage(botUser: BotUser, document: FollowMenu, page = 0): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
+export async function followMenuMessage(botUser: BotUserDoc, document: FollowMenuDoc, page = 0): Promise<[EmbedBuilder, ActionRowBuilder<ButtonBuilder>]> {
     debug("Creating follow menu message");
 
-    const targetId = document.targets[page]._id;
-    const target = await botUserModel.findById(targetId);
-    const followed = botUser.following.includes(targetId);
+    const targets = document.targets as BotUserDoc[];
+    const targetId = targets[page]._id as Types.ObjectId;
+    const target = await botUserModel
+        .findById(targetId)
+        .exec() as BotUserDoc | null;
+    const following = botUser.following as Types.ObjectId[];
+    const followed = following.some((id) => id.equals(targetId));
 
     const embedBuilder = new EmbedBuilder()
         .setColor(Colors.CONNECTIONS_EMBED)
@@ -191,7 +202,7 @@ export async function followMenuMessage(botUser: BotUser, document: FollowMenu, 
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(page === document.targets.length - 1),
             new ButtonBuilder()
-                .setCustomId(`follow_menu;follow;${targetId}`)
+                .setCustomId(`follow_menu;follow;${targetId.toString()}`)
                 .setLabel("Follow")
                 .setStyle(ButtonStyle.Primary)
                 .setDisabled(target === null || followed)
@@ -200,7 +211,7 @@ export async function followMenuMessage(botUser: BotUser, document: FollowMenu, 
     return [embedBuilder, actionRow];
 }
 
-function removeSelfFromTargets(targets: BotUser[], botUser: BotUser): BotUser[] {
+function removeSelfFromTargets(targets: BotUserDoc[], botUser: BotUserDoc): BotUserDoc[] {
     debug("Removing self from targets");
 
     const indexOfSelf = targets.map(t => t.id).indexOf(botUser.id);

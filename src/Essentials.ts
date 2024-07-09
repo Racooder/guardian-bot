@@ -1,9 +1,10 @@
 import { APIInteractionGuildMember, GuildMember, PermissionResolvable } from "discord.js";
-import botUserModel, { BotUser, QuotePrivacy } from "./models/botUser";
+import botUserModel, { BotUserDoc, QuotePrivacy } from "./models/botUser";
 import * as yaml from "js-yaml";
 import { copyFileSync, existsSync, readFileSync } from "fs";
 import { Octokit } from "octokit";
 import { debug, error, info, warn } from "./Log";
+import { Types } from "mongoose";
 
 export type Config = {
     debug: boolean;
@@ -42,7 +43,7 @@ export const octokit = new Octokit({
         warn: warn,
         error: error,
     },
-});
+})
 
 export function splitArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {
     if (chunkSize <= 0) throw new Error("chunkSize must be greater than 0");
@@ -109,16 +110,20 @@ export function clamp(value: number, min: number, max: number): number {
     return Math.min(Math.max(value, min), max);
 }
 
-export async function getAccessableConnections(botUser: BotUser): Promise<BotUser['_id'][]> {
+export async function getAccessableConnections(botUser: BotUserDoc): Promise<BotUserDoc['_id'][]> {
     const connections = [botUser._id];
-    for (let user of botUser.following as BotUser[]) {
+    for (let user of botUser.following as BotUserDoc[]) {
         if (user.settings === undefined) {
-            user = await botUserModel.findById(user._id).populate('settings').exec() as BotUser;
+            user = await botUserModel
+                .findById(user._id)
+                .populate('settings')
+                .exec() as BotUserDoc;
         }
 
         if (user.settings.quote_privacy === QuotePrivacy.PRIVATE) continue;
         if (user.settings.quote_privacy === QuotePrivacy.TWO_WAY) {
-            if (user.following.find(following => following._id.equals(botUser._id)) === undefined) continue;
+            const following = user.following as Types.ObjectId[];
+            if (following.some((id) => id.equals(botUser._id as Types.ObjectId))) continue;
         };
         connections.push(user._id);
     }

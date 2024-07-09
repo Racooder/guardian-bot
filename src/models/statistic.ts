@@ -1,5 +1,5 @@
 import { Document, Model, Schema, model } from 'mongoose';
-import { BotUser } from './botUser';
+import { BotUserDoc } from './botUser';
 import { debug } from '../Log';
 
 export type StatisticFilter = {
@@ -10,31 +10,31 @@ export type StatisticFilter = {
     keys?: string[];
 }
 
-export interface Statistic extends Document {
+export interface StatisticDoc extends Document {
     global: boolean;
     key: string;
-    user?: BotUser['_id'];
+    user?: BotUserDoc['_id'];
 
     createdAt: Date;
     updatedAt: Date;
 }
 
-interface StatisticModel extends Model<Statistic> { }
+interface StatisticModel extends Model<StatisticDoc> { }
 
-const statisticSchema = new Schema<Statistic, StatisticModel>({
+const statisticSchema = new Schema<StatisticDoc, StatisticModel>({
     global: { type: Boolean, required: true },
     key: { type: String, required: true },
     user: { type: Schema.Types.ObjectId, ref: 'BotUser' },
 }, { timestamps: true });
 
-const statisticModel = model<Statistic, StatisticModel>('Statistics', statisticSchema);
+const statisticModel = model<StatisticDoc, StatisticModel>('Statistics', statisticSchema);
 
-export async function getStatistics(filter?: StatisticFilter): Promise<Statistic[]> {
+export async function getStatistics(filter?: StatisticFilter): Promise<StatisticDoc[]> {
     debug("Getting statistics")
 
     const query: {
         global?: boolean;
-        user?: BotUser['_id'];
+        user?: BotUserDoc['_id'];
         createdAt?: {
             $gte?: Date;
             $lte?: Date;
@@ -66,7 +66,9 @@ export async function getStatistics(filter?: StatisticFilter): Promise<Statistic
         query['user'] = filter.userId;
     }
 
-    return await statisticModel.find(query);
+    return await statisticModel
+        .find(query)
+        .exec() as StatisticDoc[];
 }
 
 export async function getGlobalStatistics(filter?: StatisticFilter) {
@@ -75,7 +77,7 @@ export async function getGlobalStatistics(filter?: StatisticFilter) {
     return await getStatistics({ ...filter, global: true });
 }
 
-export async function getUserStatistics(user: BotUser['_id'], filter?: StatisticFilter) {
+export async function getUserStatistics(user: string, filter?: StatisticFilter) {
     debug("Getting user statistics")
 
     return await getStatistics({ ...filter, userId: user });

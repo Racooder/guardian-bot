@@ -1,9 +1,9 @@
 import { debug } from "../Log";
 import { Component, ReplyType, Response } from '../InteractionEssentials';
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
-import quoteGuesserModel, { QuoteGuesserGame } from "../models/quoteGuesser";
+import quoteGuesserModel, { QuoteGuesserDoc, QuoteGuesserPopulatedCurrentQuote } from "../models/quoteGuesser";
 import { newRound } from "../commands/QuoteGuesser";
-import discordUserModel from "../models/discordUser";
+import discordUserModel, { DiscordUserDoc } from "../models/discordUser";
 import Colors from "../Colors";
 
 export const GAME_NOT_FOUND = {
@@ -18,7 +18,10 @@ export const QuoteGuesserButton: Component<ButtonInteraction> = {
     subcomponents: {
         finish: {
             run: async (client, interaction, botUser, data) => {
-                const gameDocument = await quoteGuesserModel.findById(data[0]).populate("currentQuote").exec();
+                const gameDocument = await quoteGuesserModel
+                    .findById(data[0])
+                    .populate("currentQuote")
+                    .exec() as QuoteGuesserPopulatedCurrentQuote | null;
                 if (gameDocument === null) {
                     return GAME_NOT_FOUND;
                 }
@@ -36,19 +39,26 @@ export const QuoteGuesserButton: Component<ButtonInteraction> = {
         },
         end: {
             run: async (client, interaction, botUser, data) => {
-                const gameDocument = await quoteGuesserModel.findById(data[0]);
+                const gameDocument = await quoteGuesserModel
+                    .findById(data[0])
+                    .exec() as QuoteGuesserDoc | null;
                 if (gameDocument === null) {
                     return GAME_NOT_FOUND;
                 }
 
                 const resultMessage = gameResultsMessage(gameDocument);
-                quoteGuesserModel.findByIdAndDelete(gameDocument._id).exec();
+                quoteGuesserModel
+                    .findByIdAndDelete(gameDocument._id)
+                    .exec();
                 return resultMessage;
             },
         },
         next: {
             run: async (client, interaction, botUser, data) => {
-                const gameDocument = await quoteGuesserModel.findById(data[0]).populate("currentQuote").exec();
+                const gameDocument = await quoteGuesserModel
+                    .findById(data[0])
+                    .populate("currentQuote")
+                    .exec() as QuoteGuesserPopulatedCurrentQuote | null;
                 if (gameDocument === null) {
                     return GAME_NOT_FOUND;
                 }
@@ -60,7 +70,7 @@ export const QuoteGuesserButton: Component<ButtonInteraction> = {
     },
 };
 
-async function roundResultsMessage(gameDocument: QuoteGuesserGame): Promise<Response> {
+async function roundResultsMessage(gameDocument: QuoteGuesserPopulatedCurrentQuote): Promise<Response> {
     debug("Creating round results message");
 
     const quote = gameDocument.currentQuote.statements[0] as string;
@@ -82,7 +92,9 @@ async function roundResultsMessage(gameDocument: QuoteGuesserGame): Promise<Resp
         if (answer[1] === correctAuthor) {
             correctAnswers++;
         }
-        const userDocument = await discordUserModel.findOne({ userId: answer[0] })
+        const userDocument = await discordUserModel
+            .findOne({ userId: answer[0] })
+            .exec() as DiscordUserDoc | null;
         if (userDocument === null) continue;
         embedBuilder.addFields({ name: `${userDocument.name}'s answer`, value: `${choices.get(answer[1])} ${answer[1] === correctAuthor ? "✅" : "❌"}` });
     }
@@ -112,7 +124,7 @@ async function roundResultsMessage(gameDocument: QuoteGuesserGame): Promise<Resp
     };
 }
 
-async function gameResultsMessage(gameDocument: QuoteGuesserGame): Promise<Response> {
+async function gameResultsMessage(gameDocument: QuoteGuesserDoc): Promise<Response> {
     debug("Creating game results message");
 
     const round = gameDocument.usedQuotes.length;
@@ -123,7 +135,9 @@ async function gameResultsMessage(gameDocument: QuoteGuesserGame): Promise<Respo
         .setDescription(`The game has ended after ${round} rounds`)
 
     for (const result of gameDocument.scores.entries()) {
-        const userDocument = await discordUserModel.findOne({ userId: result[0] });
+        const userDocument = await discordUserModel
+            .findOne({ userId: result[0] })
+            .exec() as DiscordUserDoc | null;
         if (userDocument === null) continue;
         embedBuilder.addFields({ name: userDocument.name, value: `${result[1]} ${result[1] === 1 ? "point" : "points"}` });
     }

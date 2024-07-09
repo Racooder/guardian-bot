@@ -15,16 +15,16 @@ export type DiscordUserSettings = { }
 
 export const DEFAULT_DISCORD_USER_SETTINGS: DiscordUserSettings = { }
 
-export interface DiscordUser extends Document {
+export interface DiscordUserDoc extends Document {
     name: string; // username, username#discriminator, or non discord name
     type: DiscordUserType;
     settings: DiscordUserSettings
     userId?: string;
 }
 
-interface DiscordUserModel extends Model<DiscordUser> { }
+interface DiscordUserModel extends Model<DiscordUserDoc> { }
 
-const discordUserSchema = new Schema<DiscordUser, DiscordUserModel>({
+const discordUserSchema = new Schema<DiscordUserDoc, DiscordUserModel>({
     type: { type: String, required: true },
     name: { type: String, required: true },
     settings: { type: Object, required: true, default: DEFAULT_DISCORD_USER_SETTINGS },
@@ -33,25 +33,29 @@ const discordUserSchema = new Schema<DiscordUser, DiscordUserModel>({
 
 discordUserSchema.index({ name: 1, type: 1 }, { unique: true });
 
-const discordUserModel = model<DiscordUser, DiscordUserModel>('DiscordUsers', discordUserSchema);
+const discordUserModel = model<DiscordUserDoc, DiscordUserModel>('DiscordUsers', discordUserSchema);
 
-export async function getOrCreateDiscordUser(username: string, type: DiscordUserType, id?: string): Promise<DiscordUser> {
+export async function getOrCreateDiscordUser(username: string, type: DiscordUserType, id?: string): Promise<DiscordUserDoc> {
     debug(`Getting or creating discord user ${username} (${type})`);
 
-    let document: DiscordUser | null;
+    let document: DiscordUserDoc | null;
     if (type === 'discord' || type === 'legacy') {
         if (id === undefined) {
             throw new Error('Discord user type requires id');
         }
-        document = await discordUserModel.findOne({
-            userId: id,
-            $or: [
-                { type: 'discord' },
-                { type: 'legacy' },
-            ],
-        }).exec();
+        document = await discordUserModel
+            .findOne({
+                userId: id,
+                $or: [
+                    { type: 'discord' },
+                    { type: 'legacy' },
+                ],
+            })
+            .exec() as DiscordUserDoc | null;
     } else if (type === 'non-discord') {
-        document = await discordUserModel.findOne({ name: username, type: type }).exec();
+        document = await discordUserModel
+            .findOne({ name: username, type: type })
+            .exec() as DiscordUserDoc | null;
     } else {
         throw new Error(`Unknown discord user type: ${type}`);
     }

@@ -1,31 +1,37 @@
 import { Document, Model, Schema, model } from 'mongoose';
-import { DiscordUser, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
-import quoteModel, { Quote } from './quote';
-import { BotUser } from './botUser';
+import { DiscordUserDoc, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
+import quoteModel, { QuotePopulatedCreatorAuthors } from './quote';
+import { BotUserDoc } from './botUser';
 import { approximateEqual, getAccessableConnections } from '../Essentials';
 import { debug } from '../Log';
 
 const QUOTE_DATE_RANGE = 259200000; // 3 days in milliseconds
 
 type QuoteQuery = {
-    user: BotUser['_id'];
-    creator?: DiscordUser['_id'];
-    authors?: DiscordUser['_id'];
+    user: BotUserDoc['_id'];
+    creator?: DiscordUserDoc['_id'];
+    authors?: DiscordUserDoc['_id'];
 }
 
-export interface QuoteList extends Document {
-    user: BotUser['_id'];
+export interface QuoteListDoc extends Document {
+    user: BotUserDoc['_id'];
     content?: string;
-    author?: DiscordUser['_id'];
+    author?: DiscordUserDoc['_id'];
     context?: string;
-    creator?: DiscordUser['_id'];
+    creator?: DiscordUserDoc['_id'];
     date?: Date;
 
     createdAt: Date;
     updatedAt: Date;
 }
 
-export function getQuoteListQuery(quoteList: QuoteList) {
+export interface QuoteListPopulated extends QuoteListDoc {
+    user: BotUserDoc;
+    author?: DiscordUserDoc;
+    creator?: DiscordUserDoc;
+}
+
+export function getQuoteListQuery(quoteList: QuoteListPopulated) {
     debug("Getting quote list query")
 
     let query = "";
@@ -47,9 +53,9 @@ export function getQuoteListQuery(quoteList: QuoteList) {
     return query;
 }
 
-interface QuoteListModel extends Model<QuoteList> { }
+interface QuoteListModel extends Model<QuoteListDoc> { }
 
-const quoteListSchema = new Schema<QuoteList, QuoteListModel>({
+const quoteListSchema = new Schema<QuoteListDoc, QuoteListModel>({
     user: { type: Schema.Types.ObjectId, ref: 'BotUsers', required: true },
     content: { type: String },
     author: { type: Schema.Types.ObjectId, ref: 'DiscordUsers' },
@@ -58,16 +64,16 @@ const quoteListSchema = new Schema<QuoteList, QuoteListModel>({
     date: { type: Date },
 }, { timestamps: true });
 
-const quoteListModel = model<QuoteList, QuoteListModel>('QuoteLists', quoteListSchema);
+const quoteListModel = model<QuoteListDoc, QuoteListModel>('QuoteLists', quoteListSchema);
 
-export async function createQuoteList(botUser: BotUser, content?: string, author?: RawDiscordUser, context?: string, creator?: RawDiscordUser, date?: Date, dateRange?: number): Promise<[QuoteList, Quote[]]> {
+export async function createQuoteList(botUser: BotUserDoc, content?: string, author?: RawDiscordUser, context?: string, creator?: RawDiscordUser, date?: Date, dateRange?: number): Promise<[QuoteListPopulated, QuotePopulatedCreatorAuthors[]]> {
     debug("Creating quote list entry")
 
-    let authorUser: DiscordUser | undefined;
-    let creatorUser: DiscordUser | undefined;
+    let authorUser: DiscordUserDoc | undefined;
+    let creatorUser: DiscordUserDoc | undefined;
 
-    const document = await quoteListModel.create({ user: botUser._id, content, author: authorUser?._id, context, creator: creatorUser?._id, date });
-    const list = await (await document.populate('author')).populate('creator');
+    const document = await quoteListModel.create({ user: botUser, content, author: authorUser, context, creator: creatorUser, date }) as QuoteListDoc;
+    const list = await (await document.populate('author')).populate('creator') as QuoteListPopulated;
 
     const targets = await getAccessableConnections(botUser);
     let query: QuoteQuery = { user: { $in: targets } };
@@ -82,7 +88,11 @@ export async function createQuoteList(botUser: BotUser, content?: string, author
         query.creator = creatorUser._id;
     }
 
-    let quotes = await quoteModel.find(query).populate("creator").populate("authors").exec();
+    let quotes = await quoteModel
+        .find(query)
+        .populate("creator")
+        .populate("authors")
+        .exec() as QuotePopulatedCreatorAuthors[];
     quotes = quotes.filter(quote => {
         if (content !== undefined) {
             let found = false;
@@ -108,15 +118,15 @@ export async function createQuoteList(botUser: BotUser, content?: string, author
     return [list, quotes];
 }
 
-export async function getQuoteList(id: QuoteList['_id']): Promise<QuoteList | null> {
+export async function getQuoteList(id: QuoteListDoc['_id']): Promise<QuoteListPopulated | null> {
     debug(`Getting quote list ${id}`);
 
-    const document = await quoteListModel.findById(id);
-    if (document === null) {
-        return null;
-    }
-    const list = await (await document?.populate('author')).populate('creator');
-    return list;
+    return await quoteListModel
+        .findById(id)
+        .populate('user')
+        .populate('author')
+        .populate('creator')
+        .exec() as QuoteListPopulated | null;
 }
 
 export default quoteListModel;

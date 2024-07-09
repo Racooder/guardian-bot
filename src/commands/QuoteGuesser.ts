@@ -1,10 +1,10 @@
 import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
 import { Command, ReplyType, Response } from "../InteractionEssentials";
 import { debug } from "../Log";
-import quoteGuesserModel, { createQuoteGuesserGame, QuoteGuesserGame } from "../models/quoteGuesser";
+import quoteGuesserModel, { createQuoteGuesserGame, QuoteGuesserDoc } from "../models/quoteGuesser";
 import { shuffleArray } from "../Essentials";
 import { randomQuote } from "../models/quote";
-import { BotUser } from "../models/botUser";
+import { BotUserDoc } from "../models/botUser";
 import Colors from "../Colors";
 
 export const QuoteGuesser: Command = {
@@ -17,7 +17,7 @@ export const QuoteGuesser: Command = {
     },
 };
 
-export async function newRound(botUser: BotUser, document?: QuoteGuesserGame): Promise<Response>{
+export async function newRound(botUser: BotUserDoc, document?: QuoteGuesserDoc): Promise<Response>{
     debug("Starting new round");
 
     const [quote, authors, correctAuthor] = await randomQuote(botUser, document?.usedQuotes);
@@ -59,13 +59,15 @@ export async function newRound(botUser: BotUser, document?: QuoteGuesserGame): P
 export async function finishRound(id: string) {
     debug("Finishing round");
 
-    const document = await quoteGuesserModel.findById(id).exec();
+    const document = await quoteGuesserModel
+        .findById(id)
+        .exec() as QuoteGuesserDoc | null;
     if (document === null) {
         return; // Game not found
     }
 }
 
-export function quoteGuesserMessage(document: QuoteGuesserGame, quote: string, replyType: ReplyType): Response {
+export function quoteGuesserMessage(document: QuoteGuesserDoc, quote: string, replyType: ReplyType): Response {
     debug("Creating quote guesser message");
 
     const id = document._id;

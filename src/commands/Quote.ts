@@ -1,11 +1,12 @@
 import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, Client, EmbedBuilder } from "discord.js";
 import { Command, ReplyType, Response } from "../InteractionEssentials";
 import { debug, error, logToDiscord } from "../Log";
-import { QuoteList, createQuoteList, getQuoteListQuery } from '../models/quoteList';
+import { QuoteListPopulated, createQuoteList, getQuoteListQuery } from '../models/quoteList';
 import { parseDate, splitArrayIntoChunks } from "../Essentials";
 import { RawDiscordUser } from "../models/discordUser";
-import { Quote as QuoteType, createQuote, getQuoteByToken } from "../models/quote";
+import { QuoteDoc, QuotePopulatedCreatorAuthors, createQuote, getQuoteByToken } from "../models/quote";
 import Colors from "../Colors";
+import { Types } from "mongoose";
 
 const MAX_CONVERSATION_LENGTH = 5;
 export const QUOTE_PAGE_SIZE = 15;
@@ -336,14 +337,6 @@ export const Quote: Command = {
                 }
 
                 const [list, quotes] = await createQuoteList(botUser, content, author, context, creator, date, dateRange);
-                if (quotes.length === 0) {
-                    return {
-                        replyType: ReplyType.Reply,
-                        ephemeral: true,
-                        content: "No quotes found.",
-                    };
-                }
-
                 return await quoteListMessage(list, quotes, client, 0, ReplyType.Reply);
             },
         },
@@ -376,8 +369,56 @@ export const Quote: Command = {
     },
 };
 
-export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], client: Client, page: number, replyType: ReplyType): Promise<Response> {
+function quoteListButtons(listId: Types.ObjectId, page: number): ActionRowBuilder<ButtonBuilder> {
+    debug("Creating quote list buttons");
+
+    const idString = listId.toString();
+    const actionRow = new ActionRowBuilder<ButtonBuilder>()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId(`quote_list;page;${idString};-Infinity`)
+                .setEmoji('⏪')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page <= 0),
+            new ButtonBuilder()
+                .setCustomId(`quote_list;page;${idString};${page - 1}`)
+                .setEmoji('◀️')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page <= 0),
+            new ButtonBuilder()
+                .setCustomId(`quote_list;page;${idString};${page + 1}`)
+                .setEmoji('▶️')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId(`quote_list;page;${idString};Infinity`)
+                .setEmoji('⏩')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId(`quote_list;page;${idString};${page}`)
+                .setEmoji('🔄')
+                .setStyle(ButtonStyle.Secondary)
+        );
+
+    return actionRow;
+}
+
+export async function quoteListMessage(list: QuoteListPopulated, quotes: QuotePopulatedCreatorAuthors[], client: Client, page: number, replyType: ReplyType): Promise<Response> {
     debug("Creating quote list message");
+
+    const actionRow = quoteListButtons(list._id as Types.ObjectId, page);
+
+    if (quotes.length === 0) {
+        const notFoundEmbed = new EmbedBuilder()
+            .setColor(Colors.QUOTE_GUESSER_EMBED)
+            .setTitle("Quotes")
+            .setDescription("No quotes found.");
+
+        return {
+            replyType,
+            embeds: [notFoundEmbed],
+            components: [actionRow],
+        };
+    }
 
     const query = getQuoteListQuery(list);
     const quoteChunks = splitArrayIntoChunks(quotes.reverse(), QUOTE_PAGE_SIZE);
@@ -397,34 +438,6 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
         .setDescription(embedDescription)
         .addFields(embedFields);
 
-    const actionRow = new ActionRowBuilder<ButtonBuilder>()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId(`quote_list;page;${list._id};-Infinity`)
-                .setEmoji('⏪')
-                .setStyle(ButtonStyle.Secondary)
-                .setDisabled(page === 0),
-            new ButtonBuilder()
-                .setCustomId(`quote_list;page;${list._id};${page - 1}`)
-                .setEmoji('◀️')
-                .setStyle(ButtonStyle.Secondary)
-                .setDisabled(page === 0),
-            new ButtonBuilder()
-                .setCustomId(`quote_list;page;${list._id};${page + 1}`)
-                .setEmoji('▶️')
-                .setStyle(ButtonStyle.Secondary)
-                .setDisabled(page === quoteChunks.length - 1),
-            new ButtonBuilder()
-                .setCustomId(`quote_list;page;${list._id};Infinity`)
-                .setEmoji('⏩')
-                .setStyle(ButtonStyle.Secondary)
-                .setDisabled(page === quoteChunks.length - 1),
-            new ButtonBuilder()
-                .setCustomId(`quote_list;page;${list._id};${page}`)
-                .setEmoji('🔄')
-                .setStyle(ButtonStyle.Secondary)
-        );
-
     return {
         replyType,
         embeds: [embedBuilder],
@@ -432,7 +445,7 @@ export async function quoteListMessage(list: QuoteList, quotes: QuoteType[], cli
     };
 }
 
-async function quoteEmbedField(quote: QuoteType, client: Client) {
+async function quoteEmbedField(quote: QuotePopulatedCreatorAuthors, client: Client) {
     if (quote.authors.length !== quote.statements.length) {
         logToDiscord(client, error(`Quote ${quote.token} has a mismatch between the number of authors and statements or can't be populated correctly.`));
         return {
