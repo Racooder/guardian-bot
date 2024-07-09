@@ -3,7 +3,7 @@ import { debug, info } from "./Log";
 import { Listeners } from "./EventListeners";
 
 export async function setupDiscordBot(): Promise<Client> {
-    info("Starting Discord bot...");
+    info("Starting discord bot v3.2...");
 
     const discordClient = new Client({
         intents: [IntentsBitField.Flags.Guilds],
