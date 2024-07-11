@@ -6,7 +6,8 @@
 1. Remove all `TODO:` or `FIXME:` comments
 2. Do manual tests
 3. Change version in startup log
-4. Create pull request and merge with `main`
-5. Check if automated build and tests pass
-6. Create release with version tag
-7. Check if bot updates correctly
+4. Change version in package.json
+5. Create pull request and merge with `main`
+6. Check if automated build and tests pass
+7. Create release with version tag
+8. Check if bot updates correctly
