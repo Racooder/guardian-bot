@@ -10,10 +10,12 @@ function loadLanguage(language: string): void {
     if (localization[language]) {
         return;
     }
-    if (!existsSync(`${LOCALIZATION_FOLDER}/${language}.json`)) {
-        return;
+    if (existsSync(`../${LOCALIZATION_FOLDER}/${language}.json`)) {
+        localization[language] = require(`../${LOCALIZATION_FOLDER}/${language}.json`);
     }
-    localization[language] = require(`../${LOCALIZATION_FOLDER}/${language}.json`);
+    if (existsSync(`${LOCALIZATION_FOLDER}/${language}.json`)) {
+        localization[language] = require(`${LOCALIZATION_FOLDER}/${language}.json`);
+    }
 }
 
 /**
