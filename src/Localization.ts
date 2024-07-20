@@ -1,7 +1,7 @@
 import { existsSync } from "fs";
 import { Dict } from "./Essentials";
+import path from "path";
 
-const LOCALIZATION_FOLDER = "localization";
 const FALLBACK_LANGUAGE = 'en';
 
 var localization: Dict<Dict<string>> = {};
@@ -10,16 +10,10 @@ function loadLanguage(language: string): void {
     if (localization[language]) {
         return;
     }
-    if (!existsSync(`${LOCALIZATION_FOLDER}/${language}.json`)) {
+    if (!existsSync(path.join(__dirname, "localization", `${language}.json`))) {
         return;
     }
-    try {
-        localization[language] = require(`../${LOCALIZATION_FOLDER}/${language}.json`);
-    } catch (e) {
-        try {
-            localization[language] = require(`${LOCALIZATION_FOLDER}/${language}.js`);
-        } catch (e) {}
-    }
+    localization[language] = require(`./localization/${language}.json`);
 }
 
 /**
