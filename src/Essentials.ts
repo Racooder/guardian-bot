@@ -4,7 +4,7 @@ import * as yaml from "js-yaml";
 import { copyFileSync, existsSync, readFileSync } from "fs";
 import { Octokit } from "octokit";
 import { debug, error, info, warn } from "./Log";
-import { Types } from "mongoose";
+import mongoose, { isValidObjectId, Types } from "mongoose";
 
 export type Config = {
     debug: boolean;
@@ -112,7 +112,11 @@ export function clamp(value: number, min: number, max: number): number {
 
 export async function getAccessableConnections(botUser: BotUserDoc): Promise<BotUserDoc['_id'][]> {
     const connections = [botUser._id];
-    for (let user of botUser.following as BotUserDoc[]) {
+    for (let user of botUser.following as BotUserDoc[] | string[]) {
+        if (typeof user === 'string') {
+            throw new Error("BotUser.following should be populated");
+        }
+
         if (user.settings === undefined) {
             user = await botUserModel
                 .findById(user._id)
@@ -123,7 +127,7 @@ export async function getAccessableConnections(botUser: BotUserDoc): Promise<Bot
         if (user.settings.quote_privacy === QuotePrivacy.PRIVATE) continue;
         if (user.settings.quote_privacy === QuotePrivacy.TWO_WAY) {
             const following = user.following as Types.ObjectId[];
-            if (following.some((id) => id.equals(botUser._id as Types.ObjectId))) continue;
+            if (!following.some((id) => id.equals(botUser._id as Types.ObjectId))) continue;
         };
         connections.push(user._id);
     }
