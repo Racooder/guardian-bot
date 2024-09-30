@@ -4,7 +4,7 @@ import { debug, error, logToDiscord } from "../Log";
 import { QuoteListPopulated, createQuoteList, getQuoteListQuery } from '../models/quoteList';
 import { parseDate, splitArrayIntoChunks } from "../Essentials";
 import { RawDiscordUser } from "../models/discordUser";
-import { QuoteDoc, QuotePopulatedCreatorAuthors, createQuote, getQuoteByToken } from "../models/quote";
+import { QuotePopulatedCreatorAuthors, createQuote, getQuoteByToken } from "../models/quote";
 import Colors from "../Colors";
 import { Types } from "mongoose";
 
@@ -200,6 +200,19 @@ export const Quote: Command = {
                 },
             ],
         },
+        {
+            name: "info",
+            description: "Get info about a quote.",
+            type: ApplicationCommandOptionType.Subcommand,
+            options: [
+                {
+                    name: "quote-token",
+                    description: "The quote to get info about.",
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                },
+            ],
+        },
     ],
     subcommands: {
         add: {
@@ -366,9 +379,53 @@ export const Quote: Command = {
                 };
             },
         },
+        info: {
+            run: async (client, interaction, botUser) => {
+                debug("Quote context subcommand called");
+
+                const token = interaction.options.getString("quote-token", true);
+                const document = await getQuoteByToken(botUser, token);
+                if (document === null) {
+                    return {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: "Quote not found.",
+                    };
+                }
+                if (document.creator.userId === undefined) {
+                    return {
+                        replyType: ReplyType.Reply,
+                        ephemeral: true,
+                        content: "This quote has no creator.",
+                    };
+                }
+
+                let infoText = "";
+                for (let i = 0; i < document.statements.length; i++) {
+                    const statement = document.statements[i];
+                    const author = document.authors[i];
+                    infoText += `"${statement}" - ${author.name}\n`;
+                }
+                infoText += `\n**Context:** ${document.context ?? "No context provided."}`;
+                infoText += `\n**Created at:** ${document.createdAt.toUTCString()}`;
+
+                const creatorObject = client.users.cache.get(document.creator.userId)
+
+                const embedBuilder = new EmbedBuilder()
+                    .setColor(Colors.QUOTE_INFO_EMBED)
+                    .setTitle(`Quote Info (Token: \`${document.token}\`)`)
+                    .setDescription(infoText)
+                    .setAuthor({ name: document.creator.name, iconURL: creatorObject?.displayAvatarURL() })
+
+                return {
+                    replyType: ReplyType.Reply,
+                    ephemeral: true,
+                    embeds: [embedBuilder],
+                };
+            },
+        }
     },
 };
-
 
 function quoteListButtons(listId: Types.ObjectId, page: number, lastPage: boolean): ActionRowBuilder<ButtonBuilder> {
     debug("Creating quote list buttons");

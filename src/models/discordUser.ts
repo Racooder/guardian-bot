@@ -3,7 +3,7 @@ import { Document, Model, Schema, model } from 'mongoose';
 import { debug } from '../Log';
 
 export type DiscordUserType = 'discord' | 'legacy' | 'non-discord';
-export type RawDiscordUser = User | string
+export type RawDiscordUser = User | string;
 
 export function getDiscordUserData(user: User): { name: string, type: DiscordUserType } {
     const type = user.discriminator === '0' ? 'discord' : 'legacy';
