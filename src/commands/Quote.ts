@@ -369,7 +369,8 @@ export const Quote: Command = {
     },
 };
 
-function quoteListButtons(listId: Types.ObjectId, page: number): ActionRowBuilder<ButtonBuilder> {
+
+function quoteListButtons(listId: Types.ObjectId, page: number, lastPage: boolean): ActionRowBuilder<ButtonBuilder> {
     debug("Creating quote list buttons");
 
     const idString = listId.toString();
@@ -388,11 +389,13 @@ function quoteListButtons(listId: Types.ObjectId, page: number): ActionRowBuilde
             new ButtonBuilder()
                 .setCustomId(`quote_list;page;${idString};${page + 1}`)
                 .setEmoji('▶️')
-                .setStyle(ButtonStyle.Secondary),
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(lastPage),
             new ButtonBuilder()
                 .setCustomId(`quote_list;page;${idString};Infinity`)
                 .setEmoji('⏩')
-                .setStyle(ButtonStyle.Secondary),
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(lastPage),
             new ButtonBuilder()
                 .setCustomId(`quote_list;page;${idString};${page}`)
                 .setEmoji('🔄')
@@ -405,7 +408,8 @@ function quoteListButtons(listId: Types.ObjectId, page: number): ActionRowBuilde
 export async function quoteListMessage(list: QuoteListPopulated, quotes: QuotePopulatedCreatorAuthors[], client: Client, page: number, replyType: ReplyType): Promise<Response> {
     debug("Creating quote list message");
 
-    const actionRow = quoteListButtons(list._id as Types.ObjectId, page);
+    const lastPage = page >= quotes.length / QUOTE_PAGE_SIZE - 1;
+    const actionRow = quoteListButtons(list._id as Types.ObjectId, page, lastPage);
 
     if (quotes.length === 0) {
         const notFoundEmbed = new EmbedBuilder()
