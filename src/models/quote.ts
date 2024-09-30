@@ -2,8 +2,16 @@ import { Document, Model, Schema, model } from 'mongoose';
 import { BotUserDoc } from './botUser';
 import { DiscordUserDoc, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
 import { User } from 'discord.js';
-import { generateToken, getAccessableConnections } from '../Essentials';
+import { approximateEqual, generateToken, getAccessableConnections } from '../Essentials';
 import { debug } from '../Log';
+
+const QUOTE_DATE_RANGE = 259200000; // 3 days in milliseconds
+
+type QuoteQuery = {
+    user: BotUserDoc['_id'];
+    creator?: DiscordUserDoc['_id'];
+    authors?: DiscordUserDoc['_id'];
+}
 
 export interface QuoteDoc extends Document {
     token: string;
@@ -65,18 +73,48 @@ export async function createQuote(botUser: BotUserDoc, creatorUser: User, statem
     return await quoteModel.create({ token, user: botUser, creator, isConversation, statements, authors: authorDocs, context }) as QuotePopulated;
 }
 
-export async function getQuotes(botUser: BotUserDoc): Promise<QuotePopulated[]> {
+export async function getQuotes(botUser: BotUserDoc, content?: string, author?: DiscordUserDoc, context?: string, creator?: DiscordUserDoc, date?: Date, dateRange?: number): Promise<QuotePopulated[]> {
     debug(`Getting quotes for bot user ${botUser.id}`);
 
     const targets = await getAccessableConnections(botUser);
 
-    const documents = await quoteModel
-        .find({ user: { $in: targets } })
+    let query: QuoteQuery = { user: { $in: targets } };
+    if (author) {
+        query.authors = author._id;
+    }
+    if (creator) {
+        query.creator = creator._id;
+    }
+
+    let quotes = await quoteModel
+        .find(query)
         .populate('user')
-        .populate('creator')
-        .populate('authors')
+        .populate("creator")
+        .populate("authors")
         .exec() as QuotePopulated[];
-    return documents;
+    quotes = quotes.filter(quote => {
+        if (content !== undefined) {
+            let found = false;
+            for (const statement of quote.statements) {
+                if (statement.includes(content)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+        if (context !== undefined && quote.context && !quote.context.includes(context)) {
+            return false;
+        }
+        if (date !== undefined && !approximateEqual(quote.createdAt.getTime(), date.getTime(), dateRange ?? QUOTE_DATE_RANGE)){
+            return false;
+        }
+        return true;
+    });
+
+    return quotes;
 }
 
 export async function getQuoteByToken(botUser: BotUserDoc, token: string): Promise<QuotePopulated | null> {

@@ -16,12 +16,10 @@ export const QuoteList: Component<ButtonInteraction> = {
                 debug("QuotePage page button pressed");
 
                 const quoteList = await getQuoteList(data[0]);
-                const quotes = await getQuotes(botUser);
-                const lastPage = Math.ceil(quotes.length / QUOTE_PAGE_SIZE) - 1;
+                if (quoteList === null) return new UnknownQuotePageDataFailure();
 
-                if (quoteList === null) {
-                    return new UnknownQuotePageDataFailure();
-                }
+                const quotes = await getQuotes(botUser, quoteList.content, quoteList.author, quoteList.context, quoteList.creator, quoteList.date);
+                const lastPage = Math.ceil(quotes.length / QUOTE_PAGE_SIZE) - 1;
 
                 const page = clamp(parseFloat(data[1]), 0, lastPage);
                 return quoteListMessage(quoteList, quotes, client, page, ReplyType.Update);
