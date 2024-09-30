@@ -1,17 +1,8 @@
 import { Document, Model, Schema, model } from 'mongoose';
-import { DiscordUserDoc, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
-import quoteModel, { QuotePopulatedCreatorAuthors } from './quote';
+import { DiscordUserDoc, getDiscordUserData, getOrCreateDiscordUser, RawDiscordUser } from './discordUser';
+import { getQuotes, QuotePopulatedCreatorAuthors } from './quote';
 import { BotUserDoc } from './botUser';
-import { approximateEqual, getAccessableConnections } from '../Essentials';
 import { debug } from '../Log';
-
-const QUOTE_DATE_RANGE = 259200000; // 3 days in milliseconds
-
-type QuoteQuery = {
-    user: BotUserDoc['_id'];
-    creator?: DiscordUserDoc['_id'];
-    authors?: DiscordUserDoc['_id'];
-}
 
 export interface QuoteListDoc extends Document {
     user: BotUserDoc['_id'];
@@ -72,48 +63,19 @@ export async function createQuoteList(botUser: BotUserDoc, content?: string, aut
     let authorUser: DiscordUserDoc | undefined;
     let creatorUser: DiscordUserDoc | undefined;
 
-    const document = await quoteListModel.create({ user: botUser, content, author: authorUser, context, creator: creatorUser, date }) as QuoteListDoc;
-    const list = await (await document.populate('author')).populate('creator') as QuoteListPopulated;
-
-    const targets = await getAccessableConnections(botUser);
-    let query: QuoteQuery = { user: { $in: targets } };
     if (author && typeof author !== 'string') {
         const authorData = getDiscordUserData(author);
         authorUser = await getOrCreateDiscordUser(authorData.name, authorData.type, author.id);
-        query.authors = authorUser._id;
     }
     if (creator && typeof creator !== 'string') {
         const creatorData = getDiscordUserData(creator);
         creatorUser = await getOrCreateDiscordUser(creatorData.name, creatorData.type, creator.id);
-        query.creator = creatorUser._id;
     }
 
-    let quotes = await quoteModel
-        .find(query)
-        .populate("creator")
-        .populate("authors")
-        .exec() as QuotePopulatedCreatorAuthors[];
-    quotes = quotes.filter(quote => {
-        if (content !== undefined) {
-            let found = false;
-            for (const statement of quote.statements) {
-                if (statement.includes(content)) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                return false;
-            }
-        }
-        if (context !== undefined && quote.context && !quote.context.includes(context)) {
-            return false;
-        }
-        if (date !== undefined && !approximateEqual(quote.createdAt.getTime(), date.getTime(), dateRange ?? QUOTE_DATE_RANGE)){
-            return false;
-        }
-        return true;
-    });
+    const document = await quoteListModel.create({ user: botUser, content, author: authorUser, context, creator: creatorUser, date }) as QuoteListDoc;
+    const list = await (await document.populate('author')).populate('creator') as QuoteListPopulated;
+
+    const quotes = await getQuotes(botUser, content, authorUser, context, creatorUser, date, dateRange);
 
     return [list, quotes];
 }

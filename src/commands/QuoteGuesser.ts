@@ -1,9 +1,8 @@
 import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
 import { Command, ReplyType, Response } from "../InteractionEssentials";
 import { debug } from "../Log";
-import quoteGuesserModel, { createQuoteGuesserGame, QuoteGuesserDoc } from "../models/quoteGuesser";
+import quoteGuesserModel, { createQuoteGuesserGame, QuoteGuesserDoc, randomQuote } from "../models/quoteGuesser";
 import { shuffleArray } from "../Essentials";
-import { randomQuote } from "../models/quote";
 import { BotUserDoc } from "../models/botUser";
 import Colors from "../Colors";
 

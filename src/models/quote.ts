@@ -2,8 +2,16 @@ import { Document, Model, Schema, model } from 'mongoose';
 import { BotUserDoc } from './botUser';
 import { DiscordUserDoc, RawDiscordUser, getDiscordUserData, getOrCreateDiscordUser } from './discordUser';
 import { User } from 'discord.js';
-import { generateToken, getAccessableConnections } from '../Essentials';
+import { approximateEqual, generateToken, getAccessableConnections } from '../Essentials';
 import { debug } from '../Log';
+
+const QUOTE_DATE_RANGE = 259200000; // 3 days in milliseconds
+
+type QuoteQuery = {
+    user: BotUserDoc['_id'];
+    creator?: DiscordUserDoc['_id'];
+    authors?: DiscordUserDoc['_id'];
+}
 
 export interface QuoteDoc extends Document {
     token: string;
@@ -65,18 +73,48 @@ export async function createQuote(botUser: BotUserDoc, creatorUser: User, statem
     return await quoteModel.create({ token, user: botUser, creator, isConversation, statements, authors: authorDocs, context }) as QuotePopulated;
 }
 
-export async function getQuotes(botUser: BotUserDoc): Promise<QuotePopulated[]> {
+export async function getQuotes(botUser: BotUserDoc, content?: string, author?: DiscordUserDoc, context?: string, creator?: DiscordUserDoc, date?: Date, dateRange?: number): Promise<QuotePopulated[]> {
     debug(`Getting quotes for bot user ${botUser.id}`);
 
     const targets = await getAccessableConnections(botUser);
 
-    const documents = await quoteModel
-        .find({ user: { $in: targets } })
+    let query: QuoteQuery = { user: { $in: targets } };
+    if (author) {
+        query.authors = author._id;
+    }
+    if (creator) {
+        query.creator = creator._id;
+    }
+
+    let quotes = await quoteModel
+        .find(query)
         .populate('user')
-        .populate('creator')
-        .populate('authors')
+        .populate("creator")
+        .populate("authors")
         .exec() as QuotePopulated[];
-    return documents;
+    quotes = quotes.filter(quote => {
+        if (content !== undefined) {
+            let found = false;
+            for (const statement of quote.statements) {
+                if (statement.includes(content)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+        if (context !== undefined && quote.context && !quote.context.includes(context)) {
+            return false;
+        }
+        if (date !== undefined && !approximateEqual(quote.createdAt.getTime(), date.getTime(), dateRange ?? QUOTE_DATE_RANGE)){
+            return false;
+        }
+        return true;
+    });
+
+    return quotes;
 }
 
 export async function getQuoteByToken(botUser: BotUserDoc, token: string): Promise<QuotePopulated | null> {
@@ -89,44 +127,6 @@ export async function getQuoteByToken(botUser: BotUserDoc, token: string): Promi
         .populate('authors')
         .exec() as QuotePopulated | null;
     return document;
-}
-
-export async function randomQuote(botUser: BotUserDoc, exclude: QuoteDoc['_id'][] = []): Promise<[QuoteDoc?, Map<string, string>?, [string, string]?]> {
-    debug(`Getting random quote for bot user ${botUser.id}`);
-
-    const targets = await getAccessableConnections(botUser);
-
-    const query = { _id: { $nin: exclude }, user: { $in: targets }, isConversation: false };
-    const documentCount = await quoteModel
-        .countDocuments(query)
-        .exec();
-    const randomIndex = Math.floor(Math.random() * documentCount);
-    const quote = await quoteModel
-        .findOne(query)
-        .skip(randomIndex)
-        .populate('user')
-        .populate('creator')
-        .populate('authors')
-        .exec() as QuotePopulated | null;
-
-    if (!quote) return [];
-
-    const correctAuthor = [quote.authors[0].name.toLowerCase(), quote.authors[0].name] as [string, string];
-
-    const authorCollections = await quoteModel
-        .find({ user: { $in: targets } })
-        .populate('authors')
-        .select('authors')
-        .exec();
-    const authors = new Map<string, string>();
-    for (const collection of authorCollections) {
-        for (const author of collection.authors as DiscordUserDoc[]) {
-            if (author.name.toLowerCase() === correctAuthor[0]) continue;
-            authors.set(author.name.toLowerCase(), author.name);
-        }
-    }
-
-    return [quote, authors, correctAuthor];
 }
 
 export default quoteModel;

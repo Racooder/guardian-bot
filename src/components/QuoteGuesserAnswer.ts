@@ -22,7 +22,7 @@ export const QuoteGuesserAnswer: Component<StringSelectMenuInteraction> = {
         }
 
         const answer = interaction.values[0];
-        gameDocument.answers.set(interaction.user.id, answer);
+        gameDocument.answers.set(encodeURIComponent(interaction.user.id), answer);
         gameDocument.save();
 
         return quoteGuesserMessage(gameDocument, gameDocument.currentQuote.statements[0], ReplyType.Update);
