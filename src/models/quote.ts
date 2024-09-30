@@ -129,42 +129,4 @@ export async function getQuoteByToken(botUser: BotUserDoc, token: string): Promi
     return document;
 }
 
-export async function randomQuote(botUser: BotUserDoc, exclude: QuoteDoc['_id'][] = []): Promise<[QuoteDoc?, Map<string, string>?, [string, string]?]> {
-    debug(`Getting random quote for bot user ${botUser.id}`);
-
-    const targets = await getAccessableConnections(botUser);
-
-    const query = { _id: { $nin: exclude }, user: { $in: targets }, isConversation: false };
-    const documentCount = await quoteModel
-        .countDocuments(query)
-        .exec();
-    const randomIndex = Math.floor(Math.random() * documentCount);
-    const quote = await quoteModel
-        .findOne(query)
-        .skip(randomIndex)
-        .populate('user')
-        .populate('creator')
-        .populate('authors')
-        .exec() as QuotePopulated | null;
-
-    if (!quote) return [];
-
-    const correctAuthor = [quote.authors[0].name.toLowerCase(), quote.authors[0].name] as [string, string];
-
-    const authorCollections = await quoteModel
-        .find({ user: { $in: targets } })
-        .populate('authors')
-        .select('authors')
-        .exec();
-    const authors = new Map<string, string>();
-    for (const collection of authorCollections) {
-        for (const author of collection.authors as DiscordUserDoc[]) {
-            if (author.name.toLowerCase() === correctAuthor[0]) continue;
-            authors.set(author.name.toLowerCase(), author.name);
-        }
-    }
-
-    return [quote, authors, correctAuthor];
-}
-
 export default quoteModel;
