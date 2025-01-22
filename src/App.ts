@@ -1,19 +1,19 @@
-import { debug, error, info, logToDiscord, setupLog } from "./Log";
+import { debug, error, info, logToDiscord, setupLog, success } from "./Log";
 import { config, octokit } from "./Essentials";
-// import { setupRestApi } from "./RestApi"; (wip)
 import { setupDiscordBot } from "./Bot";
-// import { Server } from "http"; (wip)
+import { Server } from "http";
 import { Client, HTTPError } from "discord.js";
 import schedule from 'node-schedule';
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import dotenv from "dotenv";
+import { setupRestApi } from "./Rest";
 
 dotenv.config({ path: "./meta/.env" });
 
 const LATEST_GITHUB_RELEASE_FILE = "./github-latest-release.txt";
 const DOWNLOAD_URL_PATH = "./update-url.txt";
 
-// var restApi: Server; (wip)
+var restApi: Server;
 var discordClient: Client;
 
 async function updateAvailable(discordClient: Client): Promise<boolean> {
@@ -87,13 +87,13 @@ function stopApplication(): void {
         return;
     }
 
-    // restApi.close(); (wip)
+    restApi.close();
     discordClient.destroy();
     process.exit(0);
 }
 
 function ready(discordClient: Client): void {
-    info("Application ready");
+    success("Application ready");
     scheduleUpdateChecks(discordClient);
 }
 
@@ -103,11 +103,11 @@ async function setupApp(): Promise<void> {
         info("Debug mode enabled");
     }
 
-    // const server = setupRestApi(); (wip)
-    const client = setupDiscordBot();
+    restApi = setupRestApi();
 
-    // restApi = await server; (wip)
+    const client = setupDiscordBot();
     discordClient = await client;
+
     ready(discordClient);
 }
 

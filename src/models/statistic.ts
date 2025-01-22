@@ -7,7 +7,7 @@ export type StatisticFilter = {
     userId?: string;
     from?: Date;
     to?: Date;
-    keys?: string[];
+    key?: string;
 }
 
 export interface StatisticDoc extends Document {
@@ -39,9 +39,7 @@ export async function getStatistics(filter?: StatisticFilter): Promise<Statistic
             $gte?: Date;
             $lte?: Date;
         };
-        key?: {
-            $in?: string[];
-        };
+        key?: RegExp;
     } = { };
 
     if (filter?.global !== undefined) {
@@ -59,8 +57,8 @@ export async function getStatistics(filter?: StatisticFilter): Promise<Statistic
             query['createdAt']['$lte'] = filter.to;
         }
     }
-    if (filter?.keys !== undefined) {
-        query['key'] = { $in: filter.keys };
+    if (filter?.key !== undefined) {
+        query['key'] = new RegExp("^" + filter.key);
     }
     if (filter?.userId !== undefined) {
         query['user'] = filter.userId;
