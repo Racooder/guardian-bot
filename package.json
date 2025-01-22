@@ -23,7 +23,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.20.0",
     "js-yaml": "^4.1.0",
-    "mongoose": "^8.4.5",
+    "mongoose": "^8.9.5",
     "node-schedule": "^2.1.1",
     "octokit": "^3.2.0",
     "zlib": "^1.0.5"
