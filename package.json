@@ -27,7 +27,8 @@
     "node-schedule": "^2.1.1",
     "octokit": "^4.1.0",
     "zlib": "^1.0.5",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "express-rate-limit": "^7.5.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
