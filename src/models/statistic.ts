@@ -1,6 +1,7 @@
 import { Document, Model, Schema, model } from 'mongoose';
 import { BotUserDoc } from './botUser';
 import { debug } from '../Log';
+import _ from 'lodash';
 
 export type StatisticFilter = {
     global?: boolean;
@@ -58,7 +59,8 @@ export async function getStatistics(filter?: StatisticFilter): Promise<Statistic
         }
     }
     if (filter?.key !== undefined) {
-        query['key'] = new RegExp("^" + filter.key);
+        const safeKey = _.escapeRegExp(filter.key);
+        query['key'] = new RegExp("^" + safeKey);
     }
     if (filter?.userId !== undefined) {
         query['user'] = filter.userId;

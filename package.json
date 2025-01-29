@@ -26,7 +26,8 @@
     "mongoose": "^8.9.5",
     "node-schedule": "^2.1.1",
     "octokit": "^4.1.0",
-    "zlib": "^1.0.5"
+    "zlib": "^1.0.5",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
