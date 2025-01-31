@@ -5,6 +5,7 @@
 
 .env
 config.yml
-github-latest-release.txt
+current-release.txt
+release-download.txt
 yarn-error.log
 test-report.json
