@@ -1,49 +1,20 @@
 import { APIInteractionGuildMember, GuildMember, PermissionResolvable } from "discord.js";
 import botUserModel, { BotUserDoc, QuotePrivacy } from "./models/botUser";
-import * as yaml from "js-yaml";
-import { copyFileSync, existsSync, readFileSync } from "fs";
-import { debug, error, info, warn } from "./Log";
+import { debug, error, warn } from "./Log";
 import { Types } from "mongoose";
 import { Octokit } from "@octokit/rest";
-
-export type Config = {
-    debug: boolean;
-    api_port: number;
-    do_update_check: boolean;
-    update_check_cron: string;
-    log_channel: string;
-    log_role: string;
-    database_name: string;
-    log_to_discord: boolean;
-    database_expiration: number;
-    github_repo_owner: string;
-    github_repo_name: string;
-    changelog_fetch_delay: number;
-    keep_logs: number;
-}
-
-function loadConfig(): Config {
-    if (!existsSync("meta/config.yml")) {
-        if (!existsSync("meta/config.yml.template")) {
-            throw new Error("meta/config.yml.template does not exist");
-        }
-        copyFileSync("meta/config.yml.template", "meta/config.yml");
-    }
-    return yaml.load(readFileSync("meta/config.yml", "utf8")) as Config;
-}
-
-export const config = loadConfig();
+import { getConfig } from "./Config";
 
 export const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN,
-    userAgent: config.github_repo_name,
+    auth: getConfig().github_token,
+    userAgent: getConfig().github_repo_name,
     log: {
         debug: debug,
         info: debug,
         warn: warn,
         error: error
     }
-})
+});
 
 export function splitArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {
     if (chunkSize <= 0) throw new Error("chunkSize must be greater than 0");

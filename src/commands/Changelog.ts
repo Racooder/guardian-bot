@@ -1,8 +1,9 @@
 import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Command, ReplyType, Response } from "../InteractionEssentials";
 import { debug } from "../Log";
-import { config, octokit } from "../Essentials";
+import { octokit } from "../Essentials";
 import Colors from "../Colors";
+import { getConfig } from "../Config";
 
 var cachedReleases: any[] = [];
 var lastFetch: number = 0;
@@ -20,12 +21,9 @@ export const Changelog: Command = {
 
 async function fetchReleases() {
     debug("Fetching releases");
-    const response = await octokit.request("GET /repos/{owner}/{repo}/releases", {
-        owner: config.github_repo_owner,
-        repo: config.github_repo_name,
-        headers: {
-            'X-Github-Api-Version': '2022-11-28'
-        }
+    const response = await octokit.rest.repos.listReleases({
+        owner: getConfig().github_repo_owner,
+        repo: getConfig().github_repo_name,
     });
     lastFetch = Date.now();
     cachedReleases = response.data;
@@ -34,7 +32,7 @@ async function fetchReleases() {
 
 export async function getReleases() {
     debug("Getting releases");
-    if (Date.now() - lastFetch > config.changelog_fetch_delay * 1000)
+    if (Date.now() - lastFetch > getConfig().changelog_fetch_delay * 1000)
         await fetchReleases();
     return cachedReleases;
 }

@@ -2,9 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import { deleteFeedback, getFeedback, listFeedback, updateFeedbackStatus } from './api/Feedback';
 import { getStatistic } from './api/Stats';
-import { config } from './Essentials';
 import { success } from './Log';
 import { Server } from 'http';
+import { getConfig } from './Config';
 
 // * Setup
 
@@ -26,7 +26,7 @@ app.get('/stats', getStatistic);
 // * Start
 
 export function setupRestApi(): Server {
-    return app.listen(config.api_port, () => {
-        success(`API listening on port ${config.api_port}`);
+    return app.listen(getConfig().api_port, () => {
+        success(`API listening on port ${getConfig().api_port}`);
     });
 }

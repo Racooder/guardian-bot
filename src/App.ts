@@ -1,15 +1,12 @@
 import { debug, error, info, logToDiscord, setupLog, success } from "./Log";
-import { config, octokit } from "./Essentials";
+import { octokit } from "./Essentials";
 import { setupDiscordBot } from "./Bot";
 import { Server } from "http";
 import { Client } from "discord.js";
 import schedule from 'node-schedule';
-import dotenv from "dotenv";
 import { setupRestApi } from "./Rest";
-import { createWriteStream, existsSync, readFileSync, writeFileSync } from "fs";
-import { response } from "express";
-
-dotenv.config({ path: "./meta/.env" });
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import { getConfig } from "./Config";
 
 const CURRENT_RELEASE_FILE = "./current-release.txt";
 const DOWNLOAD_FILE = "./release-download.txt";
@@ -21,14 +18,10 @@ async function updateAvailable(discordClient: Client): Promise<boolean> {
     debug("Checking for updates");
 
     const releaseResponse = await octokit.rest.repos.getLatestRelease({
-        owner: config.github_repo_owner,
-        repo: config.github_repo_name
+        owner: getConfig().github_repo_owner,
+        repo: getConfig().github_repo_name
     }).catch((e) => {
-        if (e.status === 404) {
-            logToDiscord(discordClient, error("GitHub API returned 404, release not found"));
-        } else {
-            logToDiscord(discordClient, error("GitHub API returned " + e.status));
-        }
+        logToDiscord(discordClient, error("GitHub API returned " + e.status));
     });
     if (releaseResponse === undefined) return false;
 
@@ -50,19 +43,19 @@ async function updateAvailable(discordClient: Client): Promise<boolean> {
 async function scheduleUpdateChecks(discordClient: Client): Promise<void> {
     debug("Scheduling update checks");
 
-    if (!config.do_update_check) {
+    if (!getConfig().do_update_check) {
         info("Update checking disabled");
         return;
     }
-    if (config.update_check_cron === undefined || config.update_check_cron === "") {
+    if (getConfig().update_check_cron === undefined || getConfig().update_check_cron === "") {
         logToDiscord(discordClient, error("Update checking enabled but no cron expression provided"));
         return;
     }
 
-    info("Update checking enabled (cron: " + config.update_check_cron + ")");
+    info("Update checking enabled (cron: " + getConfig().update_check_cron + ")");
 
     updateCheck();
-    schedule.scheduleJob(config.update_check_cron, updateCheck);
+    schedule.scheduleJob(getConfig().update_check_cron, updateCheck);
 }
 
 async function updateCheck() {
@@ -94,7 +87,7 @@ function ready(discordClient: Client): void {
 
 async function setupApp(): Promise<void> {
     await setupLog();
-    if (config.debug) {
+    if (getConfig().debug) {
         info("Debug mode enabled");
     }
 

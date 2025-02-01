@@ -3,9 +3,7 @@
 /logs/
 /.vscode/
 
-.env
 config.yml
 current-release.txt
 release-download.txt
 yarn-error.log
-test-report.json

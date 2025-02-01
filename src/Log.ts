@@ -1,8 +1,8 @@
 import { Client, EmbedBuilder } from "discord.js";
 import { createReadStream, createWriteStream, existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from "fs";
 import { createGzip } from "zlib";
-import { config } from "./Essentials";
 import Colors from "./Colors";
+import { getConfig } from "./Config";
 
 const format = {
     Reset: "\x1b[0m",
@@ -38,7 +38,7 @@ const folderPath = "./logs";
 const latestPath = `${folderPath}/latest.txt`;
 
 export function debug(message: string, force = false): EmbedBuilder {
-    if (config.debug === true || force === true) {
+    if (getConfig().debug === true || force === true) {
         log("[DEBUG]  ", message, format.FgGray);
     }
     return new EmbedBuilder()
@@ -91,12 +91,12 @@ export function error(message: string, error?: Error): EmbedBuilder {
 }
 
 export async function logToDiscord(client: Client, embed: EmbedBuilder) {
-    if (config.log_to_discord === false) return;
+    if (getConfig().log_to_discord === false) return;
 
-    const channel = await client.channels.fetch(config.log_channel);
+    const channel = await client.channels.fetch(getConfig().log_channel);
     if (channel && channel.isSendable()) {
         channel.send({
-            content: "<@&" + config.log_role + ">",
+            content: "<@&" + getConfig().log_role + ">",
             embeds: [embed],
         });
     }
@@ -120,18 +120,18 @@ export async function setupLog(): Promise<void> {
     existsSync(folderPath) || mkdirSync(folderPath);
 
     // Delete old logs
-    if (config.keep_logs >= 0) {
+    if (getConfig().keep_logs >= 0) {
         let files = readdirSync(folderPath)
             .filter((file) => file.endsWith(".gz"))
             .sort()
-        if (config.keep_logs !== 0) {
-            files = files.slice(0, -config.keep_logs);
+        if (getConfig().keep_logs !== 0) {
+            files = files.slice(0, -getConfig().keep_logs);
         }
         await Promise.all(files.map(async (file) => unlinkSync(`${folderPath}/${file}`)));
     }
 
     // Compress the latest file if it exists
-    if (existsSync(latestPath) && config.keep_logs !== 0) {
+    if (existsSync(latestPath) && getConfig().keep_logs !== 0) {
         const targetPath = `${folderPath}/${new Date().toISOString()}.txt.gz`.replace(/:/g, "-");
 
         return new Promise<void>((resolve, reject) => {
