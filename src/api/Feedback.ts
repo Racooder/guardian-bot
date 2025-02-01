@@ -13,7 +13,7 @@ export async function listFeedback(req: Request<{}>, res: Response) {
 
 export async function getFeedback(req: Request<{id: string}>, res: Response) {
     const feedbackDoc = await feedbackModel.findById(req.params.id).populate("creator") as FeedbackPopulated | null;
-    if (!feedbackDoc) return null;
+    if (!feedbackDoc) return;
     res.status(200).json({
         creator: feedbackDoc.creator.name,
         type: feedbackDoc.type,

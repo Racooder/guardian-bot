@@ -2,9 +2,9 @@ import { APIInteractionGuildMember, GuildMember, PermissionResolvable } from "di
 import botUserModel, { BotUserDoc, QuotePrivacy } from "./models/botUser";
 import * as yaml from "js-yaml";
 import { copyFileSync, existsSync, readFileSync } from "fs";
-import { Octokit } from "octokit";
 import { debug, error, info, warn } from "./Log";
-import mongoose, { isValidObjectId, Types } from "mongoose";
+import { Types } from "mongoose";
+import { Octokit } from "@octokit/rest";
 
 export type Config = {
     debug: boolean;
@@ -36,13 +36,13 @@ export const config = loadConfig();
 
 export const octokit = new Octokit({
     auth: process.env.GITHUB_TOKEN,
-    userAgent: "guardian-bot",
+    userAgent: config.github_repo_name,
     log: {
         debug: debug,
-        info: info,
+        info: debug,
         warn: warn,
-        error: error,
-    },
+        error: error
+    }
 })
 
 export function splitArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {

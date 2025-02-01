@@ -94,7 +94,7 @@ export async function logToDiscord(client: Client, embed: EmbedBuilder) {
     if (config.log_to_discord === false) return;
 
     const channel = await client.channels.fetch(config.log_channel);
-    if (channel && channel.isTextBased()) {
+    if (channel && channel.isSendable()) {
         channel.send({
             content: "<@&" + config.log_role + ">",
             embeds: [embed],

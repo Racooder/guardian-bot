@@ -2,16 +2,17 @@ import { debug, error, info, logToDiscord, setupLog, success } from "./Log";
 import { config, octokit } from "./Essentials";
 import { setupDiscordBot } from "./Bot";
 import { Server } from "http";
-import { Client, HTTPError } from "discord.js";
+import { Client } from "discord.js";
 import schedule from 'node-schedule';
-import { existsSync, readFileSync, writeFileSync } from "fs";
 import dotenv from "dotenv";
 import { setupRestApi } from "./Rest";
+import { createWriteStream, existsSync, readFileSync, writeFileSync } from "fs";
+import { response } from "express";
 
 dotenv.config({ path: "./meta/.env" });
 
-const LATEST_GITHUB_RELEASE_FILE = "./github-latest-release.txt";
-const DOWNLOAD_URL_PATH = "./update-url.txt";
+const CURRENT_RELEASE_FILE = "./current-release.txt";
+const DOWNLOAD_FILE = "./release-download.txt";
 
 var restApi: Server;
 var discordClient: Client;
@@ -19,36 +20,30 @@ var discordClient: Client;
 async function updateAvailable(discordClient: Client): Promise<boolean> {
     debug("Checking for updates");
 
-    const response = await octokit.request("GET /repos/{owner}/{repo}/releases/latest", {
+    const releaseResponse = await octokit.rest.repos.getLatestRelease({
         owner: config.github_repo_owner,
-        repo: config.github_repo_name,
-    }).catch((e: HTTPError) => {
+        repo: config.github_repo_name
+    }).catch((e) => {
         if (e.status === 404) {
             logToDiscord(discordClient, error("GitHub API returned 404, release not found"));
         } else {
             logToDiscord(discordClient, error("GitHub API returned " + e.status));
         }
     });
-    if (response === undefined || response.status !== 200) {
-        return false;
-    }
-    const latestRelease = response.data.tag_name;
+    if (releaseResponse === undefined) return false;
 
-    let currentRelease: string;
-    if (existsSync(LATEST_GITHUB_RELEASE_FILE)) {
-        currentRelease = readFileSync(LATEST_GITHUB_RELEASE_FILE, "utf-8");
-    } else {
-        currentRelease = "";
-        writeFileSync(LATEST_GITHUB_RELEASE_FILE, "", { encoding: "utf-8" });
+    const latestRelease = releaseResponse.data.tag_name;
+
+    let currentRelease = "";
+    if (existsSync(CURRENT_RELEASE_FILE)) {
+        currentRelease = readFileSync(CURRENT_RELEASE_FILE, "utf-8");
     }
 
-    const artifactUrl = response.data.assets[0].browser_download_url;
+    if (currentRelease === latestRelease) return false;
 
-    if (currentRelease === latestRelease) {
-        return false;
-    }
-    writeFileSync(LATEST_GITHUB_RELEASE_FILE, latestRelease, { encoding: "utf-8" });
-    writeFileSync(DOWNLOAD_URL_PATH, artifactUrl, { encoding: "utf-8" });
+    writeFileSync(CURRENT_RELEASE_FILE, latestRelease, { encoding: "utf-8" });
+    writeFileSync(DOWNLOAD_FILE, releaseResponse.data.assets[0].browser_download_url, { encoding: "utf-8" });
+
     return true;
 }
 
