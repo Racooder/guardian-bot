@@ -100,9 +100,9 @@ export function quoteGuesserMessage(document: QuoteGuesserDoc, quote: string, re
         ) as ActionRowBuilder<ButtonBuilder>;
 
     // Shuffle authors and add the correct author
-    const options = shuffleArray<[string, string]>(Array.from(choices.entries())).slice(0, 24);
+    const options = shuffleArray<string>(choices).slice(0, 24);
     options.splice(Math.floor(Math.random() * options.length), 0, correctAuthor);
-    const optionObjects = options.map(([id, name]) => ({ value: id, label: name }));
+    const optionObjects = options.map((name) => ({ value: name, label: name }));
 
     const selectionRow = new ActionRowBuilder()
         .addComponents(

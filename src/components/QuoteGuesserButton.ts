@@ -75,29 +75,28 @@ async function roundResultsMessage(gameDocument: QuoteGuesserPopulatedCurrentQuo
 
     const quote = gameDocument.currentQuote.statements[0] as string;
     const round = gameDocument.usedQuotes.length;
-    const correctAuthorId = gameDocument.correctAuthor[0];
-    const correctAuthorName = gameDocument.correctAuthor[1];
+    const correctAuthor = gameDocument.correctAuthor;
 
     const embedBuilder = new EmbedBuilder()
         .setColor(Colors.QUOTE_GUESSER_EMBED)
         .setAuthor({ name: `Quote Guesser - Round ${round} Results` })
-        .setTitle(`The correct answer was "${correctAuthorName}"`)
-        .setDescription(`"${quote}" - ${correctAuthorName}`)
+        .setTitle(`The correct answer was "${correctAuthor}"`)
+        .setDescription(`"${quote}" - ${correctAuthor}`)
 
     const answers = gameDocument.answers.entries();
     const choices = gameDocument.choices;
-    choices.set(correctAuthorId, gameDocument.correctAuthor[1]);
+    choices.push(correctAuthor);
 
     let correctAnswers = 0;
     for (const answer of answers) {
-        if (answer[1] === correctAuthorId) {
+        if (answer[1] === correctAuthor) {
             correctAnswers++;
         }
         const userDocument = await discordUserModel
             .findOne({ userId: answer[0] })
             .exec() as DiscordUserDoc | null;
         if (userDocument === null) continue;
-        embedBuilder.addFields({ name: `${userDocument.name}'s answer`, value: `${choices.get(answer[1])} ${answer[1] === correctAuthorId ? "✅" : "❌"}` });
+        embedBuilder.addFields({ name: `${userDocument.name}'s answer`, value: `${answer[1]} ${answer[1] === correctAuthor ? "✅" : "❌"}` });
     }
 
     if (correctAnswers > 0) {
