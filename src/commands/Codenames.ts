@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ApplicationCommandType } from "discord.js";
+import { ApplicationCommandOptionType, ApplicationCommandType, MessageFlags } from "discord.js";
 import { Command, ReplyType } from '../InteractionEssentials';
 import { debug } from "../Log";
 import { addWord, removeWord, getWords, RemoveWordResult } from "../models/codename";
@@ -51,7 +51,7 @@ export const Codenames: Command = {
                 if (document === undefined) {
                     return {
                         replyType: ReplyType.Reply,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                         content: `Word "${word}" already exists in the codenames wordpack`,
                     };
                 }
@@ -59,7 +59,7 @@ export const Codenames: Command = {
                 return {
                     replyType: ReplyType.Reply,
                     content: `Added word "${word}" to the codenames wordpack`,
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 };
             }
         },
@@ -73,21 +73,21 @@ export const Codenames: Command = {
                     case RemoveWordResult.NotFound: {
                         return {
                             replyType: ReplyType.Reply,
-                            ephemeral: true,
+                            flags: MessageFlags.Ephemeral,
                             content: `Word "${word}" not found in the codenames wordpack`,
                         };
                     }
                     case RemoveWordResult.NotCreator: {
                         return {
                             replyType: ReplyType.Reply,
-                            ephemeral: true,
+                            flags: MessageFlags.Ephemeral,
                             content: `You do not have permission to remove word "${word}" from the codenames wordpack`,
                         };
                     }
                     case RemoveWordResult.Success: {
                         return {
                             replyType: ReplyType.Reply,
-                            ephemeral: true,
+                            flags: MessageFlags.Ephemeral,
                             content: `Removed word "${word}" from the codenames wordpack`,
                         };
                     }
@@ -106,7 +106,7 @@ export const Codenames: Command = {
                 if (words.length === 0) {
                     return {
                         replyType: ReplyType.Reply,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                         content: "No words found in the codenames wordpack",
                     };
                 }

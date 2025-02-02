@@ -1,4 +1,4 @@
-import { ApplicationCommandType, EmbedBuilder } from "discord.js";
+import { ApplicationCommandType, EmbedBuilder, MessageFlags } from "discord.js";
 import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
 import Colors from "../Colors";
@@ -34,7 +34,7 @@ export const Ping: Command = {
         return {
             replyType: ReplyType.Reply,
             embeds: [embed],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         };
     },
 };

@@ -1,6 +1,6 @@
 import { debug } from "../Log";
 import { Component, ReplyType } from '../InteractionEssentials';
-import { ButtonInteraction, ComponentType } from "discord.js";
+import { ButtonInteraction, ComponentType, MessageFlags } from "discord.js";
 import botUserModel, { BotUserDoc } from "../models/botUser";
 import { connectionListMessage } from "../commands/Connections";
 import { Types } from "mongoose";
@@ -49,7 +49,7 @@ export const ConnectionList: Component<ButtonInteraction> = {
                     content: responseContent,
                     embeds: [],
                     components: [],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 };
             }
         }

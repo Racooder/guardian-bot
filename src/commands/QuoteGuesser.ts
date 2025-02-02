@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
+import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags, StringSelectMenuBuilder } from "discord.js";
 import { Command, ReplyType, Response } from "../InteractionEssentials";
 import { debug } from "../Log";
 import quoteGuesserModel, { createQuoteGuesserGame, QuoteGuesserDoc, randomQuote } from "../models/quoteGuesser";
@@ -23,21 +23,21 @@ export async function newRound(botUser: BotUserDoc, document?: QuoteGuesserDoc):
     if (quote === undefined) {
         return {
             replyType: ReplyType.Reply,
-            ephemeral: true,
             content: "No quotes left to guess",
+            flags: MessageFlags.Ephemeral,
         };
     }
     if (correctAuthor === undefined) {
         return {
             replyType: ReplyType.Reply,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
             content: "Quote author not found",
         };
     }
     if (authors === undefined) {
         return {
             replyType: ReplyType.Reply,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
             content: "No authors found",
         };
     }

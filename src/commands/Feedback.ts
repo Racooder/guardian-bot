@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ApplicationCommandType } from "discord.js";
+import { ApplicationCommandOptionType, ApplicationCommandType, MessageFlags } from "discord.js";
 import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
 import { IsChatInputCommandFailure } from "../Failure";
@@ -50,7 +50,7 @@ export const Feedback: Command = {
         return {
             replyType: ReplyType.Reply,
             content: "Thank you for your feedback!",
-            ephemeral: true,
-        };
+            flags: MessageFlags.Ephemeral,
+        }
     },
 };

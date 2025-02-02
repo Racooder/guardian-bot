@@ -1,6 +1,6 @@
 import { debug } from "../Log";
 import { Component, ReplyType, Response } from '../InteractionEssentials';
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder, MessageFlags } from "discord.js";
 import quoteGuesserModel, { QuoteGuesserDoc, QuoteGuesserPopulatedCurrentQuote } from "../models/quoteGuesser";
 import { newRound } from "../commands/QuoteGuesser";
 import discordUserModel, { DiscordUserDoc } from "../models/discordUser";
@@ -8,9 +8,9 @@ import Colors from "../Colors";
 
 export const GAME_NOT_FOUND = {
     replyType: ReplyType.Reply,
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
     content: "Game not found",
-};
+} as Response;
 
 export const QuoteGuesserButton: Component<ButtonInteraction> = {
     name: "quote_guesser_button",

@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } from "discord.js";
 import { Command, ReplyType } from "../InteractionEssentials";
 import { debug } from "../Log";
 import botUserModel, { BotUserDoc, BotUserType } from "../models/botUser";
@@ -73,7 +73,7 @@ export const Connections: Command = {
                     if (targets.length === 0) {
                         return {
                             content: "No user or guild found with that name and type",
-                            ephemeral: true,
+                            flags: MessageFlags.Ephemeral,
                             replyType: ReplyType.Reply
                         }
                     }

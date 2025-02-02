@@ -1,6 +1,6 @@
 import { debug } from "../Log";
 import { Component, ReplyType } from '../InteractionEssentials';
-import { ButtonInteraction, ComponentType } from "discord.js";
+import { ButtonInteraction, ComponentType, MessageFlags } from "discord.js";
 import followMenuModel, { FollowMenuDoc } from "../models/followMenu";
 import { followMenuMessage } from "../commands/Connections";
 import botUserModel, { BotUserDoc } from "../models/botUser";
@@ -34,7 +34,7 @@ export const FollowMenu: Component<ButtonInteraction> = {
                     content: "This follow menu has expired",
                     embeds: [],
                     components: [],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 };
             },
         },
@@ -60,7 +60,7 @@ export const FollowMenu: Component<ButtonInteraction> = {
                     content: responseContent,
                     embeds: [],
                     components: [],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 };
             }
         }

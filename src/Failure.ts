@@ -1,4 +1,4 @@
-import { Client, EmbedBuilder } from "discord.js";
+import { Client, EmbedBuilder, MessageFlags } from "discord.js";
 import { localize } from "./Localization";
 import { ReplyType, Response } from "./InteractionEssentials";
 import { error, logToDiscord } from "./Log";
@@ -33,7 +33,7 @@ export class Failure {
     response(language: string): Response {
         return {
             replyType: ReplyType.Reply,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
             embeds: [this.discordEmbed(language)]
         };
     }

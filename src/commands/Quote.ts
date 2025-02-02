@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, Client, EmbedBuilder } from "discord.js";
+import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, MessageFlags } from "discord.js";
 import { Command, ReplyType, Response } from "../InteractionEssentials";
 import { debug, error, logToDiscord } from "../Log";
 import { QuoteListPopulated, createQuoteList, getQuoteListQuery } from '../models/quoteList';
@@ -237,7 +237,7 @@ export const Quote: Command = {
                             if (interaction.options.getString(`quote-${j}`, false) !== null) {
                                 return {
                                     replyType: ReplyType.Reply,
-                                    ephemeral: true,
+                                    flags: MessageFlags.Ephemeral,
                                     content: `You defined quote ${j} but the quotes ${i} to ${j - 1} are missing.`,
                                 };
                             }
@@ -250,14 +250,14 @@ export const Quote: Command = {
                     if (discordAuthor === null && nonDiscordAuthor === null) {
                         return {
                             replyType: ReplyType.Reply,
-                            ephemeral: true,
+                            flags: MessageFlags.Ephemeral,
                             content: `Quote ${i} is missing an author.`,
                         };
                     }
                     if (discordAuthor !== null && nonDiscordAuthor !== null) {
                         return {
                             replyType: ReplyType.Reply,
-                            ephemeral: true,
+                            flags: MessageFlags.Ephemeral,
                             content: `Quote ${i} can only have a discord or a non-discord author not both.`,
                         };
                     }
@@ -274,7 +274,7 @@ export const Quote: Command = {
 
                 return {
                     replyType: ReplyType.Reply,
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                     content: "Your quote was added.",
                 };
             },
@@ -288,7 +288,7 @@ export const Quote: Command = {
                 if (document === null) {
                     return {
                         replyType: ReplyType.Reply,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                         content: "Quote not found.",
                     };
                 }
@@ -296,7 +296,7 @@ export const Quote: Command = {
                 if (document.creator.userId !== interaction.user.id) { // && !hasPermission(interaction.member, PermissionsBitField.Flags.ManageMessages)
                     return {
                         replyType: ReplyType.Reply,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                         content: "You do not have permission to remove this quote.",
                     };
                 }
@@ -304,7 +304,7 @@ export const Quote: Command = {
                 await document.deleteOne();
                 return {
                     replyType: ReplyType.Reply,
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                     content: "Quote removed.",
                 };
             },
@@ -325,14 +325,14 @@ export const Quote: Command = {
                 if (authorUser !== undefined && authorName !== undefined) {
                     return {
                         replyType: ReplyType.Reply,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                         content: "You cannot specify both an author and an author name.",
                     };
                 }
                 if (creatorUser !== undefined && creatorName !== undefined) {
                     return {
                         replyType: ReplyType.Reply,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                         content: "You cannot specify both a creator and a creator name.",
                     };
                 }
@@ -344,7 +344,7 @@ export const Quote: Command = {
                 if (dateString !== undefined && date === undefined) {
                     return {
                         replyType: ReplyType.Reply,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                         content: "Invalid date format. The correct format is YYYY-MM-DD.",
                     };
                 }
@@ -362,7 +362,7 @@ export const Quote: Command = {
                 if (document === null) {
                     return {
                         replyType: ReplyType.Reply,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                         content: "Quote not found.",
                     };
                 }
@@ -374,7 +374,7 @@ export const Quote: Command = {
 
                 return {
                     replyType: ReplyType.Reply,
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                     embeds: [embedBuilder],
                 };
             },
@@ -388,14 +388,14 @@ export const Quote: Command = {
                 if (document === null) {
                     return {
                         replyType: ReplyType.Reply,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                         content: "Quote not found.",
                     };
                 }
                 if (document.creator.userId === undefined) {
                     return {
                         replyType: ReplyType.Reply,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                         content: "This quote has no creator.",
                     };
                 }
@@ -419,7 +419,7 @@ export const Quote: Command = {
 
                 return {
                     replyType: ReplyType.Reply,
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                     embeds: [embedBuilder],
                 };
             },

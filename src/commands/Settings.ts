@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from "discord.js";
+import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, MessageFlags } from "discord.js";
 import { Command, ReplyType } from '../InteractionEssentials';
 import { debug } from "../Log";
 import { QuotePrivacy } from "../models/botUser";
@@ -66,7 +66,7 @@ export const Settings: Command = {
                 return {
                     replyType: ReplyType.Reply,
                     embeds: [embedBuiler],
-                    ephemeral: true
+                    flags: MessageFlags.Ephemeral,
                 };
             }
         },
@@ -84,7 +84,7 @@ export const Settings: Command = {
                         return {
                             replyType: ReplyType.Reply,
                             content: "Your quote privacy has been updated.",
-                            ephemeral: true
+                            flags: MessageFlags.Ephemeral,
                         };
                     }
                 }
