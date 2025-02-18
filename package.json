@@ -3,9 +3,6 @@
   "version": "3.0.1",
   "description": "Official racoonia discord bot.",
   "main": "src/App.ts",
-  "directories": {
-    "test": "tests"
-  },
   "repository": "https://github.com/Racooder/guardian-bot.git",
   "author": "Racooder <76227605+Racooder@users.noreply.github.com>",
   "license": "GPL-3.0-or-later",
