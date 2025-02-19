@@ -3,9 +3,6 @@
   "version": "3.0.1",
   "description": "Official racoonia discord bot.",
   "main": "src/App.ts",
-  "directories": {
-    "test": "tests"
-  },
   "repository": "https://github.com/Racooder/guardian-bot.git",
   "author": "Racooder <76227605+Racooder@users.noreply.github.com>",
   "license": "GPL-3.0-or-later",
@@ -29,12 +26,10 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
-    "@types/jest": "^29.5.12",
     "@types/js-yaml": "^4.0.9",
     "@types/lodash": "^4.17.15",
     "@types/node": "^22.10.7",
     "@types/node-schedule": "^2.1.7",
-    "ts-jest": "^29.2.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3"
   }
