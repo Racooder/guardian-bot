@@ -7,7 +7,7 @@
   "author": "Racooder <76227605+Racooder@users.noreply.github.com>",
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "build": "tsc && cp -r src/localization package.json yarn.lock ./dist/ && mkdir ./dist/meta && cp -r meta/.env.template meta/config.yml.template ./dist/meta/",
+    "build": "tsc && cp -r src/localization package.json yarn.lock ./dist/ && mkdir ./dist/meta && cp -r meta/config.yml.template ./dist/meta/",
     "start": "node ./src/App.js",
     "dev": "ts-node ./src/App.ts"
   },
